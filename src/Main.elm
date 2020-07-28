@@ -29,7 +29,8 @@ main =
 
 type alias Model =
     { state : State
-    , query : Maybe String
+    , vertex_id_input : Maybe String
+    , aggregation_option : String
     , selected : List String
     }
 
@@ -51,7 +52,8 @@ type alias Response =
 initialModel : Model
 initialModel =
     { state = BuildingRequest
-    , query = Nothing
+    , vertex_id_input = Nothing
+    , aggregation_option = defaultAggregation
     , selected = []
     }
 
@@ -61,12 +63,23 @@ init _ =
     ( initialModel, Cmd.none )
 
 
+defaultAggregation : String
+defaultAggregation =
+    "Or"
+
+
+aggregationOptions : List String
+aggregationOptions =
+    [ defaultAggregation ] ++ [ "And" ]
+
+
 
 -- UPDATE
 
 
 type Msg
     = SearchInput String
+    | AggOptionInput String
     | RequestMade Direction
     | PostReceivedIn (Result Http.Error Response)
     | PostReceivedOut (Result Http.Error Response)
@@ -84,7 +97,7 @@ update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         SearchInput query ->
-            ( { model | query = Just query }, Cmd.none )
+            ( { model | vertex_id_input = Just query }, Cmd.none )
 
         RequestMade direction ->
             case direction of
@@ -109,9 +122,12 @@ update msg model =
         ConfirmSearch title ->
             ( { model | state = SearchConfirmed, selected = model.selected ++ [ title ] }, Cmd.none )
 
+        AggOptionInput opt ->
+            ( { model | aggregation_option = opt }, Cmd.none )
+
 
 updateWithRequest model buildRequestArg toMsg =
-    ( { model | state = Loading }, post (buildRequestArg model.selected) toMsg )
+    ( { model | state = Loading }, post (buildRequestArg model) toMsg )
 
 
 updateWithResponse model result direction =
@@ -159,9 +175,9 @@ responseDecoder =
         (Decode.field "response_vertex_ids" (Decode.list Decode.string))
 
 
-buildRequest : String -> List String -> Request
-buildRequest directionString selected =
-    Request selected directionString "or"
+buildRequest : String -> Model -> Request
+buildRequest directionString model =
+    Request model.selected directionString model.aggregation_option
 
 
 
@@ -181,7 +197,7 @@ view model =
             viewLoading
 
         RequestSuccess response direction ->
-            viewRequestSuccess response direction
+            viewRequestSuccess response direction model.aggregation_option
 
         RequestFailure error ->
             viewRequestFailure error
@@ -205,7 +221,7 @@ viewConfirmations model =
 
 viewBuildingRequest : Model -> Html Msg
 viewBuildingRequest model =
-    case model.query of
+    case model.vertex_id_input of
         Nothing ->
             viewBuildingRequestWithNoInputButMaybeSomeConfirmed model
 
@@ -246,12 +262,12 @@ viewLoading =
     div [ class "dropdown" ] [ text "Loading . . ." ]
 
 
-viewRequestSuccess : Response -> Direction -> Html Msg
-viewRequestSuccess response direction =
+viewRequestSuccess : Response -> Direction -> String -> Html Msg
+viewRequestSuccess response direction agg =
     div [ class "dropdown" ]
-        [ dropdownHead
-        , dropdownBody [ makeRequestInDirectionButton, makeRequestOutDirectionButton ]
+        [ dropDownHeadAndBody [ makeRequestInDirectionButton, makeRequestOutDirectionButton ]
         , defaultClearSearchButton
+        , viewAggregationUsed agg
         , viewTitlesSearched response.request_vertex_ids
         , viewDirectedResponse response direction
         ]
@@ -281,11 +297,20 @@ dropdownHead =
     p [ class "header" ] [ text ">Poli Graph Search<" ]
 
 
+dropdownOptions : String -> List String -> Html Msg
+dropdownOptions title optionNames =
+    div [ class "dropdown-options" ] [ text title, select [ onInput AggOptionInput ] (List.map dropDownOption optionNames) ]
+
+
+dropDownOption : String -> Html Msg
+dropDownOption optionName =
+    option [] [ text optionName ]
+
+
 dropdownBody : List (Html Msg) -> Html Msg
 dropdownBody moreHtml =
     div [ class "dropdown-body" ]
-        ([ input [ class "search-box", onInput SearchInput, placeholder "vertex id" ] []
-         ]
+        ([ input [ class "search-box", onInput SearchInput, placeholder "vertex id" ] [] ]
             ++ moreHtml
         )
 
@@ -294,6 +319,7 @@ dropDownHeadAndBody : List (Html Msg) -> Html Msg
 dropDownHeadAndBody moreHtml =
     div [ class "dropdown" ]
         [ dropdownHead
+        , dropdownOptions "Aggregation: " aggregationOptions
         , dropdownBody moreHtml
         ]
 
@@ -326,6 +352,11 @@ addSearchButton =
 confirmSearchButton : String -> Html Msg
 confirmSearchButton title =
     button [ class "button", onClick (ConfirmSearch title) ] [ text "Confirm" ]
+
+
+viewAggregationUsed : String -> Html Msg
+viewAggregationUsed agg =
+    ul [ class "dropdown" ] [ text "Aggregation: ", li [] [ text agg ] ]
 
 
 viewTitlesSearched : List String -> Html Msg
