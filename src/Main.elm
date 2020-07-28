@@ -2,7 +2,7 @@ module Main exposing (main)
 
 import Browser
 import Html exposing (..)
-import Html.Attributes exposing (class)
+import Html.Attributes exposing (class, placeholder)
 import Html.Events exposing (onClick, onInput)
 import Http
 import Json.Decode as Decode
@@ -284,7 +284,7 @@ dropdownHead =
 dropdownBody : List (Html Msg) -> Html Msg
 dropdownBody moreHtml =
     div [ class "dropdown-body" ]
-        ([ input [ class "search-box", onInput SearchInput ] []
+        ([ input [ class "search-box", onInput SearchInput, placeholder "vertex id" ] []
          ]
             ++ moreHtml
         )
