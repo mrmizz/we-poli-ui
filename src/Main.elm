@@ -31,7 +31,6 @@ type alias Model =
     { state : State
     , vertex_id_input : Maybe String
     , aggregation_input : String
-    , aggregation_options : List String
     , selected : List String
     }
 
@@ -55,7 +54,6 @@ initialModel =
     { state = BuildingRequest
     , vertex_id_input = Nothing
     , aggregation_input = defaultAggregationInput
-    , aggregation_options = defaultAggregationOptions
     , selected = []
     }
 
@@ -70,18 +68,13 @@ defaultAggregationInput =
     "Or"
 
 
-defaultAggregationOptions : List String
-defaultAggregationOptions =
-    [ "Or", "And" ]
-
-
 
 -- UPDATE
 
 
 type Msg
     = SearchInput String
-    | AggOptionInput String
+    | AggOptionInput
     | RequestMade Direction
     | PostReceivedIn (Result Http.Error Response)
     | PostReceivedOut (Result Http.Error Response)
@@ -124,8 +117,8 @@ update msg model =
         ConfirmSearch title ->
             ( { model | state = SearchConfirmed, selected = model.selected ++ [ title ] }, Cmd.none )
 
-        AggOptionInput opt ->
-            updateAggInputAndOptions opt model
+        AggOptionInput ->
+            updateAggInputAndOptions model
 
 
 updateWithRequest model buildRequestArg toMsg =
@@ -141,17 +134,14 @@ updateWithResponse model result direction =
             ( { model | state = RequestFailure error }, Cmd.none )
 
 
-updateAggInputAndOptions : String -> Model -> ( Model, Cmd Msg )
-updateAggInputAndOptions selected model =
-    case selected of
+updateAggInputAndOptions : Model -> ( Model, Cmd Msg )
+updateAggInputAndOptions model =
+    case model.aggregation_input of
         "Or" ->
-            ( { model | aggregation_input = selected, aggregation_options = [ "Or", "And" ] }, Cmd.none )
-
-        "And" ->
-            ( { model | aggregation_input = selected, aggregation_options = [ "And", "Or" ] }, Cmd.none )
+            ( { model | aggregation_input = "And" }, Cmd.none )
 
         _ ->
-            ( model, Cmd.none )
+            ( { model | aggregation_input = "Or" }, Cmd.none )
 
 
 
@@ -224,7 +214,7 @@ viewSearchConfirmed model =
         [ dropDownHeadAndBody [ makeRequestInDirectionButton, makeRequestOutDirectionButton ]
         , defaultClearSearchButton
         , addSearchButton
-        , viewAggOptions "Aggregation: " model.aggregation_options model.aggregation_input
+        , viewAggParam model.aggregation_input
         , viewConfirmations model
         ]
 
@@ -283,7 +273,7 @@ viewRequestSuccess response direction agg =
     div [ class "dropdown" ]
         [ dropDownHeadAndBody [ makeRequestInDirectionButton, makeRequestOutDirectionButton ]
         , defaultClearSearchButton
-        , viewAggregationUsed agg
+        , viewAggParam agg
         , viewTitlesSearched response.request_vertex_ids
         , viewDirectedResponse response direction
         ]
@@ -308,18 +298,9 @@ viewRequestFailure error =
             almostClearSearchButton [ text ("Bad Body: " ++ body ++ ", Try Again!") ]
 
 
-viewAggOptions : String -> List String -> String -> Html Msg
-viewAggOptions title optionNames agg =
-    div [ class "dropdown-options" ]
-        [ text title
-        , select [ onInput AggOptionInput ] (List.map viewAggOption optionNames)
-        , ul [] [ text "Aggregation: ", li [] [ text agg ] ]
-        ]
-
-
-viewAggOption : String -> Html Msg
-viewAggOption optionName =
-    option [] [ text optionName ]
+viewAggParam : String -> Html Msg
+viewAggParam agg =
+    div [ class "dropdown" ] [ text "Aggregation: ", button [ onClick AggOptionInput ] [text agg] ]
 
 
 dropdownHead : Html Msg
@@ -371,11 +352,6 @@ addSearchButton =
 confirmSearchButton : String -> Html Msg
 confirmSearchButton title =
     button [ class "button", onClick (ConfirmSearch title) ] [ text "Confirm" ]
-
-
-viewAggregationUsed : String -> Html Msg
-viewAggregationUsed agg =
-    ul [ class "dropdown" ] [ text "Aggregation: ", li [] [ text agg ] ]
 
 
 viewTitlesSearched : List String -> Html Msg
