@@ -300,7 +300,7 @@ viewRequestFailure error =
 
 viewAggParam : String -> Html Msg
 viewAggParam agg =
-    div [ class "dropdown" ] [ text "Aggregation: ", button [ onClick AggOptionInput ] [text agg] ]
+    div [ class "dropdown" ] [ text "Aggregation: ", button [ onClick AggOptionInput ] [ text agg ] ]
 
 
 dropdownHead : Html Msg
