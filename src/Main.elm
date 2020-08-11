@@ -30,7 +30,8 @@ main =
 type alias Model =
     { state : State
     , vertex_id_input : Maybe String
-    , aggregation_option : String
+    , aggregation_input : String
+    , aggregation_options: List String
     , selected : List String
     }
 
@@ -53,7 +54,8 @@ initialModel : Model
 initialModel =
     { state = BuildingRequest
     , vertex_id_input = Nothing
-    , aggregation_option = defaultAggregation
+    , aggregation_input = defaultAggregationInput
+    , aggregation_options = defaultAggregationOptions
     , selected = []
     }
 
@@ -63,14 +65,14 @@ init _ =
     ( initialModel, Cmd.none )
 
 
-defaultAggregation : String
-defaultAggregation =
+defaultAggregationInput : String
+defaultAggregationInput =
     "Or"
 
 
-aggregationOptions : List String
-aggregationOptions =
-    [ defaultAggregation ] ++ [ "And" ]
+defaultAggregationOptions : List String
+defaultAggregationOptions =
+    ["Or", "And"]
 
 
 
@@ -123,7 +125,7 @@ update msg model =
             ( { model | state = SearchConfirmed, selected = model.selected ++ [ title ] }, Cmd.none )
 
         AggOptionInput opt ->
-            ( { model | aggregation_option = opt }, Cmd.none )
+           updateAggInputAndOptions opt model
 
 
 updateWithRequest model buildRequestArg toMsg =
@@ -138,6 +140,12 @@ updateWithResponse model result direction =
         Err error ->
             ( { model | state = RequestFailure error }, Cmd.none )
 
+updateAggInputAndOptions: String -> Model -> (Model, Cmd Msg)
+updateAggInputAndOptions selected model =
+    case selected of
+        "Or" -> ( { model | aggregation_input = selected, aggregation_options =  ["Or", "And"] }, Cmd.none )
+        "And" -> ( { model | aggregation_input = selected, aggregation_options =  ["And", "Or"] }, Cmd.none )
+        _ -> ( model, Cmd.none )
 
 
 -- HTTP
@@ -177,7 +185,7 @@ responseDecoder =
 
 buildRequest : String -> Model -> Request
 buildRequest directionString model =
-    Request model.selected directionString model.aggregation_option
+    Request model.selected directionString model.aggregation_input
 
 
 
@@ -197,7 +205,7 @@ view model =
             viewLoading
 
         RequestSuccess response direction ->
-            viewRequestSuccess response direction model.aggregation_option
+            viewRequestSuccess response direction model.aggregation_input
 
         RequestFailure error ->
             viewRequestFailure error
@@ -209,6 +217,7 @@ viewSearchConfirmed model =
         [ dropDownHeadAndBody [ makeRequestInDirectionButton, makeRequestOutDirectionButton ]
         , defaultClearSearchButton
         , addSearchButton
+        , viewAggOptions "Aggregation: " model.aggregation_options model.aggregation_input
         , viewConfirmations model
         ]
 
@@ -292,19 +301,24 @@ viewRequestFailure error =
             almostClearSearchButton [ text ("Bad Body: " ++ body ++ ", Try Again!") ]
 
 
+viewAggOptions : String -> List String -> String -> Html Msg
+viewAggOptions title optionNames agg =
+    div [ class "dropdown-options" ]
+        [
+            text title
+            ,  select [ onInput AggOptionInput ] (List.map viewAggOption optionNames)
+            , ul [] [ text "Aggregation: ", li [] [ text agg ] ]
+        ]
+
+
+viewAggOption : String -> Html Msg
+viewAggOption optionName =
+    option [] [ text optionName ]
+
+
 dropdownHead : Html Msg
 dropdownHead =
     p [ class "header" ] [ text ">Poli Graph Search<" ]
-
-
-dropdownOptions : String -> List String -> Html Msg
-dropdownOptions title optionNames =
-    div [ class "dropdown-options" ] [ text title, select [ onInput AggOptionInput ] (List.map dropDownOption optionNames) ]
-
-
-dropDownOption : String -> Html Msg
-dropDownOption optionName =
-    option [] [ text optionName ]
 
 
 dropdownBody : List (Html Msg) -> Html Msg
@@ -319,7 +333,6 @@ dropDownHeadAndBody : List (Html Msg) -> Html Msg
 dropDownHeadAndBody moreHtml =
     div [ class "dropdown" ]
         [ dropdownHead
-        , dropdownOptions "Aggregation: " aggregationOptions
         , dropdownBody moreHtml
         ]
 
