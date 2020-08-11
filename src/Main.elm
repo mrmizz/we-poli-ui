@@ -31,7 +31,7 @@ type alias Model =
     { state : State
     , vertex_id_input : Maybe String
     , aggregation_input : String
-    , aggregation_options: List String
+    , aggregation_options : List String
     , selected : List String
     }
 
@@ -72,7 +72,7 @@ defaultAggregationInput =
 
 defaultAggregationOptions : List String
 defaultAggregationOptions =
-    ["Or", "And"]
+    [ "Or", "And" ]
 
 
 
@@ -125,7 +125,7 @@ update msg model =
             ( { model | state = SearchConfirmed, selected = model.selected ++ [ title ] }, Cmd.none )
 
         AggOptionInput opt ->
-           updateAggInputAndOptions opt model
+            updateAggInputAndOptions opt model
 
 
 updateWithRequest model buildRequestArg toMsg =
@@ -140,12 +140,19 @@ updateWithResponse model result direction =
         Err error ->
             ( { model | state = RequestFailure error }, Cmd.none )
 
-updateAggInputAndOptions: String -> Model -> (Model, Cmd Msg)
+
+updateAggInputAndOptions : String -> Model -> ( Model, Cmd Msg )
 updateAggInputAndOptions selected model =
     case selected of
-        "Or" -> ( { model | aggregation_input = selected, aggregation_options =  ["Or", "And"] }, Cmd.none )
-        "And" -> ( { model | aggregation_input = selected, aggregation_options =  ["And", "Or"] }, Cmd.none )
-        _ -> ( model, Cmd.none )
+        "Or" ->
+            ( { model | aggregation_input = selected, aggregation_options = [ "Or", "And" ] }, Cmd.none )
+
+        "And" ->
+            ( { model | aggregation_input = selected, aggregation_options = [ "And", "Or" ] }, Cmd.none )
+
+        _ ->
+            ( model, Cmd.none )
+
 
 
 -- HTTP
@@ -304,10 +311,9 @@ viewRequestFailure error =
 viewAggOptions : String -> List String -> String -> Html Msg
 viewAggOptions title optionNames agg =
     div [ class "dropdown-options" ]
-        [
-            text title
-            ,  select [ onInput AggOptionInput ] (List.map viewAggOption optionNames)
-            , ul [] [ text "Aggregation: ", li [] [ text agg ] ]
+        [ text title
+        , select [ onInput AggOptionInput ] (List.map viewAggOption optionNames)
+        , ul [] [ text "Aggregation: ", li [] [ text agg ] ]
         ]
 
 
