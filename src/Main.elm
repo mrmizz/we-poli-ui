@@ -1,4 +1,4 @@
-module Main exposing (main, cleanVertexNameInput, updateWithVertexIdResponse)
+module Main exposing (cleanVertexNameInput, main, updateWithVertexIdResponse)
 
 import Browser
 import Html exposing (..)
@@ -30,7 +30,7 @@ main =
 type alias Model =
     { state : State
     , vertex_name_input : Maybe String
-    , vertex_ids_response: List String
+    , vertex_ids_response : List String
     , aggregation_selected : String
     , vertex_ids_selected : List String
     }
@@ -125,11 +125,12 @@ cleanVertexNameInput : String -> String
 cleanVertexNameInput input =
     String.replace " " "" input
 
-updateWithVertexNamePrefixRequest: Model -> String -> ((Result Http.Error VertexNamePrefixResponse) -> Msg) -> (Model, Cmd Msg)
+
+updateWithVertexNamePrefixRequest : Model -> String -> (Result Http.Error VertexNamePrefixResponse -> Msg) -> ( Model, Cmd Msg )
 updateWithVertexNamePrefixRequest model prefix toMsg =
-    case ((String.length (cleanVertexNameInput prefix)) >= 3) of
+    case String.length (cleanVertexNameInput prefix) >= 3 of
         False ->
-            ( { model | vertex_name_input = Nothing}, Cmd.none)
+            ( { model | vertex_name_input = Nothing }, Cmd.none )
 
         True ->
             ( { model | vertex_name_input = Just prefix }
@@ -137,11 +138,10 @@ updateWithVertexNamePrefixRequest model prefix toMsg =
             )
 
 
-
 updateWithVertexNamePrefixResponse model result =
     case result of
         Ok response ->
-            ( { model | vertex_ids_response = (unpackVertexNamePrefixResponse response)}, Cmd.none )
+            ( { model | vertex_ids_response = unpackVertexNamePrefixResponse response }, Cmd.none )
 
         Err error ->
             ( { model | state = RequestFailure error }, Cmd.none )
@@ -149,12 +149,13 @@ updateWithVertexNamePrefixResponse model result =
 
 unpackVertexNamePrefixResponse : VertexNamePrefixResponse -> List String
 unpackVertexNamePrefixResponse response =
-    case (List.head response.items) of
+    case List.head response.items of
         Just head ->
             List.map unpackDynamoValue head.uids.list
 
         Nothing ->
             []
+
 
 unpackDynamoValue : DynamoValue -> String
 unpackDynamoValue dynamoValue =
@@ -184,6 +185,7 @@ updateAggInputAndOptions model =
             ( { model | aggregation_selected = "Or" }, Cmd.none )
 
 
+
 -- HTTP
 
 
@@ -192,6 +194,7 @@ type alias VertexIdsRequest =
     , direction : String
     , agg : String
     }
+
 
 type alias VertexIdsResponse =
     { request_vertex_ids : List String
@@ -230,16 +233,19 @@ vertexIdsBuildRequest directionString model =
 
 
 type alias VertexNamePrefixResponse =
-    { items: List VertexNamePrefixInnerResponse }
+    { items : List VertexNamePrefixInnerResponse }
+
 
 type alias VertexNamePrefixInnerResponse =
-    { uids: DynamoArrayValue
-    , prefix_size: DynamoValue
-    , prefix: DynamoValue
+    { uids : DynamoArrayValue
+    , prefix_size : DynamoValue
+    , prefix : DynamoValue
     }
+
 
 type alias DynamoArrayValue =
     { list : List DynamoValue }
+
 
 type alias DynamoValue =
     { value : String }
@@ -257,24 +263,28 @@ vertexNamePrefixResponseDecoder : Decode.Decoder VertexNamePrefixResponse
 vertexNamePrefixResponseDecoder =
     Decode.map VertexNamePrefixResponse (Decode.field "Items" (Decode.list vertexNamePrefixInnerResponseDecoder))
 
+
 vertexNamePrefixInnerResponseDecoder : Decode.Decoder VertexNamePrefixInnerResponse
 vertexNamePrefixInnerResponseDecoder =
     Decode.map3 VertexNamePrefixInnerResponse
-        (Decode.field "uids" (dynamoArrayNumberValueDecoder))
-        (Decode.field "prefix_size" (dynamoNumberValueDecoder))
-        (Decode.field "prefix" (dynamoStringFieldDecoder))
+        (Decode.field "uids" dynamoArrayNumberValueDecoder)
+        (Decode.field "prefix_size" dynamoNumberValueDecoder)
+        (Decode.field "prefix" dynamoStringFieldDecoder)
+
 
 dynamoArrayNumberValueDecoder : Decode.Decoder DynamoArrayValue
 dynamoArrayNumberValueDecoder =
     Decode.map DynamoArrayValue (Decode.field "L" (Decode.list dynamoNumberValueDecoder))
 
+
 dynamoNumberValueDecoder : Decode.Decoder DynamoValue
 dynamoNumberValueDecoder =
-    Decode.map DynamoValue ( Decode.field "N" (Decode.string) )
+    Decode.map DynamoValue (Decode.field "N" Decode.string)
+
 
 dynamoStringFieldDecoder : Decode.Decoder DynamoValue
 dynamoStringFieldDecoder =
-    Decode.map DynamoValue ( Decode.field "S" (Decode.string) )
+    Decode.map DynamoValue (Decode.field "S" Decode.string)
 
 
 
@@ -310,18 +320,21 @@ viewSearchConfirmed model =
         , viewConfirmations model
         ]
 
+
 viewVertexNamePrefixResponse : Model -> Html Msg
 viewVertexNamePrefixResponse model =
     ul [ class "dropdown" ]
-       ( [ text "Potential Search Matches:" ] ++ List.map buildPotentialSearchMatch model.vertex_ids_response )
+        ([ text "Potential Search Matches:" ] ++ List.map buildPotentialSearchMatch model.vertex_ids_response)
+
 
 buildPotentialSearchMatch string =
     li [] [ text string ]
 
+
 viewConfirmations : Model -> Html Msg
 viewConfirmations model =
     ul [ class "dropdown" ]
-       ( [ text "We're Searching For:" ] ++ List.map fromTitleToUrlHtml model.vertex_ids_selected )
+        ([ text "We're Searching For:" ] ++ List.map fromTitleToUrlHtml model.vertex_ids_selected)
 
 
 viewBuildingRequest : Model -> Html Msg
@@ -343,14 +356,12 @@ viewBuildingRequest model =
 
                         _ ->
                             div [ class "dropdown" ]
-                                (
-                                    [ dropDownHeadAndBody
-                                        [ confirmSearchButton title
-                                        , viewVertexNamePrefixResponse model
-                                        , viewConfirmations model
-                                        ]
+                                [ dropDownHeadAndBody
+                                    [ confirmSearchButton title
+                                    , viewVertexNamePrefixResponse model
+                                    , viewConfirmations model
                                     ]
-                                )
+                                ]
 
 
 viewNoInput : Html Msg
