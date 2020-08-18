@@ -1,4 +1,4 @@
-module Main exposing (cleanVertexNameInput, main, updateWithVertexIdResponse)
+module Main exposing (main, updateWithVertexNamePrefixResponse)
 
 import Browser
 import Html exposing (..)
@@ -30,11 +30,38 @@ main =
 type alias Model =
     { state : State
     , vertex_name_input : Maybe String
+    , vertex_data_response: List VertexData
     , vertex_ids_response : List String
     , aggregation_selected : String
-    , vertex_ids_selected : List String
+    , vertices_selected : List String
     }
 
+type alias VertexData =
+    { uid: String
+    , name: String
+    , is_committee: Bool
+    , cities: List String
+    , streets: List String
+    , states: List String
+    }
+
+getVertexId: VertexData -> String
+getVertexId vertexData =
+    vertexData.uid
+
+printVertexData: VertexData -> String
+printVertexData vertexData =
+    "name: " ++ vertexData.name ++ "\n"
+     ++ "is_committee: " ++ printBool vertexData.is_committee ++ "\n"
+     ++ "cities: " ++ String.join ", " vertexData.cities ++ "\n"
+     ++ "streets" ++ String.join ", " vertexData.streets ++ "\n"
+     ++ "states" ++ String.join ", " vertexData.states ++ "\n"
+
+printBool: Bool -> String
+printBool bool =
+    case bool of
+        True -> "true"
+        False -> "false"
 
 type State
     = BuildingRequest
@@ -48,9 +75,10 @@ initialModel : Model
 initialModel =
     { state = BuildingRequest
     , vertex_name_input = Nothing
+    , vertex_data_response = []
     , vertex_ids_response = []
     , aggregation_selected = defaultAggregationInput
-    , vertex_ids_selected = []
+    , vertices_selected = []
     }
 
 
@@ -75,6 +103,7 @@ type Msg
     | VertexIdsPostReceivedIn (Result Http.Error VertexIdsResponse)
     | VertexIdsPostReceivedOut (Result Http.Error VertexIdsResponse)
     | VertexNamePrefixGetReceived (Result Http.Error VertexNamePrefixResponse)
+    | VertexDataGetReceived (Result Http.Error (List VertexDataResponse))
     | ClearSearch
     | AddSearch
     | ConfirmSearch String
@@ -92,7 +121,10 @@ update msg model =
             updateWithVertexNamePrefixRequest model prefix VertexNamePrefixGetReceived
 
         VertexNamePrefixGetReceived result ->
-            updateWithVertexNamePrefixResponse model result
+            updateWithVertexNamePrefixResponse model result VertexDataGetReceived
+
+        VertexDataGetReceived result ->
+            updateWithVertexDataResponse model result
 
         VertexIdsRequestMade direction ->
             case direction of
@@ -115,7 +147,7 @@ update msg model =
             ( { model | state = BuildingRequest }, Cmd.none )
 
         ConfirmSearch title ->
-            ( { model | state = SearchConfirmed, vertex_ids_selected = model.vertex_ids_selected ++ [ title ] }, Cmd.none )
+            ( { model | state = SearchConfirmed, vertices_selected =  model.vertices_selected ++ [ title ] }, Cmd.none )
 
         AggOptionInput ->
             updateAggInputAndOptions model
@@ -137,14 +169,36 @@ updateWithVertexNamePrefixRequest model prefix toMsg =
             , vertexNamePrefixGet (cleanVertexNameInput prefix) toMsg
             )
 
-
-updateWithVertexNamePrefixResponse model result =
+updateWithVertexNamePrefixResponse: Model -> (Result Http.Error VertexNamePrefixResponse) -> ((Result Http.Error (List VertexDataResponse)) -> Msg) -> (Model, Cmd Msg)
+updateWithVertexNamePrefixResponse model result toMsg =
     case result of
         Ok response ->
-            ( { model | vertex_ids_response = unpackVertexNamePrefixResponse response }, Cmd.none )
+            case (unpackVertexNamePrefixResponse response) of
+                [] ->
+                    ( { model | vertex_ids_response = [] }, Cmd.none )
+                uids ->
+                   ( { model | vertex_ids_response = uids }, Cmd.batch (List.map (vertexDataGet toMsg) uids) )
 
         Err error ->
             ( { model | state = RequestFailure error }, Cmd.none )
+
+updateWithVertexDataResponse: Model -> (Result Http.Error (List VertexDataResponse)) -> (Model, Cmd Msg)
+updateWithVertexDataResponse model result =
+    case result of
+        Ok response ->
+            ( { model | vertex_data_response = (List.concatMap unpackVertexDataResponse response) }, Cmd.none )
+
+        Err error ->
+            ( { model | state = RequestFailure error }, Cmd.none )
+
+unpackVertexDataResponse : VertexDataResponse -> List VertexData
+unpackVertexDataResponse response =
+    case List.head response.items of
+        Just head ->
+            [VertexData (unpackDynamoValue head.uid) (unpackDynamoValue head.name) (unpackDynamoBool head.is_committee) (List.map unpackDynamoValue head.cities.list) (List.map unpackDynamoValue head.streets.list) (List.map unpackDynamoValue head.states.list)]
+
+        Nothing ->
+            []
 
 
 unpackVertexNamePrefixResponse : VertexNamePrefixResponse -> List String
@@ -161,6 +215,9 @@ unpackDynamoValue : DynamoValue -> String
 unpackDynamoValue dynamoValue =
     dynamoValue.value
 
+unpackDynamoBool : DynamoBool -> Bool
+unpackDynamoBool dynamoBool =
+    dynamoBool.value
 
 updateWithVertexIdRequest model buildRequestArg toMsg =
     ( { model | state = Loading }, vertexIdsPost (buildRequestArg model) toMsg )
@@ -172,7 +229,7 @@ updateWithVertexIdResponse model result direction =
             ( { model | state = VertexIdsRequestSuccess response direction }, Cmd.none )
 
         Err error ->
-            ( model, Cmd.none )
+            ( {model | state = RequestFailure error }, Cmd.none )
 
 
 updateAggInputAndOptions : Model -> ( Model, Cmd Msg )
@@ -210,7 +267,6 @@ vertexIdsPost request msg =
         , expect = Http.expectJson msg vertexIdsResponseDecoder
         }
 
-
 vertexIdsRequestEncoder : VertexIdsRequest -> Encode.Value
 vertexIdsRequestEncoder request =
     Encode.object
@@ -218,7 +274,6 @@ vertexIdsRequestEncoder request =
         , ( "direction", Encode.string request.direction )
         , ( "agg", Encode.string request.agg )
         ]
-
 
 vertexIdsResponseDecoder : Decode.Decoder VertexIdsResponse
 vertexIdsResponseDecoder =
@@ -229,12 +284,11 @@ vertexIdsResponseDecoder =
 
 vertexIdsBuildRequest : String -> Model -> VertexIdsRequest
 vertexIdsBuildRequest directionString model =
-    VertexIdsRequest model.vertex_ids_selected directionString model.aggregation_selected
+    VertexIdsRequest model.vertices_selected directionString model.aggregation_selected
 
 
 type alias VertexNamePrefixResponse =
     { items : List VertexNamePrefixInnerResponse }
-
 
 type alias VertexNamePrefixInnerResponse =
     { uids : DynamoArrayValue
@@ -242,49 +296,90 @@ type alias VertexNamePrefixInnerResponse =
     , prefix : DynamoValue
     }
 
-
-type alias DynamoArrayValue =
-    { list : List DynamoValue }
-
-
-type alias DynamoValue =
-    { value : String }
-
-
 vertexNamePrefixGet : String -> (Result Http.Error VertexNamePrefixResponse -> Msg) -> Cmd Msg
-vertexNamePrefixGet prefix msg =
+vertexNamePrefixGet prefix toMsg =
     Http.get
         { url = "https://yf87qmn85l.execute-api.us-west-2.amazonaws.com/v1/poli/prefix/" ++ prefix
-        , expect = Http.expectJson msg vertexNamePrefixResponseDecoder
+        , expect = Http.expectJson toMsg vertexNamePrefixResponseDecoder
         }
-
 
 vertexNamePrefixResponseDecoder : Decode.Decoder VertexNamePrefixResponse
 vertexNamePrefixResponseDecoder =
     Decode.map VertexNamePrefixResponse (Decode.field "Items" (Decode.list vertexNamePrefixInnerResponseDecoder))
-
 
 vertexNamePrefixInnerResponseDecoder : Decode.Decoder VertexNamePrefixInnerResponse
 vertexNamePrefixInnerResponseDecoder =
     Decode.map3 VertexNamePrefixInnerResponse
         (Decode.field "uids" dynamoArrayNumberValueDecoder)
         (Decode.field "prefix_size" dynamoNumberValueDecoder)
-        (Decode.field "prefix" dynamoStringFieldDecoder)
+        (Decode.field "prefix" dynamoStringValueDecoder)
 
+
+type alias VertexDataResponse =
+    { items: List VertexDataInnerResponse }
+
+type alias VertexDataInnerResponse =
+    { name: DynamoValue
+    , uid: DynamoValue
+    , is_committee: DynamoBool
+    , cities: DynamoArrayValue
+    , streets: DynamoArrayValue
+    , states: DynamoArrayValue
+    }
+
+vertexDataGet : (Result Http.Error (List VertexDataResponse) -> Msg) -> String -> Cmd Msg
+vertexDataGet toMsg uid =
+    Http.get
+        { url = "https://yf87qmn85l.execute-api.us-west-2.amazonaws.com/v1/poli/id/" ++ uid
+        , expect = Http.expectJson toMsg (Decode.list vertexDataResponseDecoder)
+        }
+
+vertexDataResponseDecoder: Decode.Decoder VertexDataResponse
+vertexDataResponseDecoder =
+    Decode.map VertexDataResponse (Decode.field "Items" (Decode.list vertexDataInnerResponseDecoder))
+
+vertexDataInnerResponseDecoder: Decode.Decoder VertexDataInnerResponse
+vertexDataInnerResponseDecoder =
+    Decode.map6 VertexDataInnerResponse
+        (Decode.field "name" dynamoStringValueDecoder)
+        (Decode.field "uid" dynamoNumberValueDecoder)
+        (Decode.field "is_committee" dynamoBoolDecoder)
+        (Decode.field "cities" dynamoArrayStringValueDecoder)
+        (Decode.field "streets" dynamoArrayStringValueDecoder)
+        (Decode.field "states" dynamoArrayStringValueDecoder)
 
 dynamoArrayNumberValueDecoder : Decode.Decoder DynamoArrayValue
 dynamoArrayNumberValueDecoder =
     Decode.map DynamoArrayValue (Decode.field "L" (Decode.list dynamoNumberValueDecoder))
 
+dynamoArrayStringValueDecoder : Decode.Decoder DynamoArrayValue
+dynamoArrayStringValueDecoder =
+    Decode.map DynamoArrayValue (Decode.field "L" (Decode.list dynamoStringValueDecoder))
 
 dynamoNumberValueDecoder : Decode.Decoder DynamoValue
 dynamoNumberValueDecoder =
     Decode.map DynamoValue (Decode.field "N" Decode.string)
 
-
-dynamoStringFieldDecoder : Decode.Decoder DynamoValue
-dynamoStringFieldDecoder =
+dynamoStringValueDecoder : Decode.Decoder DynamoValue
+dynamoStringValueDecoder =
     Decode.map DynamoValue (Decode.field "S" Decode.string)
+
+dynamoBoolDecoder: Decode.Decoder DynamoBool
+dynamoBoolDecoder =
+    Decode.map DynamoBool (Decode.field "BOOL" Decode.bool)
+
+
+type alias DynamoArrayValue =
+    { list : List DynamoValue }
+
+type alias DynamoValue =
+    { value : String }
+
+type alias DynamoBool =
+    { value: Bool }
+
+
+
 
 
 
@@ -324,17 +419,17 @@ viewSearchConfirmed model =
 viewVertexNamePrefixResponse : Model -> Html Msg
 viewVertexNamePrefixResponse model =
     ul [ class "dropdown" ]
-        ([ text "Potential Search Matches:" ] ++ List.map buildPotentialSearchMatch model.vertex_ids_response)
+        ([ text "Potential Search Matches:" ] ++ List.map buildPotentialSearchMatch model.vertex_data_response)
 
 
-buildPotentialSearchMatch string =
-    li [] [ text string ]
+buildPotentialSearchMatch vertexData =
+    li [] [ text (printVertexData vertexData) ]
 
 
 viewConfirmations : Model -> Html Msg
 viewConfirmations model =
     ul [ class "dropdown" ]
-        ([ text "We're Searching For:" ] ++ List.map fromTitleToUrlHtml model.vertex_ids_selected)
+        ([ text "We're Searching For:" ] ++ List.map fromTitleToUrlHtml model.vertices_selected)
 
 
 viewBuildingRequest : Model -> Html Msg
@@ -349,7 +444,7 @@ viewBuildingRequest model =
                     viewBuildingRequestWithNoInputButMaybeSomeConfirmed model
 
                 _ ->
-                    case model.vertex_ids_selected of
+                    case model.vertices_selected of
                         [] ->
                             div [ class "dropdown" ]
                                 [ dropDownHeadAndBody [ confirmSearchButton title, viewVertexNamePrefixResponse model ] ]
@@ -370,8 +465,9 @@ viewNoInput =
         [ dropDownHeadAndBody [] ]
 
 
+viewBuildingRequestWithNoInputButMaybeSomeConfirmed : Model -> Html Msg
 viewBuildingRequestWithNoInputButMaybeSomeConfirmed model =
-    case model.vertex_ids_selected of
+    case model.vertices_selected of
         [] ->
             viewNoInput
 
