@@ -7,8 +7,8 @@ import Html.Events exposing (onClick, onInput)
 import Http
 import Json.Decode as Decode
 import Json.Encode as Encode
-import Set exposing (Set)
 import List
+import Set exposing (Set)
 
 
 
@@ -147,10 +147,10 @@ update msg model =
             updateAggInputAndOptions model
 
         VertexSelected uid ->
-            ( { model| vertex_ids_selected = (Set.insert uid  model.vertex_ids_selected) }, Cmd.none )
+            ( { model | vertex_ids_selected = Set.insert uid model.vertex_ids_selected }, Cmd.none )
 
         DeleteVertexSelection uid ->
-            ( { model | vertex_ids_selected = (Set.remove uid model.vertex_ids_selected) }, Cmd.none)
+            ( { model | vertex_ids_selected = Set.remove uid model.vertex_ids_selected }, Cmd.none )
 
 
 cleanVertexNameInput : String -> String
@@ -432,7 +432,8 @@ viewSearchConfirmed model =
         , viewVertexIdsConfirmed (Set.toList model.vertex_ids_selected)
         ]
 
-viewVertexIdsConfirmed: List String -> Html Msg
+
+viewVertexIdsConfirmed : List String -> Html Msg
 viewVertexIdsConfirmed uids =
     ul [ class "dropdown" ] ([ text "Titles Searched: " ] ++ List.map htmlListItem uids)
 
@@ -450,7 +451,8 @@ buildPotentialSearchMatch vertexData =
 
 viewVertexIdSelected : String -> Html Msg
 viewVertexIdSelected uid =
-    li [] [ button [ onClick (DeleteVertexSelection uid)] [text "delete"], text uid ]
+    li [] [ button [ onClick (DeleteVertexSelection uid) ] [ text "delete" ], text uid ]
+
 
 viewVertexIdsSelected : Model -> Html Msg
 viewVertexIdsSelected model =
@@ -470,7 +472,7 @@ viewBuildingRequest model =
                     viewBuildingRequestWithNoInputButMaybeSomeConfirmed model
 
                 _ ->
-                    case (Set.toList model.vertex_ids_selected) of
+                    case Set.toList model.vertex_ids_selected of
                         [] ->
                             div [ class "dropdown" ]
                                 [ dropDownHeadAndBody [ confirmSearchButton, viewVertexNamePrefixResponse model ] ]
@@ -493,7 +495,7 @@ viewNoInput =
 
 viewBuildingRequestWithNoInputButMaybeSomeConfirmed : Model -> Html Msg
 viewBuildingRequestWithNoInputButMaybeSomeConfirmed model =
-    case (Set.toList model.vertex_ids_selected) of
+    case Set.toList model.vertex_ids_selected of
         [] ->
             viewNoInput
 
@@ -587,7 +589,7 @@ addSearchButton =
     button [ class "button", onClick AddSearch ] [ text "Add Search" ]
 
 
-confirmSearchButton: Html Msg
+confirmSearchButton : Html Msg
 confirmSearchButton =
     button [ class "button", onClick ConfirmSearch ] [ text "Confirm" ]
 
@@ -627,20 +629,19 @@ htmlListItem uid =
 fromVertexDataToHTML : VertexData -> Html Msg
 fromVertexDataToHTML vertexData =
     li []
-        [ button [onClick (VertexSelected vertexData.uid)] [text "Select"]
-        ,
-            ul []
-                [ li [ ]
-                    [ text "name:"
-                    , ul [] [ li [] [ text vertexData.name ] ]
-                    ]
-                , li []
-                    [ text "is_comittee:"
-                    , ul [] [ li [] [ text (printBool vertexData.is_committee) ] ]
-                    ]
-                , li []
-                    [ text "cities:"
-                    , ul [] [ li [] (List.map text vertexData.cities) ]
-                    ]
+        [ button [ onClick (VertexSelected vertexData.uid) ] [ text "Select" ]
+        , ul []
+            [ li []
+                [ text "name:"
+                , ul [] [ li [] [ text vertexData.name ] ]
                 ]
+            , li []
+                [ text "is_comittee:"
+                , ul [] [ li [] [ text (printBool vertexData.is_committee) ] ]
+                ]
+            , li []
+                [ text "cities:"
+                , ul [] [ li [] (List.map text vertexData.cities) ]
+                ]
+            ]
         ]
