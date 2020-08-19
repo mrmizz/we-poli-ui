@@ -7,6 +7,8 @@ import Html.Events exposing (onClick, onInput)
 import Http
 import Json.Decode as Decode
 import Json.Encode as Encode
+import Set exposing (Set)
+import List
 
 
 
@@ -33,7 +35,7 @@ type alias Model =
     , vertex_data_response : List VertexData
     , vertex_ids_response : List String
     , aggregation_selected : String
-    , vertex_ids_selected : List String
+    , vertex_ids_selected : Set String
     }
 
 
@@ -72,7 +74,7 @@ initialModel =
     , vertex_data_response = []
     , vertex_ids_response = []
     , aggregation_selected = defaultAggregationInput
-    , vertex_ids_selected = []
+    , vertex_ids_selected = Set.empty
     }
 
 
@@ -145,14 +147,10 @@ update msg model =
             updateAggInputAndOptions model
 
         VertexSelected uid ->
-            ( { model| vertex_ids_selected = model.vertex_ids_selected ++ [ uid ] }, Cmd.none )
+            ( { model| vertex_ids_selected = (Set.insert uid  model.vertex_ids_selected) }, Cmd.none )
 
         DeleteVertexSelection uid ->
-            ( { model | vertex_ids_selected = (List.filter (equalsThisVertexId uid)  model.vertex_ids_selected) }, Cmd.none)
-
-equalsThisVertexId this other =
-    this == other
-
+            ( { model | vertex_ids_selected = (Set.remove uid model.vertex_ids_selected) }, Cmd.none)
 
 
 cleanVertexNameInput : String -> String
@@ -295,7 +293,7 @@ vertexIdsResponseDecoder =
 
 vertexIdsBuildRequest : String -> Model -> VertexIdsRequest
 vertexIdsBuildRequest directionString model =
-    VertexIdsRequest model.vertex_ids_selected directionString model.aggregation_selected
+    VertexIdsRequest (Set.toList model.vertex_ids_selected) directionString model.aggregation_selected
 
 
 type alias VertexNamePrefixResponse =
@@ -431,7 +429,7 @@ viewSearchConfirmed model =
         , defaultClearSearchButton
         , addSearchButton
         , viewAggParam model.aggregation_selected
-        , viewVertexIdsConfirmed model.vertex_ids_selected
+        , viewVertexIdsConfirmed (Set.toList model.vertex_ids_selected)
         ]
 
 viewVertexIdsConfirmed: List String -> Html Msg
@@ -457,7 +455,7 @@ viewVertexIdSelected uid =
 viewVertexIdsSelected : Model -> Html Msg
 viewVertexIdsSelected model =
     ul [ class "dropdown" ]
-        ([ text "We're Searching For:" ] ++ List.map viewVertexIdSelected model.vertex_ids_selected)
+        ([ text "We're Searching For:" ] ++ List.map viewVertexIdSelected (Set.toList model.vertex_ids_selected))
 
 
 viewBuildingRequest : Model -> Html Msg
@@ -472,7 +470,7 @@ viewBuildingRequest model =
                     viewBuildingRequestWithNoInputButMaybeSomeConfirmed model
 
                 _ ->
-                    case model.vertex_ids_selected of
+                    case (Set.toList model.vertex_ids_selected) of
                         [] ->
                             div [ class "dropdown" ]
                                 [ dropDownHeadAndBody [ confirmSearchButton, viewVertexNamePrefixResponse model ] ]
@@ -495,7 +493,7 @@ viewNoInput =
 
 viewBuildingRequestWithNoInputButMaybeSomeConfirmed : Model -> Html Msg
 viewBuildingRequestWithNoInputButMaybeSomeConfirmed model =
-    case model.vertex_ids_selected of
+    case (Set.toList model.vertex_ids_selected) of
         [] ->
             viewNoInput
 
