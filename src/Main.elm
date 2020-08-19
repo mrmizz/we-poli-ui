@@ -33,7 +33,7 @@ type alias Model =
     , vertex_data_response : List VertexData
     , vertex_ids_response : List String
     , aggregation_selected : String
-    , vertices_selected : List String
+    , vertex_ids_selected : List String
     }
 
 
@@ -72,7 +72,7 @@ initialModel =
     , vertex_data_response = []
     , vertex_ids_response = []
     , aggregation_selected = defaultAggregationInput
-    , vertices_selected = []
+    , vertex_ids_selected = []
     }
 
 
@@ -92,14 +92,16 @@ defaultAggregationInput =
 
 type Msg
     = SearchInput String
-    | AggOptionInput
+    | AggOptionSelected
+    | VertexSelected String
+    | DeleteVertexSelection String
     | VertexIdsRequestMade Direction
     | VertexIdsPostReceivedIn (Result Http.Error VertexIdsResponse)
     | VertexIdsPostReceivedOut (Result Http.Error VertexIdsResponse)
     | VertexNamePrefixGetReceived (Result Http.Error VertexNamePrefixResponse)
     | ClearSearch
     | AddSearch
-    | ConfirmSearch String
+    | ConfirmSearch
 
 
 type Direction
@@ -136,11 +138,21 @@ update msg model =
         AddSearch ->
             ( { model | state = BuildingRequest }, Cmd.none )
 
-        ConfirmSearch title ->
-            ( { model | state = SearchConfirmed, vertices_selected = model.vertices_selected ++ [ title ] }, Cmd.none )
+        ConfirmSearch ->
+            ( { model | state = SearchConfirmed }, Cmd.none )
 
-        AggOptionInput ->
+        AggOptionSelected ->
             updateAggInputAndOptions model
+
+        VertexSelected uid ->
+            ( { model| vertex_ids_selected = model.vertex_ids_selected ++ [ uid ] }, Cmd.none )
+
+        DeleteVertexSelection uid ->
+            ( { model | vertex_ids_selected = (List.filter (equalsThisVertexId uid)  model.vertex_ids_selected) }, Cmd.none)
+
+equalsThisVertexId this other =
+    this == other
+
 
 
 cleanVertexNameInput : String -> String
@@ -197,7 +209,13 @@ unpackDynamoVertexDataInnerInner dynamoVertexDataInnerInner =
 
 unpackDynamoVertexData : DynamoVertexData -> VertexData
 unpackDynamoVertexData dynamoVertexData =
-    VertexData (unpackDynamoValue dynamoVertexData.uid) (unpackDynamoValue dynamoVertexData.name) (unpackDynamoBool dynamoVertexData.is_committee) (List.map unpackDynamoValue dynamoVertexData.cities.list) (List.map unpackDynamoValue dynamoVertexData.streets.list) (List.map unpackDynamoValue dynamoVertexData.states.list)
+    VertexData
+        (unpackDynamoValue dynamoVertexData.uid)
+        (unpackDynamoValue dynamoVertexData.name)
+        (unpackDynamoBool dynamoVertexData.is_committee)
+        (List.map unpackDynamoValue dynamoVertexData.cities.list)
+        (List.map unpackDynamoValue dynamoVertexData.streets.list)
+        (List.map unpackDynamoValue dynamoVertexData.states.list)
 
 
 unpackDynamoValue : DynamoValue -> String
@@ -277,7 +295,7 @@ vertexIdsResponseDecoder =
 
 vertexIdsBuildRequest : String -> Model -> VertexIdsRequest
 vertexIdsBuildRequest directionString model =
-    VertexIdsRequest model.vertices_selected directionString model.aggregation_selected
+    VertexIdsRequest model.vertex_ids_selected directionString model.aggregation_selected
 
 
 type alias VertexNamePrefixResponse =
@@ -431,7 +449,7 @@ buildPotentialSearchMatch vertexData =
 viewConfirmations : Model -> Html Msg
 viewConfirmations model =
     ul [ class "dropdown" ]
-        ([ text "We're Searching For:" ] ++ List.map fromTitleToUrlHtml model.vertices_selected)
+        ([ text "We're Searching For:" ] ++ List.map fromTitleToUrlHtml model.vertex_ids_selected)
 
 
 viewBuildingRequest : Model -> Html Msg
@@ -446,17 +464,17 @@ viewBuildingRequest model =
                     viewBuildingRequestWithNoInputButMaybeSomeConfirmed model
 
                 _ ->
-                    case model.vertices_selected of
+                    case model.vertex_ids_selected of
                         [] ->
                             div [ class "dropdown" ]
-                                [ dropDownHeadAndBody [ confirmSearchButton title, viewVertexNamePrefixResponse model ] ]
+                                [ dropDownHeadAndBody [ confirmSearchButton, viewVertexNamePrefixResponse model ] ]
 
                         _ ->
                             div [ class "dropdown" ]
                                 [ dropDownHeadAndBody
-                                    [ confirmSearchButton title
-                                    , viewVertexNamePrefixResponse model
+                                    [ confirmSearchButton
                                     , viewConfirmations model
+                                    , viewVertexNamePrefixResponse model
                                     ]
                                 ]
 
@@ -469,7 +487,7 @@ viewNoInput =
 
 viewBuildingRequestWithNoInputButMaybeSomeConfirmed : Model -> Html Msg
 viewBuildingRequestWithNoInputButMaybeSomeConfirmed model =
-    case model.vertices_selected of
+    case model.vertex_ids_selected of
         [] ->
             viewNoInput
 
@@ -515,7 +533,7 @@ viewRequestFailure error =
 
 viewAggParam : String -> Html Msg
 viewAggParam agg =
-    div [ class "dropdown" ] [ text "Aggregation: ", button [ onClick AggOptionInput ] [ text agg ] ]
+    div [ class "dropdown" ] [ text "Aggregation: ", button [ onClick AggOptionSelected ] [ text agg ] ]
 
 
 dropdownHead : Html Msg
@@ -564,9 +582,9 @@ addSearchButton =
     button [ class "button", onClick AddSearch ] [ text "Add Search" ]
 
 
-confirmSearchButton : String -> Html Msg
-confirmSearchButton title =
-    button [ class "button", onClick (ConfirmSearch title) ] [ text "Confirm" ]
+confirmSearchButton: Html Msg
+confirmSearchButton =
+    button [ class "button", onClick ConfirmSearch ] [ text "Confirm" ]
 
 
 viewTitlesSearched : List String -> Html Msg
@@ -595,25 +613,9 @@ responseItems items =
     List.map fromTitleToUrlHtml items
 
 
-cleanTitle : String -> String
-cleanTitle title =
-    title
-        |> String.replace "[" ""
-        |> String.replace "]" ""
-
-
-fromTitleToUrl : String -> String
-fromTitleToUrl title =
-    "https://en.wikipedia.org/wiki/"
-        ++ (title
-                |> cleanTitle
-                |> String.replace " " "_"
-           )
-
-
 fromTitleToUrlHtml : String -> Html Msg
-fromTitleToUrlHtml title =
-    li [] [ a [ Html.Attributes.target "_blank", Html.Attributes.href (fromTitleToUrl title) ] [ text title ] ]
+fromTitleToUrlHtml uid =
+    li [] [ button [ onClick (DeleteVertexSelection uid)] [text "delete"], text uid ]
 
 
 
@@ -623,14 +625,20 @@ fromTitleToUrlHtml title =
 fromVertexDataToHTML : VertexData -> Html Msg
 fromVertexDataToHTML vertexData =
     li []
-        [ ul []
-            [ li []
-                [ text "name:"
-                , ul [] [ li [] [ text vertexData.name ] ]
+        [ button [onClick (VertexSelected vertexData.uid)] [text "Select"]
+        ,
+            ul []
+                [ li [ ]
+                    [ text "name:"
+                    , ul [] [ li [] [ text vertexData.name ] ]
+                    ]
+                , li []
+                    [ text "is_comittee:"
+                    , ul [] [ li [] [ text (printBool vertexData.is_committee) ] ]
+                    ]
+                , li []
+                    [ text "cities:"
+                    , ul [] [ li [] (List.map text vertexData.cities) ]
+                    ]
                 ]
-            , li []
-                [ text "is_comittee:"
-                , ul [] [ li [] [ text (printBool vertexData.is_committee) ] ]
-                ]
-            ]
         ]
