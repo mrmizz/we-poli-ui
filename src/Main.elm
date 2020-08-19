@@ -30,34 +30,51 @@ main =
 type alias Model =
     { state : State
     , vertex_name_input : Maybe String
-    , vertex_data_response: List VertexData
+    , vertex_data_response : List VertexData
     , vertex_ids_response : List String
     , aggregation_selected : String
     , vertices_selected : List String
     }
 
+
 type alias VertexData =
-    { uid: String
-    , name: String
-    , is_committee: Bool
-    , cities: List String
-    , streets: List String
-    , states: List String
+    { uid : String
+    , name : String
+    , is_committee : Bool
+    , cities : List String
+    , streets : List String
+    , states : List String
     }
 
-printVertexData: VertexData -> String
-printVertexData vertexData =
-    "name: " ++ vertexData.name ++ "\n"
-     ++ "is_committee: " ++ printBool vertexData.is_committee ++ "\n"
-     ++ "cities: " ++ String.join ", " vertexData.cities ++ "\n"
-     ++ "streets" ++ String.join ", " vertexData.streets ++ "\n"
-     ++ "states" ++ String.join ", " vertexData.states ++ "\n"
 
-printBool: Bool -> String
+printVertexData : VertexData -> String
+printVertexData vertexData =
+    "name: "
+        ++ vertexData.name
+        ++ "\n"
+        ++ "is_committee: "
+        ++ printBool vertexData.is_committee
+        ++ "\n"
+        ++ "cities: "
+        ++ String.join ", " vertexData.cities
+        ++ "\n"
+        ++ "streets"
+        ++ String.join ", " vertexData.streets
+        ++ "\n"
+        ++ "states"
+        ++ String.join ", " vertexData.states
+        ++ "\n"
+
+
+printBool : Bool -> String
 printBool bool =
     case bool of
-        True -> "true"
-        False -> "false"
+        True ->
+            "true"
+
+        False ->
+            "false"
+
 
 type State
     = BuildingRequest
@@ -139,7 +156,7 @@ update msg model =
             ( { model | state = BuildingRequest }, Cmd.none )
 
         ConfirmSearch title ->
-            ( { model | state = SearchConfirmed, vertices_selected =  model.vertices_selected ++ [ title ] }, Cmd.none )
+            ( { model | state = SearchConfirmed, vertices_selected = model.vertices_selected ++ [ title ] }, Cmd.none )
 
         AggOptionInput ->
             updateAggInputAndOptions model
@@ -161,15 +178,17 @@ updateWithVertexNamePrefixRequest model prefix toMsg =
             , vertexNamePrefixGet (cleanVertexNameInput prefix) toMsg
             )
 
-updateWithVertexNamePrefixResponse: Model -> (Result Http.Error VertexNamePrefixResponse) -> (Model, Cmd Msg)
+
+updateWithVertexNamePrefixResponse : Model -> Result Http.Error VertexNamePrefixResponse -> ( Model, Cmd Msg )
 updateWithVertexNamePrefixResponse model result =
     case result of
         Ok response ->
-            case (unpackVertexNamePrefixResponse response) of
+            case unpackVertexNamePrefixResponse response of
                 [] ->
                     ( { model | vertex_data_response = [] }, Cmd.none )
+
                 vertices ->
-                   ( { model | vertex_data_response = vertices }, Cmd.none )
+                    ( { model | vertex_data_response = vertices }, Cmd.none )
 
         Err error ->
             ( { model | state = RequestFailure error }, Cmd.none )
@@ -184,25 +203,31 @@ unpackVertexNamePrefixResponse response =
         Nothing ->
             []
 
+
 unpackDynamoVertexDataInner : DynamoVertexDataInner -> List VertexData
 unpackDynamoVertexDataInner dynamoVertexDataInner =
-    List.map unpackDynamoVertexDataInnerInner (dynamoVertexDataInner.item)
+    List.map unpackDynamoVertexDataInnerInner dynamoVertexDataInner.item
+
 
 unpackDynamoVertexDataInnerInner : DynamoVertexDataInnerInner -> VertexData
 unpackDynamoVertexDataInnerInner dynamoVertexDataInnerInner =
-    unpackDynamoVertexData (dynamoVertexDataInnerInner.items)
+    unpackDynamoVertexData dynamoVertexDataInnerInner.items
+
 
 unpackDynamoVertexData : DynamoVertexData -> VertexData
 unpackDynamoVertexData dynamoVertexData =
     VertexData (unpackDynamoValue dynamoVertexData.uid) (unpackDynamoValue dynamoVertexData.name) (unpackDynamoBool dynamoVertexData.is_committee) (List.map unpackDynamoValue dynamoVertexData.cities.list) (List.map unpackDynamoValue dynamoVertexData.streets.list) (List.map unpackDynamoValue dynamoVertexData.states.list)
 
+
 unpackDynamoValue : DynamoValue -> String
 unpackDynamoValue dynamoValue =
     dynamoValue.value
 
+
 unpackDynamoBool : DynamoBool -> Bool
 unpackDynamoBool dynamoBool =
     dynamoBool.value
+
 
 updateWithVertexIdRequest model buildRequestArg toMsg =
     ( { model | state = Loading }, vertexIdsPost (buildRequestArg model) toMsg )
@@ -214,7 +239,7 @@ updateWithVertexIdResponse model result direction =
             ( { model | state = VertexIdsRequestSuccess response direction }, Cmd.none )
 
         Err error ->
-            ( {model | state = RequestFailure error }, Cmd.none )
+            ( { model | state = RequestFailure error }, Cmd.none )
 
 
 updateAggInputAndOptions : Model -> ( Model, Cmd Msg )
@@ -252,6 +277,7 @@ vertexIdsPost request msg =
         , expect = Http.expectJson msg vertexIdsResponseDecoder
         }
 
+
 vertexIdsRequestEncoder : VertexIdsRequest -> Encode.Value
 vertexIdsRequestEncoder request =
     Encode.object
@@ -259,6 +285,7 @@ vertexIdsRequestEncoder request =
         , ( "direction", Encode.string request.direction )
         , ( "agg", Encode.string request.agg )
         ]
+
 
 vertexIdsResponseDecoder : Decode.Decoder VertexIdsResponse
 vertexIdsResponseDecoder =
@@ -275,26 +302,30 @@ vertexIdsBuildRequest directionString model =
 type alias VertexNamePrefixResponse =
     { items : List VertexNamePrefixInnerResponse }
 
+
 type alias VertexNamePrefixInnerResponse =
     { prefix : DynamoValue
     , prefix_size : DynamoValue
     , vertices : DynamoVertexDataInner
     }
 
+
 type alias DynamoVertexData =
-    { name: DynamoValue
-    , uid: DynamoValue
-    , is_committee: DynamoBool
-    , cities: DynamoArrayValue
-    , streets: DynamoArrayValue
-    , states: DynamoArrayValue
+    { name : DynamoValue
+    , uid : DynamoValue
+    , is_committee : DynamoBool
+    , cities : DynamoArrayValue
+    , streets : DynamoArrayValue
+    , states : DynamoArrayValue
     }
 
+
 type alias DynamoVertexDataInnerInner =
-    { items: DynamoVertexData }
+    { items : DynamoVertexData }
+
 
 type alias DynamoVertexDataInner =
-    { item: List DynamoVertexDataInnerInner }
+    { item : List DynamoVertexDataInnerInner }
 
 
 vertexNamePrefixGet : String -> (Result Http.Error VertexNamePrefixResponse -> Msg) -> Cmd Msg
@@ -304,9 +335,11 @@ vertexNamePrefixGet prefix toMsg =
         , expect = Http.expectJson toMsg vertexNamePrefixResponseDecoder
         }
 
+
 vertexNamePrefixResponseDecoder : Decode.Decoder VertexNamePrefixResponse
 vertexNamePrefixResponseDecoder =
     Decode.map VertexNamePrefixResponse (Decode.field "Items" (Decode.list vertexNamePrefixInnerResponseDecoder))
+
 
 vertexNamePrefixInnerResponseDecoder : Decode.Decoder VertexNamePrefixInnerResponse
 vertexNamePrefixInnerResponseDecoder =
@@ -315,15 +348,18 @@ vertexNamePrefixInnerResponseDecoder =
         (Decode.field "prefix_size" dynamoNumberValueDecoder)
         (Decode.field "vertices" dynamoVertexDataInnerDecoder)
 
+
 dynamoVertexDataInnerDecoder : Decode.Decoder DynamoVertexDataInner
 dynamoVertexDataInnerDecoder =
     Decode.map DynamoVertexDataInner (Decode.field "L" (Decode.list dynamoVertexDataInnerInnerDecoder))
+
 
 dynamoVertexDataInnerInnerDecoder : Decode.Decoder DynamoVertexDataInnerInner
 dynamoVertexDataInnerInnerDecoder =
     Decode.map DynamoVertexDataInnerInner (Decode.field "M" vertexDataInnerResponseDecoder)
 
-vertexDataInnerResponseDecoder: Decode.Decoder DynamoVertexData
+
+vertexDataInnerResponseDecoder : Decode.Decoder DynamoVertexData
 vertexDataInnerResponseDecoder =
     Decode.map6 DynamoVertexData
         (Decode.field "name" dynamoStringValueDecoder)
@@ -333,31 +369,37 @@ vertexDataInnerResponseDecoder =
         (Decode.field "streets" dynamoArrayStringValueDecoder)
         (Decode.field "states" dynamoArrayStringValueDecoder)
 
+
 type alias DynamoArrayValue =
     { list : List DynamoValue }
+
 
 type alias DynamoValue =
     { value : String }
 
+
 type alias DynamoBool =
-    { value: Bool }
+    { value : Bool }
+
 
 dynamoArrayStringValueDecoder : Decode.Decoder DynamoArrayValue
 dynamoArrayStringValueDecoder =
     Decode.map DynamoArrayValue (Decode.field "L" (Decode.list dynamoStringValueDecoder))
 
+
 dynamoNumberValueDecoder : Decode.Decoder DynamoValue
 dynamoNumberValueDecoder =
     Decode.map DynamoValue (Decode.field "N" Decode.string)
+
 
 dynamoStringValueDecoder : Decode.Decoder DynamoValue
 dynamoStringValueDecoder =
     Decode.map DynamoValue (Decode.field "S" Decode.string)
 
-dynamoBoolDecoder: Decode.Decoder DynamoBool
+
+dynamoBoolDecoder : Decode.Decoder DynamoBool
 dynamoBoolDecoder =
     Decode.map DynamoBool (Decode.field "BOOL" Decode.bool)
-
 
 
 
