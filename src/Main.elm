@@ -525,31 +525,31 @@ viewRequestFailure error =
     case error of
         Http.BadUrl string ->
             div []
-                [ text ("Bad Url: " ++ string ++ ", Try Again!")
+                [ text ("Bad Url: " ++ string)
                 , div [] [ defaultClearSearchButton, editSearchButton, returnToSearchButton ]
                 ]
 
         Http.Timeout ->
             div []
-                [ text "Server Timeout, Try Again!"
+                [ text "Server Timeout"
                 , div [] [ defaultClearSearchButton, editSearchButton, returnToSearchButton ]
                 ]
 
         Http.NetworkError ->
             div []
-                [ text "Network Error, Try Again!"
+                [ text "Network Error"
                 , div [] [ defaultClearSearchButton, editSearchButton, returnToSearchButton ]
                 ]
 
         Http.BadStatus int ->
             div []
-                [ text (String.fromInt int ++ " Error: Bad Input, Try Again!")
+                [ text (String.fromInt int ++ " Error: Bad Input")
                 , div [] [ defaultClearSearchButton, editSearchButton, returnToSearchButton ]
                 ]
 
         Http.BadBody body ->
             div []
-                [ text ("Bad Body: " ++ body ++ ", Try Again!")
+                [ text ("Bad Body: " ++ body)
                 , div [] [ defaultClearSearchButton, editSearchButton, returnToSearchButton ]
                 ]
 
