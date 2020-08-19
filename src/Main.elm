@@ -91,7 +91,10 @@ defaultAggregationInput =
 
 
 type Msg
-    = SearchInput String
+    = ClearSearch
+    | AddSearch
+    | ConfirmSearch
+    | SearchInput String
     | AggOptionSelected
     | VertexSelected String
     | DeleteVertexSelection String
@@ -99,9 +102,6 @@ type Msg
     | VertexIdsPostReceivedIn (Result Http.Error VertexIdsResponse)
     | VertexIdsPostReceivedOut (Result Http.Error VertexIdsResponse)
     | VertexNamePrefixGetReceived (Result Http.Error VertexNamePrefixResponse)
-    | ClearSearch
-    | AddSearch
-    | ConfirmSearch
 
 
 type Direction
