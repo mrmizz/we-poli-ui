@@ -47,25 +47,6 @@ type alias VertexData =
     }
 
 
-printVertexData : VertexData -> String
-printVertexData vertexData =
-    "name: "
-        ++ vertexData.name
-        ++ "\n"
-        ++ "is_committee: "
-        ++ printBool vertexData.is_committee
-        ++ "\n"
-        ++ "cities: "
-        ++ String.join ", " vertexData.cities
-        ++ "\n"
-        ++ "streets"
-        ++ String.join ", " vertexData.streets
-        ++ "\n"
-        ++ "states"
-        ++ String.join ", " vertexData.states
-        ++ "\n"
-
-
 printBool : Bool -> String
 printBool bool =
     case bool of
@@ -439,11 +420,12 @@ viewSearchConfirmed model =
 viewVertexNamePrefixResponse : Model -> Html Msg
 viewVertexNamePrefixResponse model =
     ul [ class "dropdown" ]
-        ([ text "Potential Search Matches:" ] ++ List.map buildPotentialSearchMatch model.vertex_data_response)
+        ([ text "Potential Search Matches:" ] ++ (buildPotentialSearchMatch model.vertex_data_response))
 
 
+buildPotentialSearchMatch : List VertexData -> List (Html Msg)
 buildPotentialSearchMatch vertexData =
-    li [] [ text (printVertexData vertexData) ]
+    List.map fromVertexDataToHTML vertexData
 
 
 viewConfirmations : Model -> Html Msg
@@ -632,3 +614,17 @@ fromTitleToUrl title =
 fromTitleToUrlHtml : String -> Html Msg
 fromTitleToUrlHtml title =
     li [] [ a [ Html.Attributes.target "_blank", Html.Attributes.href (fromTitleToUrl title) ] [ text title ] ]
+
+-- TODO: more fields
+fromVertexDataToHTML : VertexData -> Html Msg
+fromVertexDataToHTML vertexData =
+    li [] [
+        ul [] [
+            li [] [ text "name:"
+                , ul [] [ li [] [text vertexData.name] ]
+            ],
+            li [] [ text "is_comittee:"
+                , ul [] [ li [] [text (printBool vertexData.is_committee)] ]
+            ]
+        ]
+    ]
