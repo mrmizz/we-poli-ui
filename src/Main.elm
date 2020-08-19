@@ -480,7 +480,7 @@ viewBuildingRequest model =
                         _ ->
                             div [ class "dropdown" ]
                                 [ dropDownHeadAndBody
-                                    [ confirmSearchButton
+                                    [ div [] [confirmSearchButton]
                                     , viewVertexIdsSelected model
                                     , viewVertexNamePrefixResponse model
                                     ]
@@ -501,7 +501,7 @@ viewBuildingRequestWithNoInputButMaybeSomeConfirmed model =
 
         _ ->
             div [ class "dropdown" ]
-                [ dropDownHeadAndBody [ viewVertexIdsSelected model ] ]
+                [ dropDownHeadAndBody [ div [] [confirmSearchButton], viewVertexIdsSelected model ] ]
 
 
 viewLoading : Html Msg
@@ -524,19 +524,29 @@ viewRequestFailure : Http.Error -> Html Msg
 viewRequestFailure error =
     case error of
         Http.BadUrl string ->
-            almostClearSearchButton [ text ("Bad Url: " ++ string ++ ", Try Again!") ]
+            div [] [ text ("Bad Url: " ++ string ++ ", Try Again!")
+            , div [] [defaultClearSearchButton, editSearchButton, returnToSearchButton]
+            ]
 
         Http.Timeout ->
-            almostClearSearchButton [ text "Server Timeout, Try Again!" ]
+            div [] [ text "Server Timeout, Try Again!"
+            , div [] [defaultClearSearchButton, editSearchButton, returnToSearchButton]
+             ]
 
         Http.NetworkError ->
-            almostClearSearchButton [ text "Network Error, Try Again!" ]
+            div [] [ text "Network Error, Try Again!"
+            , div [] [defaultClearSearchButton, editSearchButton, returnToSearchButton]
+             ]
 
         Http.BadStatus int ->
-            almostClearSearchButton [ text (String.fromInt int ++ " Error: Bad Input, Try Again!") ]
+            div [] [ text (String.fromInt int ++ " Error: Bad Input, Try Again!")
+            , div [] [defaultClearSearchButton, editSearchButton, returnToSearchButton]
+            ]
 
         Http.BadBody body ->
-            almostClearSearchButton [ text ("Bad Body: " ++ body ++ ", Try Again!") ]
+            div [] [ text ("Bad Body: " ++ body ++ ", Try Again!")
+            , div [] [defaultClearSearchButton, editSearchButton, returnToSearchButton]
+            ]
 
 
 viewAggParam : String -> Html Msg
@@ -592,8 +602,11 @@ editSearchButton =
 
 confirmSearchButton : Html Msg
 confirmSearchButton =
-    button [ class "button", onClick ConfirmSearch ] [ text "Confirm" ]
+    button [ class "button", onClick ConfirmSearch ] [ text "Confirm Search" ]
 
+returnToSearchButton : Html Msg
+returnToSearchButton =
+    button [ class "button", onClick ConfirmSearch ] [ text "Return To Existing Search" ]
 
 viewDirectedResponse : VertexIdsResponse -> Direction -> Html Msg
 viewDirectedResponse response direction =
