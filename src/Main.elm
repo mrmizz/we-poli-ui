@@ -94,7 +94,7 @@ defaultAggregationInput =
 
 type Msg
     = ClearSearch
-    | AddSearch
+    | EditSearch
     | ConfirmSearch
     | SearchInput String
     | AggOptionSelected
@@ -137,7 +137,7 @@ update msg model =
         ClearSearch ->
             ( initialModel, Cmd.none )
 
-        AddSearch ->
+        EditSearch ->
             ( { model | state = BuildingRequest }, Cmd.none )
 
         ConfirmSearch ->
@@ -427,7 +427,7 @@ viewSearchConfirmed model =
     div [ class "dropdown" ]
         [ dropDownHeadAndBody [ makeRequestInDirectionButton, makeRequestOutDirectionButton ]
         , defaultClearSearchButton
-        , addSearchButton
+        , editSearchButton
         , viewAggParam model.aggregation_selected
         , viewVertexIdsConfirmed (Set.toList model.vertex_ids_selected)
         ]
@@ -435,7 +435,7 @@ viewSearchConfirmed model =
 
 viewVertexIdsConfirmed : List String -> Html Msg
 viewVertexIdsConfirmed uids =
-    ul [ class "dropdown" ] ([ text "Titles Searched: " ] ++ List.map htmlListItem uids)
+    ul [ class "dropdown" ] ([ text "Queued for Search: " ] ++ List.map htmlListItem uids)
 
 
 viewVertexNamePrefixResponse : Model -> Html Msg
@@ -475,7 +475,7 @@ viewBuildingRequest model =
                     case Set.toList model.vertex_ids_selected of
                         [] ->
                             div [ class "dropdown" ]
-                                [ dropDownHeadAndBody [ confirmSearchButton, viewVertexNamePrefixResponse model ] ]
+                                [ dropDownHeadAndBody [ viewVertexNamePrefixResponse model ] ]
 
                         _ ->
                             div [ class "dropdown" ]
@@ -514,6 +514,7 @@ viewRequestSuccess response direction agg =
     div [ class "dropdown" ]
         [ dropDownHeadAndBody [ makeRequestInDirectionButton, makeRequestOutDirectionButton ]
         , defaultClearSearchButton
+        , editSearchButton
         , viewAggParam agg
         , viewDirectedResponse response direction
         ]
@@ -584,9 +585,9 @@ defaultClearSearchButton =
     almostClearSearchButton [ text "Clear Search" ]
 
 
-addSearchButton : Html Msg
-addSearchButton =
-    button [ class "button", onClick AddSearch ] [ text "Add Search" ]
+editSearchButton : Html Msg
+editSearchButton =
+    button [ class "button", onClick EditSearch ] [ text "Edit Search" ]
 
 
 confirmSearchButton : Html Msg
@@ -607,7 +608,7 @@ viewDirectedResponse response direction =
 viewResponse : VertexIdsResponse -> String -> Html Msg
 viewResponse response textToDisplay =
     div [ class "response" ]
-        [ ul [ class "dropdown" ] ([ text "Titles Searched: " ] ++ List.map htmlListItem response.request_vertex_ids)
+        [ ul [ class "dropdown" ] ([ text "Searched: " ] ++ List.map htmlListItem response.request_vertex_ids)
         , ul [] ([ text textToDisplay ] ++ htmlListItems response.response_vertex_ids)
         ]
 
