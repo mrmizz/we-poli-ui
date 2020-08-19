@@ -431,8 +431,12 @@ viewSearchConfirmed model =
         , defaultClearSearchButton
         , addSearchButton
         , viewAggParam model.aggregation_selected
-        , viewConfirmations model
+        , viewVertexIdsConfirmed model.vertex_ids_selected
         ]
+
+viewVertexIdsConfirmed: List String -> Html Msg
+viewVertexIdsConfirmed uids =
+    ul [ class "dropdown" ] ([ text "Titles Searched: " ] ++ List.map htmlListItem uids)
 
 
 viewVertexNamePrefixResponse : Model -> Html Msg
@@ -446,10 +450,14 @@ buildPotentialSearchMatch vertexData =
     List.map fromVertexDataToHTML vertexData
 
 
-viewConfirmations : Model -> Html Msg
-viewConfirmations model =
+viewVertexIdSelected : String -> Html Msg
+viewVertexIdSelected uid =
+    li [] [ button [ onClick (DeleteVertexSelection uid)] [text "delete"], text uid ]
+
+viewVertexIdsSelected : Model -> Html Msg
+viewVertexIdsSelected model =
     ul [ class "dropdown" ]
-        ([ text "We're Searching For:" ] ++ List.map fromTitleToUrlHtml model.vertex_ids_selected)
+        ([ text "We're Searching For:" ] ++ List.map viewVertexIdSelected model.vertex_ids_selected)
 
 
 viewBuildingRequest : Model -> Html Msg
@@ -473,7 +481,7 @@ viewBuildingRequest model =
                             div [ class "dropdown" ]
                                 [ dropDownHeadAndBody
                                     [ confirmSearchButton
-                                    , viewConfirmations model
+                                    , viewVertexIdsSelected model
                                     , viewVertexNamePrefixResponse model
                                     ]
                                 ]
@@ -493,7 +501,7 @@ viewBuildingRequestWithNoInputButMaybeSomeConfirmed model =
 
         _ ->
             div [ class "dropdown" ]
-                [ dropDownHeadAndBody [ viewConfirmations model ] ]
+                [ dropDownHeadAndBody [ viewVertexIdsSelected model ] ]
 
 
 viewLoading : Html Msg
@@ -507,7 +515,6 @@ viewRequestSuccess response direction agg =
         [ dropDownHeadAndBody [ makeRequestInDirectionButton, makeRequestOutDirectionButton ]
         , defaultClearSearchButton
         , viewAggParam agg
-        , viewTitlesSearched response.request_vertex_ids
         , viewDirectedResponse response direction
         ]
 
@@ -587,11 +594,6 @@ confirmSearchButton =
     button [ class "button", onClick ConfirmSearch ] [ text "Confirm" ]
 
 
-viewTitlesSearched : List String -> Html Msg
-viewTitlesSearched titles =
-    ul [ class "dropdown" ] ([ text "Titles Searched: " ] ++ List.map fromTitleToUrlHtml titles)
-
-
 viewDirectedResponse : VertexIdsResponse -> Direction -> Html Msg
 viewDirectedResponse response direction =
     case direction of
@@ -604,18 +606,20 @@ viewDirectedResponse response direction =
 
 viewResponse : VertexIdsResponse -> String -> Html Msg
 viewResponse response textToDisplay =
-    ul [ class "response" ]
-        [ ul [] ([ text textToDisplay ] ++ responseItems response.response_vertex_ids) ]
+    div [ class "response" ]
+        [ ul [ class "dropdown" ] ([ text "Titles Searched: " ] ++ List.map htmlListItem response.request_vertex_ids)
+        , ul [] ([ text textToDisplay ] ++ htmlListItems response.response_vertex_ids)
+        ]
 
 
-responseItems : List String -> List (Html Msg)
-responseItems items =
-    List.map fromTitleToUrlHtml items
+htmlListItems : List String -> List (Html Msg)
+htmlListItems items =
+    List.map htmlListItem items
 
 
-fromTitleToUrlHtml : String -> Html Msg
-fromTitleToUrlHtml uid =
-    li [] [ button [ onClick (DeleteVertexSelection uid)] [text "delete"], text uid ]
+htmlListItem : String -> Html Msg
+htmlListItem uid =
+    li [] [ text uid ]
 
 
 
