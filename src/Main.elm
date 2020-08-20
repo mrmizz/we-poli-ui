@@ -287,7 +287,7 @@ vertexIdsRequestEncoder request =
 vertexIdsResponseDecoder : Decode.Decoder VertexIdsResponse
 vertexIdsResponseDecoder =
     Decode.map2 VertexIdsResponse
-        (Decode.field "request_vertex_ids" (Decode.list Decode.string))
+        (Decode.field "vertex_ids" (Decode.list Decode.string))
         (Decode.field "response_vertex_ids" (Decode.list Decode.string))
 
 
