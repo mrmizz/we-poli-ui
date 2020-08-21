@@ -31,11 +31,12 @@ main =
 
 type alias Model =
     { state : State
-    , vertex_name_input : Maybe String
-    , vertex_data_response : List VertexData
-    , vertex_ids_response : List String
-    , aggregation_selected : String
+    , vertex_name_search : Maybe String
+    , vertex_name_search_response : List VertexData
     , vertices_selected : List VertexData
+    , aggregation_selected : String
+    , vertex_ids_response : List String
+    , vertex_data_response : List VertexData
     }
 
 
@@ -102,18 +103,19 @@ type State
     = BuildingRequest
     | SearchConfirmed
     | Loading
-    | VertexIdsRequestSuccess VertexIdsResponse Direction
+    | VertexIdsRequestSuccess Direction
     | RequestFailure Http.Error
 
 
 initialModel : Model
 initialModel =
     { state = BuildingRequest
-    , vertex_name_input = Nothing
-    , vertex_data_response = []
-    , vertex_ids_response = []
+    , vertex_name_search = Nothing
+    , vertex_name_search_response = []
     , aggregation_selected = defaultAggregationInput
     , vertices_selected = []
+    , vertex_ids_response = []
+    , vertex_data_response = []
     }
 
 
@@ -186,7 +188,7 @@ update msg model =
             updateAggInputAndOptions model
 
         VertexSelected vertex ->
-            ( { model | vertices_selected = updateVerticesSelected vertex model.vertices_selected }, Cmd.none )
+            ( { model | vertices_selected = updateVertexSelected vertex model.vertices_selected }, Cmd.none )
 
         DeleteVertexSelection vertex ->
             ( { model | vertices_selected = updateVertexDeleted vertex model.vertices_selected }, Cmd.none )
@@ -197,8 +199,8 @@ cleanVertexNameInput input =
     String.replace " " "" input
 
 
-updateVerticesSelected : VertexData -> List VertexData -> List VertexData
-updateVerticesSelected vertex vertices =
+updateVertexSelected : VertexData -> List VertexData -> List VertexData
+updateVertexSelected vertex vertices =
     getVertices (distinctVertices (List.singleton vertex ++ vertices))
 
 
@@ -216,10 +218,10 @@ updateWithVertexNamePrefixRequest : Model -> String -> (Result Http.Error Vertex
 updateWithVertexNamePrefixRequest model prefix toMsg =
     case String.length (cleanVertexNameInput prefix) >= 3 of
         False ->
-            ( { model | vertex_name_input = Nothing }, Cmd.none )
+            ( { model | vertex_name_search = Nothing }, Cmd.none )
 
         True ->
-            ( { model | vertex_name_input = Just prefix }
+            ( { model | vertex_name_search = Just prefix }
             , vertexNamePrefixGet (cleanVertexNameInput prefix) toMsg
             )
 
@@ -230,10 +232,10 @@ updateWithVertexNamePrefixResponse model result =
         Ok response ->
             case unpackVertexNamePrefixResponse response of
                 [] ->
-                    ( { model | vertex_data_response = [] }, Cmd.none )
+                    ( { model | vertex_name_search_response = [] }, Cmd.none )
 
                 vertices ->
-                    ( { model | vertex_data_response = vertices }, Cmd.none )
+                    ( { model | vertex_name_search_response = vertices }, Cmd.none )
 
         Err error ->
             ( { model | state = RequestFailure error }, Cmd.none )
@@ -284,10 +286,13 @@ updateWithVertexIdRequest model buildRequestArg toMsg =
     ( { model | state = Loading }, vertexIdsPost (buildRequestArg model) toMsg )
 
 
+updateWithVertexIdResponse : Model -> Result Http.Error VertexIdsResponse -> Direction -> (Model, Cmd msg)
 updateWithVertexIdResponse model result direction =
     case result of
         Ok response ->
-            ( { model | state = VertexIdsRequestSuccess response direction }, Cmd.none )
+            ( { model | state = VertexIdsRequestSuccess direction, vertex_ids_response = response.response_vertex_ids }
+            , Cmd.none
+            )
 
         Err error ->
             ( { model | state = RequestFailure error }, Cmd.none )
@@ -469,8 +474,8 @@ view model =
         Loading ->
             viewLoading
 
-        VertexIdsRequestSuccess response direction ->
-            viewRequestSuccess response direction model.aggregation_selected
+        VertexIdsRequestSuccess direction ->
+            viewRequestSuccess direction model
 
         RequestFailure error ->
             viewRequestFailure error
@@ -495,7 +500,7 @@ viewVerticesConfirmed vertices =
 viewVertexNamePrefixResponse : Model -> Html Msg
 viewVertexNamePrefixResponse model =
     ul [ class "dropdown" ]
-        ([ text "Potential Search Matches:" ] ++ buildPotentialSearchMatch model.vertex_data_response)
+        ([ text "Potential Search Matches:" ] ++ buildPotentialSearchMatch model.vertex_name_search_response)
 
 
 buildPotentialSearchMatch : List VertexData -> List (Html Msg)
@@ -516,7 +521,7 @@ viewVertexIdsSelected model =
 
 viewBuildingRequest : Model -> Html Msg
 viewBuildingRequest model =
-    case model.vertex_name_input of
+    case model.vertex_name_search of
         Nothing ->
             viewBuildingRequestWithNoInputButMaybeSomeConfirmed model
 
@@ -563,14 +568,14 @@ viewLoading =
     div [ class "dropdown" ] [ text "Loading . . ." ]
 
 
-viewRequestSuccess : VertexIdsResponse -> Direction -> String -> Html Msg
-viewRequestSuccess response direction agg =
+viewRequestSuccess : Direction -> Model -> Html Msg
+viewRequestSuccess direction model =
     div [ class "dropdown" ]
         [ dropDownHeadAndBody [ makeRequestInDirectionButton, makeRequestOutDirectionButton ]
         , defaultClearSearchButton
         , editSearchButton
-        , viewAggParam agg
-        , viewDirectedResponse response direction
+        , viewAggParam model.aggregation_selected
+        , viewDirectedResponse model direction
         ]
 
 
@@ -669,22 +674,23 @@ returnToSearchButton =
     button [ class "button", onClick ConfirmSearch ] [ text "Return To Existing Search" ]
 
 
-viewDirectedResponse : VertexIdsResponse -> Direction -> Html Msg
-viewDirectedResponse response direction =
+viewDirectedResponse : Model -> Direction -> Html Msg
+viewDirectedResponse model direction =
     case direction of
         In ->
-            viewResponse response "Direction: In"
+            viewResponse model "Direction: In"
 
         Out ->
-            viewResponse response "Direction: Out"
+            viewResponse model "Direction: Out"
 
 
-viewResponse : VertexIdsResponse -> String -> Html Msg
-viewResponse response textToDisplay =
+viewResponse : Model -> String -> Html Msg
+viewResponse model textToDisplay =
     div [ class "response" ]
-        [ ul [ class "dropdown" ] ([ text "Searched: " ] ++ List.map htmlListItem response.request_vertex_ids)
-        , ul [] ([ text textToDisplay ] ++ htmlListItems response.response_vertex_ids)
+        [ ul [ class "dropdown" ] ([ text "Searched: " ] ++ List.map fromVertexDataToHTMLNoButtons model.vertices_selected)
+        , ul [] ([ text textToDisplay ] ++ htmlListItems model.vertex_ids_response)
         ]
+
 
 
 htmlListItems : List String -> List (Html Msg)
