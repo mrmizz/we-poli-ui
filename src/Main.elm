@@ -35,7 +35,6 @@ type alias Model =
     , vertex_data_response : List VertexData
     , vertex_ids_response : List String
     , aggregation_selected : String
-    , vertex_ids_selected : Set String
     , vertices_selected : List VertexData
     }
 
@@ -111,7 +110,6 @@ initialModel =
     , vertex_data_response = []
     , vertex_ids_response = []
     , aggregation_selected = defaultAggregationInput
-    , vertex_ids_selected = Set.empty
     , vertices_selected = []
     }
 
