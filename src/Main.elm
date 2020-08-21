@@ -1,6 +1,7 @@
 module Main exposing (main, updateWithVertexNamePrefixResponse)
 
 import Browser
+import Dict exposing (Dict)
 import Html exposing (..)
 import Html.Attributes exposing (class, placeholder)
 import Html.Events exposing (onClick, onInput)
@@ -49,9 +50,31 @@ type alias VertexData =
     , states : List String
     }
 
+type alias VertexPresence =
+    { dict: Dict String Int
+    , vertices: List VertexData
+    }
+
 getVertexId: VertexData -> String
 getVertexId vertexData =
     vertexData.uid
+
+getVertices: VertexPresence -> List VertexData
+getVertices vertexPresence =
+    vertexPresence.vertices
+
+distinctVertices : List VertexData -> VertexPresence
+distinctVertices vertices =
+    List.foldl (updateVertexPresence) (VertexPresence Dict.empty []) vertices
+
+updateVertexPresence: VertexData -> VertexPresence -> VertexPresence
+updateVertexPresence vertexData vertexPresence =
+    case Dict.get vertexData.uid vertexPresence.dict of
+        Just _ ->
+            vertexPresence
+
+        Nothing ->
+            { vertexPresence | dict = (Dict.insert vertexData.uid 1 vertexPresence.dict), vertices = (List.singleton vertexData) ++ vertexPresence.vertices }
 
 
 printBool : Bool -> String
@@ -163,9 +186,12 @@ cleanVertexNameInput : String -> String
 cleanVertexNameInput input =
     String.replace " " "" input
 
+
 updateVerticesSelected: VertexData -> List VertexData -> List VertexData
-updateVerticesSelected element list  =
-    (List.singleton element) ++ list
+updateVerticesSelected vertex vertices =
+    getVertices ( distinctVertices( (List.singleton vertex) ++ vertices) )
+
+
 
 
 updateWithVertexNamePrefixRequest : Model -> String -> (Result Http.Error VertexNamePrefixResponse -> Msg) -> ( Model, Cmd Msg )
