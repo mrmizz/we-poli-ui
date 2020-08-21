@@ -286,7 +286,7 @@ updateWithVertexIdRequest model buildRequestArg toMsg =
     ( { model | state = Loading }, vertexIdsPost (buildRequestArg model) toMsg )
 
 
-updateWithVertexIdResponse : Model -> Result Http.Error VertexIdsResponse -> Direction -> (Model, Cmd msg)
+updateWithVertexIdResponse : Model -> Result Http.Error VertexIdsResponse -> Direction -> ( Model, Cmd msg )
 updateWithVertexIdResponse model result direction =
     case result of
         Ok response ->
@@ -690,7 +690,6 @@ viewResponse model textToDisplay =
         [ ul [ class "dropdown" ] ([ text "Searched: " ] ++ List.map fromVertexDataToHTMLNoButtons model.vertices_selected)
         , ul [] ([ text textToDisplay ] ++ htmlListItems model.vertex_ids_response)
         ]
-
 
 
 htmlListItems : List String -> List (Html Msg)
