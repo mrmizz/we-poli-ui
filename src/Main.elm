@@ -82,7 +82,10 @@ updateVertexPresence vertexData vertexPresence =
             vertexPresence
 
         False ->
-            { vertexPresence | set = Set.insert vertexData.uid vertexPresence.set, vertices = List.singleton vertexData ++ vertexPresence.vertices }
+            { vertexPresence
+                | set = Set.insert vertexData.uid vertexPresence.set
+                , vertices = List.singleton vertexData ++ vertexPresence.vertices
+            }
 
 
 printBool : Bool -> String
