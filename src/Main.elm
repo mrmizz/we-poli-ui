@@ -50,35 +50,41 @@ type alias VertexData =
     , states : List String
     }
 
+
 type alias VertexPresence =
-    { dict: Dict String Int
-    , vertices: List VertexData
+    { dict : Dict String Int
+    , vertices : List VertexData
     }
 
-getVertexId: VertexData -> String
+
+getVertexId : VertexData -> String
 getVertexId vertexData =
     vertexData.uid
 
-getVertices: VertexPresence -> List VertexData
+
+getVertices : VertexPresence -> List VertexData
 getVertices vertexPresence =
     vertexPresence.vertices
 
-hasUID: String -> VertexData -> Bool
+
+hasUID : String -> VertexData -> Bool
 hasUID uid vertex =
     vertex.uid == uid
 
+
 distinctVertices : List VertexData -> VertexPresence
 distinctVertices vertices =
-    List.foldl (updateVertexPresence) (VertexPresence Dict.empty []) vertices
+    List.foldl updateVertexPresence (VertexPresence Dict.empty []) vertices
 
-updateVertexPresence: VertexData -> VertexPresence -> VertexPresence
+
+updateVertexPresence : VertexData -> VertexPresence -> VertexPresence
 updateVertexPresence vertexData vertexPresence =
     case Dict.get vertexData.uid vertexPresence.dict of
         Just _ ->
             vertexPresence
 
         Nothing ->
-            { vertexPresence | dict = (Dict.insert vertexData.uid 1 vertexPresence.dict), vertices = (List.singleton vertexData) ++ vertexPresence.vertices }
+            { vertexPresence | dict = Dict.insert vertexData.uid 1 vertexPresence.dict, vertices = List.singleton vertexData ++ vertexPresence.vertices }
 
 
 printBool : Bool -> String
@@ -180,7 +186,7 @@ update msg model =
             updateAggInputAndOptions model
 
         VertexSelected vertex ->
-            ( { model | vertices_selected = (updateVerticesSelected vertex model.vertices_selected)  }, Cmd.none )
+            ( { model | vertices_selected = updateVerticesSelected vertex model.vertices_selected }, Cmd.none )
 
         DeleteVertexSelection vertex ->
             ( { model | vertices_selected = updateVertexDeleted vertex model.vertices_selected }, Cmd.none )
@@ -191,18 +197,20 @@ cleanVertexNameInput input =
     String.replace " " "" input
 
 
-updateVerticesSelected: VertexData -> List VertexData -> List VertexData
+updateVerticesSelected : VertexData -> List VertexData -> List VertexData
 updateVerticesSelected vertex vertices =
-    getVertices ( distinctVertices( (List.singleton vertex) ++ vertices) )
+    getVertices (distinctVertices (List.singleton vertex ++ vertices))
 
-updateVertexDeleted: VertexData -> List VertexData -> List VertexData
+
+updateVertexDeleted : VertexData -> List VertexData -> List VertexData
 updateVertexDeleted vertex vertices =
     case vertices of
         _ :: [] ->
-             []
+            []
 
         _ ->
             List.filter (hasUID vertex.uid) vertices
+
 
 updateWithVertexNamePrefixRequest : Model -> String -> (Result Http.Error VertexNamePrefixResponse -> Msg) -> ( Model, Cmd Msg )
 updateWithVertexNamePrefixRequest model prefix toMsg =
@@ -693,37 +701,38 @@ htmlListItem uid =
 -- TODO: more fields
 
 
-almostFromVertexDataToHTML : VertexData -> List (Html Msg) ->  Html Msg
+almostFromVertexDataToHTML : VertexData -> List (Html Msg) -> Html Msg
 almostFromVertexDataToHTML vertexData html =
     li []
-        ( html ++
-        [ ul []
-            [ li []
-                [ text "name:"
-                , ul [] [ li [] [ text vertexData.name ] ]
-                ]
-            , li []
-                [ text "is_comittee:"
-                , ul [] [ li [] [ text (printBool vertexData.is_committee) ] ]
-                ]
-            , li []
-                [ text "cities:"
-                , ul [] [ li [] (List.map text vertexData.cities) ]
-                ]
-            ]
-        ]
+        (html
+            ++ [ ul []
+                    [ li []
+                        [ text "name:"
+                        , ul [] [ li [] [ text vertexData.name ] ]
+                        ]
+                    , li []
+                        [ text "is_comittee:"
+                        , ul [] [ li [] [ text (printBool vertexData.is_committee) ] ]
+                        ]
+                    , li []
+                        [ text "cities:"
+                        , ul [] [ li [] (List.map text vertexData.cities) ]
+                        ]
+                    ]
+               ]
         )
+
 
 fromVertexDataToHTMLWithSelectVertexButton : VertexData -> Html Msg
 fromVertexDataToHTMLWithSelectVertexButton vertexData =
-    almostFromVertexDataToHTML vertexData [button [ onClick (VertexSelected vertexData) ] [ text "Select" ]]
+    almostFromVertexDataToHTML vertexData [ button [ onClick (VertexSelected vertexData) ] [ text "Select" ] ]
+
 
 fromVertexDataToHTMLWithDeleteVertexButton : VertexData -> Html Msg
 fromVertexDataToHTMLWithDeleteVertexButton vertexData =
-    almostFromVertexDataToHTML vertexData [button [onClick (DeleteVertexSelection vertexData) ] [ text "delete" ]]
+    almostFromVertexDataToHTML vertexData [ button [ onClick (DeleteVertexSelection vertexData) ] [ text "delete" ] ]
+
 
 fromVertexDataToHTMLNoButtons : VertexData -> Html Msg
 fromVertexDataToHTMLNoButtons vertexData =
     almostFromVertexDataToHTML vertexData []
-
-
