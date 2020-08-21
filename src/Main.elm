@@ -36,6 +36,7 @@ type alias Model =
     , vertex_ids_response : List String
     , aggregation_selected : String
     , vertex_ids_selected : Set String
+    , vertices_selected : List VertexData
     }
 
 
@@ -47,6 +48,10 @@ type alias VertexData =
     , streets : List String
     , states : List String
     }
+
+getVertexId: VertexData -> String
+getVertexId vertexData =
+    vertexData.uid
 
 
 printBool : Bool -> String
@@ -75,6 +80,7 @@ initialModel =
     , vertex_ids_response = []
     , aggregation_selected = defaultAggregationInput
     , vertex_ids_selected = Set.empty
+    , vertices_selected = []
     }
 
 
@@ -98,7 +104,7 @@ type Msg
     | ConfirmSearch
     | SearchInput String
     | AggOptionSelected
-    | VertexSelected String
+    | VertexSelected VertexData
     | DeleteVertexSelection String
     | VertexIdsRequestMade Direction
     | VertexIdsPostReceivedIn (Result Http.Error VertexIdsResponse)
@@ -146,8 +152,8 @@ update msg model =
         AggOptionSelected ->
             updateAggInputAndOptions model
 
-        VertexSelected uid ->
-            ( { model | vertex_ids_selected = Set.insert uid model.vertex_ids_selected }, Cmd.none )
+        VertexSelected vertex ->
+            ( { model | vertices_selected = (updateVerticesSelected vertex model.vertices_selected)  }, Cmd.none )
 
         DeleteVertexSelection uid ->
             ( { model | vertex_ids_selected = Set.remove uid model.vertex_ids_selected }, Cmd.none )
@@ -156,6 +162,10 @@ update msg model =
 cleanVertexNameInput : String -> String
 cleanVertexNameInput input =
     String.replace " " "" input
+
+updateVerticesSelected: VertexData -> List VertexData -> List VertexData
+updateVerticesSelected element list  =
+    (List.singleton element) ++ list
 
 
 updateWithVertexNamePrefixRequest : Model -> String -> (Result Http.Error VertexNamePrefixResponse -> Msg) -> ( Model, Cmd Msg )
@@ -293,7 +303,7 @@ vertexIdsResponseDecoder =
 
 vertexIdsBuildRequest : String -> Model -> VertexIdsRequest
 vertexIdsBuildRequest directionString model =
-    VertexIdsRequest (Set.toList model.vertex_ids_selected) directionString model.aggregation_selected
+    VertexIdsRequest (List.map getVertexId model.vertices_selected) directionString model.aggregation_selected
 
 
 type alias VertexNamePrefixResponse =
@@ -429,13 +439,13 @@ viewSearchConfirmed model =
         , defaultClearSearchButton
         , editSearchButton
         , viewAggParam model.aggregation_selected
-        , viewVertexIdsConfirmed (Set.toList model.vertex_ids_selected)
+        , viewVerticesConfirmed model.vertices_selected
         ]
 
 
-viewVertexIdsConfirmed : List String -> Html Msg
-viewVertexIdsConfirmed uids =
-    ul [ class "dropdown" ] ([ text "Queued for Search: " ] ++ List.map htmlListItem uids)
+viewVerticesConfirmed : List VertexData -> Html Msg
+viewVerticesConfirmed vertices =
+    ul [ class "dropdown" ] ([ text "Queued for Search: " ] ++ List.map fromVertexDataToHTMLNoButtons vertices)
 
 
 viewVertexNamePrefixResponse : Model -> Html Msg
@@ -446,18 +456,18 @@ viewVertexNamePrefixResponse model =
 
 buildPotentialSearchMatch : List VertexData -> List (Html Msg)
 buildPotentialSearchMatch vertexData =
-    List.map fromVertexDataToHTML vertexData
+    List.map fromVertexDataToHTMLWithSelectVertexButton vertexData
 
 
-viewVertexIdSelected : String -> Html Msg
-viewVertexIdSelected uid =
-    li [] [ button [ onClick (DeleteVertexSelection uid) ] [ text "delete" ], text uid ]
+viewVertexSelected : VertexData -> Html Msg
+viewVertexSelected vertexData =
+    fromVertexDataToHTMLWithDeleteVertexButton vertexData
 
 
 viewVertexIdsSelected : Model -> Html Msg
 viewVertexIdsSelected model =
     ul [ class "dropdown" ]
-        ([ text "We're Searching For:" ] ++ List.map viewVertexIdSelected (Set.toList model.vertex_ids_selected))
+        ([ text "We're Searching For:" ] ++ List.map viewVertexSelected model.vertices_selected)
 
 
 viewBuildingRequest : Model -> Html Msg
@@ -472,7 +482,7 @@ viewBuildingRequest model =
                     viewBuildingRequestWithNoInputButMaybeSomeConfirmed model
 
                 _ ->
-                    case Set.toList model.vertex_ids_selected of
+                    case model.vertices_selected of
                         [] ->
                             div [ class "dropdown" ]
                                 [ dropDownHeadAndBody [ viewVertexNamePrefixResponse model ] ]
@@ -495,7 +505,7 @@ viewNoInput =
 
 viewBuildingRequestWithNoInputButMaybeSomeConfirmed : Model -> Html Msg
 viewBuildingRequestWithNoInputButMaybeSomeConfirmed model =
-    case Set.toList model.vertex_ids_selected of
+    case model.vertices_selected of
         [] ->
             viewNoInput
 
@@ -647,11 +657,11 @@ htmlListItem uid =
 -- TODO: more fields
 
 
-fromVertexDataToHTML : VertexData -> Html Msg
-fromVertexDataToHTML vertexData =
+almostFromVertexDataToHTML : VertexData -> List (Html Msg) ->  Html Msg
+almostFromVertexDataToHTML vertexData html =
     li []
-        [ button [ onClick (VertexSelected vertexData.uid) ] [ text "Select" ]
-        , ul []
+        ( html ++
+        [ ul []
             [ li []
                 [ text "name:"
                 , ul [] [ li [] [ text vertexData.name ] ]
@@ -666,3 +676,18 @@ fromVertexDataToHTML vertexData =
                 ]
             ]
         ]
+        )
+
+fromVertexDataToHTMLWithSelectVertexButton : VertexData -> Html Msg
+fromVertexDataToHTMLWithSelectVertexButton vertexData =
+    almostFromVertexDataToHTML vertexData [button [ onClick (VertexSelected vertexData) ] [ text "Select" ]]
+
+fromVertexDataToHTMLWithDeleteVertexButton : VertexData -> Html Msg
+fromVertexDataToHTMLWithDeleteVertexButton vertexData =
+    almostFromVertexDataToHTML vertexData [button [onClick (DeleteVertexSelection vertexData.uid) ] [ text "delete" ]]
+
+fromVertexDataToHTMLNoButtons : VertexData -> Html Msg
+fromVertexDataToHTMLNoButtons vertexData =
+    almostFromVertexDataToHTML vertexData []
+
+
