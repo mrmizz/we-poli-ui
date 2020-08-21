@@ -63,6 +63,10 @@ getVertices: VertexPresence -> List VertexData
 getVertices vertexPresence =
     vertexPresence.vertices
 
+hasUID: String -> VertexData -> Bool
+hasUID uid vertex =
+    vertex.uid == uid
+
 distinctVertices : List VertexData -> VertexPresence
 distinctVertices vertices =
     List.foldl (updateVertexPresence) (VertexPresence Dict.empty []) vertices
@@ -128,7 +132,7 @@ type Msg
     | SearchInput String
     | AggOptionSelected
     | VertexSelected VertexData
-    | DeleteVertexSelection String
+    | DeleteVertexSelection VertexData
     | VertexIdsRequestMade Direction
     | VertexIdsPostReceivedIn (Result Http.Error VertexIdsResponse)
     | VertexIdsPostReceivedOut (Result Http.Error VertexIdsResponse)
@@ -178,8 +182,8 @@ update msg model =
         VertexSelected vertex ->
             ( { model | vertices_selected = (updateVerticesSelected vertex model.vertices_selected)  }, Cmd.none )
 
-        DeleteVertexSelection uid ->
-            ( { model | vertex_ids_selected = Set.remove uid model.vertex_ids_selected }, Cmd.none )
+        DeleteVertexSelection vertex ->
+            ( { model | vertices_selected = updateVertexDeleted vertex model.vertices_selected }, Cmd.none )
 
 
 cleanVertexNameInput : String -> String
@@ -191,8 +195,14 @@ updateVerticesSelected: VertexData -> List VertexData -> List VertexData
 updateVerticesSelected vertex vertices =
     getVertices ( distinctVertices( (List.singleton vertex) ++ vertices) )
 
+updateVertexDeleted: VertexData -> List VertexData -> List VertexData
+updateVertexDeleted vertex vertices =
+    case vertices of
+        _ :: [] ->
+             []
 
-
+        _ ->
+            List.filter (hasUID vertex.uid) vertices
 
 updateWithVertexNamePrefixRequest : Model -> String -> (Result Http.Error VertexNamePrefixResponse -> Msg) -> ( Model, Cmd Msg )
 updateWithVertexNamePrefixRequest model prefix toMsg =
@@ -710,7 +720,7 @@ fromVertexDataToHTMLWithSelectVertexButton vertexData =
 
 fromVertexDataToHTMLWithDeleteVertexButton : VertexData -> Html Msg
 fromVertexDataToHTMLWithDeleteVertexButton vertexData =
-    almostFromVertexDataToHTML vertexData [button [onClick (DeleteVertexSelection vertexData.uid) ] [ text "delete" ]]
+    almostFromVertexDataToHTML vertexData [button [onClick (DeleteVertexSelection vertexData) ] [ text "delete" ]]
 
 fromVertexDataToHTMLNoButtons : VertexData -> Html Msg
 fromVertexDataToHTMLNoButtons vertexData =
