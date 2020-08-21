@@ -1,7 +1,6 @@
 module Main exposing (main, updateWithVertexNamePrefixResponse)
 
 import Browser
-import Dict exposing (Dict)
 import Html exposing (..)
 import Html.Attributes exposing (class, placeholder)
 import Html.Events exposing (onClick, onInput)
@@ -52,7 +51,7 @@ type alias VertexData =
 
 
 type alias VertexPresence =
-    { dict : Dict String Int
+    { set : Set String
     , vertices : List VertexData
     }
 
@@ -74,17 +73,17 @@ hasUID uid vertex =
 
 distinctVertices : List VertexData -> VertexPresence
 distinctVertices vertices =
-    List.foldl updateVertexPresence (VertexPresence Dict.empty []) vertices
+    List.foldl updateVertexPresence (VertexPresence Set.empty []) vertices
 
 
 updateVertexPresence : VertexData -> VertexPresence -> VertexPresence
 updateVertexPresence vertexData vertexPresence =
-    case Dict.get vertexData.uid vertexPresence.dict of
-        Just _ ->
+    case Set.member vertexData.uid vertexPresence.set of
+        True ->
             vertexPresence
 
-        Nothing ->
-            { vertexPresence | dict = Dict.insert vertexData.uid 1 vertexPresence.dict, vertices = List.singleton vertexData ++ vertexPresence.vertices }
+        False ->
+            { vertexPresence | set = Set.insert vertexData.uid vertexPresence.set, vertices = List.singleton vertexData ++ vertexPresence.vertices }
 
 
 printBool : Bool -> String
