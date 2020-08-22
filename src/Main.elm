@@ -143,6 +143,7 @@ type Msg
     | DeleteVertexSelection VertexData
     | VertexIdsRequestMade Direction
     | VertexIdsPostReceived Direction (Result Http.Error VertexIdsResponse)
+    | VertexDataPostReceived Direction (Result Http.Error VertexDataResponse)
     | VertexNamePrefixGetReceived (Result Http.Error VertexNamePrefixResponse)
 
 
@@ -163,18 +164,16 @@ update msg model =
         VertexIdsRequestMade direction ->
             case direction of
                 In ->
-                    updateWithVertexIdRequest model (vertexIdsBuildRequest "in") (VertexIdsPostReceived In)
+                    updateWithVertexIdRequest model (buildVertexIdsRequest "in") (VertexIdsPostReceived direction)
 
                 Out ->
-                    updateWithVertexIdRequest model (vertexIdsBuildRequest "out") (VertexIdsPostReceived Out)
+                    updateWithVertexIdRequest model (buildVertexIdsRequest "out") (VertexIdsPostReceived direction)
 
         VertexIdsPostReceived direction result ->
-            case direction of
-                In ->
-                    updateWithVertexIdResponse model result In
+            updateWithVertexIdResponse model result direction
 
-                Out ->
-                    updateWithVertexIdResponse model result Out
+        VertexDataPostReceived direction result ->
+            updateWIthVertexDataResponse model result direction
 
         ClearSearch ->
             ( initialModel, Cmd.none )
@@ -287,16 +286,32 @@ updateWithVertexIdRequest model buildRequestArg toMsg =
     ( { model | state = Loading }, vertexIdsPost (buildRequestArg model) toMsg )
 
 
-updateWithVertexIdResponse : Model -> Result Http.Error VertexIdsResponse -> Direction -> ( Model, Cmd msg )
+updateWithVertexIdResponse : Model -> Result Http.Error VertexIdsResponse -> Direction -> ( Model, Cmd Msg )
 updateWithVertexIdResponse model result direction =
     case result of
         Ok response ->
-            ( { model | state = VertexRequestsSuccess direction, vertex_ids_response = response.response_vertex_ids }
+            ( { model | vertex_ids_response = response.response_vertex_ids }
+            , vertexDataPost (buildVertexDataRequest model) (VertexDataPostReceived direction)
+            )
+
+        Err error ->
+            ( { model | state = RequestFailure error }, Cmd.none )
+
+
+updateWIthVertexDataResponse: Model -> Result Http.Error VertexDataResponse -> Direction -> (Model, Cmd Msg )
+updateWIthVertexDataResponse model result direction =
+    case result of
+        Ok response ->
+            ( { model | state = VertexRequestsSuccess direction, vertex_data_response = unpackVertexDataResponse response }
             , Cmd.none
             )
 
         Err error ->
             ( { model | state = RequestFailure error }, Cmd.none )
+
+unpackVertexDataResponse: VertexDataResponse -> List VertexData
+unpackVertexDataResponse vertexDataResponse =
+    List.map unpackDynamoVertexData vertexDataResponse.responses.items
 
 
 updateAggInputAndOptions : Model -> ( Model, Cmd Msg )
@@ -335,6 +350,11 @@ vertexIdsPost request msg =
         }
 
 
+buildVertexIdsRequest : String -> Model -> VertexIdsRequest
+buildVertexIdsRequest directionString model =
+    VertexIdsRequest (List.map getVertexId model.vertices_selected) directionString model.aggregation_selected
+
+
 vertexIdsRequestEncoder : VertexIdsRequest -> Encode.Value
 vertexIdsRequestEncoder request =
     Encode.object
@@ -349,11 +369,6 @@ vertexIdsResponseDecoder =
     Decode.map2 VertexIdsResponse
         (Decode.field "vertex_ids" (Decode.list Decode.string))
         (Decode.field "response_vertex_ids" (Decode.list Decode.string))
-
-
-vertexIdsBuildRequest : String -> Model -> VertexIdsRequest
-vertexIdsBuildRequest directionString model =
-    VertexIdsRequest (List.map getVertexId model.vertices_selected) directionString model.aggregation_selected
 
 
 type alias VertexNamePrefixResponse =
@@ -416,15 +431,94 @@ dynamoVertexDataInnerInnerDecoder =
     Decode.map DynamoVertexDataInnerInner (Decode.field "M" vertexDataInnerResponseDecoder)
 
 
-vertexDataInnerResponseDecoder : Decode.Decoder DynamoVertexData
-vertexDataInnerResponseDecoder =
-    Decode.map6 DynamoVertexData
-        (Decode.field "name" dynamoStringValueDecoder)
-        (Decode.field "uid" dynamoNumberValueDecoder)
-        (Decode.field "is_committee" dynamoBoolDecoder)
-        (Decode.field "cities" dynamoArrayStringValueDecoder)
-        (Decode.field "streets" dynamoArrayStringValueDecoder)
-        (Decode.field "states" dynamoArrayStringValueDecoder)
+type alias VertexDataRequest =
+    { request_items : VertexDataInnerRequest }
+
+
+type alias VertexDataInnerRequest =
+    { poli_vertex : VertexDataInnerRequestKey }
+
+
+type alias VertexDataInnerRequestKey =
+    { keys : List VertexDataInnerRequestUID }
+
+
+type alias VertexDataInnerRequestUID =
+    { uid : VertexDataInnerRequestUIDValue }
+
+
+type alias VertexDataInnerRequestUIDValue =
+    { number : String }
+
+
+vertexDataPost : VertexDataRequest -> (Result Http.Error VertexDataResponse -> Msg) -> Cmd Msg
+vertexDataPost request toMsg =
+    Http.post
+        { url = "https://yf87qmn85l.execute-api.us-west-2.amazonaws.com/v1/poli/vertex"
+        , body = Http.jsonBody (vertexDataRequestEncoder request)
+        , expect = Http.expectJson toMsg vertexDataResponseDecoder
+        }
+
+
+buildVertexDataRequest : Model -> VertexDataRequest
+buildVertexDataRequest model =
+    VertexDataRequest
+        (VertexDataInnerRequest
+            (VertexDataInnerRequestKey (List.map buildVertexDataRequestInnerValues model.vertex_ids_response))
+        )
+
+
+buildVertexDataRequestInnerValues : String -> VertexDataInnerRequestUID
+buildVertexDataRequestInnerValues uid =
+    VertexDataInnerRequestUID (VertexDataInnerRequestUIDValue uid)
+
+
+vertexDataRequestEncoder : VertexDataRequest -> Encode.Value
+vertexDataRequestEncoder vertexDataRequest =
+    Encode.object
+        [ ( "RequestItems", vertexDataInnerRequestEncoder vertexDataRequest.request_items ) ]
+
+
+vertexDataInnerRequestEncoder : VertexDataInnerRequest -> Encode.Value
+vertexDataInnerRequestEncoder vertexDataInnerRequest =
+    Encode.object
+        [ ( "PoliVertex", vertexDataInnerRequestKeyEncoder vertexDataInnerRequest.poli_vertex ) ]
+
+
+vertexDataInnerRequestKeyEncoder : VertexDataInnerRequestKey -> Encode.Value
+vertexDataInnerRequestKeyEncoder vertexDataInnerRequestKey =
+    Encode.object
+        [ ( "Keys", Encode.list vertexDataInnerRequestUIDEncoder vertexDataInnerRequestKey.keys ) ]
+
+
+vertexDataInnerRequestUIDEncoder : VertexDataInnerRequestUID -> Encode.Value
+vertexDataInnerRequestUIDEncoder vertexDataInnerRequestUID =
+    Encode.object
+        [ ( "uid", vertexDataInnerRequestUIDValueEncoder vertexDataInnerRequestUID.uid ) ]
+
+
+vertexDataInnerRequestUIDValueEncoder : VertexDataInnerRequestUIDValue -> Encode.Value
+vertexDataInnerRequestUIDValueEncoder vertexDataInnerRequestUIDValue =
+    Encode.object
+        [ ( "N", Encode.string vertexDataInnerRequestUIDValue.number ) ]
+
+
+type alias VertexDataResponse =
+    { responses : PoliVertexTable }
+
+
+type alias PoliVertexTable =
+    { items : List DynamoVertexData }
+
+
+vertexDataResponseDecoder : Decode.Decoder VertexDataResponse
+vertexDataResponseDecoder =
+    Decode.map VertexDataResponse (Decode.field "Responses" poliVertexTable)
+
+
+poliVertexTable : Decode.Decoder PoliVertexTable
+poliVertexTable =
+    Decode.map PoliVertexTable (Decode.field "PoliVertex" (Decode.list vertexDataInnerResponseDecoder))
 
 
 type alias DynamoArrayValue =
@@ -457,6 +551,17 @@ dynamoStringValueDecoder =
 dynamoBoolDecoder : Decode.Decoder DynamoBool
 dynamoBoolDecoder =
     Decode.map DynamoBool (Decode.field "BOOL" Decode.bool)
+
+
+vertexDataInnerResponseDecoder : Decode.Decoder DynamoVertexData
+vertexDataInnerResponseDecoder =
+    Decode.map6 DynamoVertexData
+        (Decode.field "name" dynamoStringValueDecoder)
+        (Decode.field "uid" dynamoNumberValueDecoder)
+        (Decode.field "is_committee" dynamoBoolDecoder)
+        (Decode.field "cities" dynamoArrayStringValueDecoder)
+        (Decode.field "streets" dynamoArrayStringValueDecoder)
+        (Decode.field "states" dynamoArrayStringValueDecoder)
 
 
 
