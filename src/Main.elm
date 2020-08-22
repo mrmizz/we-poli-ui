@@ -173,7 +173,7 @@ update msg model =
             updateWithVertexIdResponse model result direction
 
         VertexDataPostReceived direction result ->
-            updateWIthVertexDataResponse model result direction
+            updateWithVertexDataResponse model result direction
 
         ClearSearch ->
             ( initialModel, Cmd.none )
@@ -298,8 +298,8 @@ updateWithVertexIdResponse model result direction =
             ( { model | state = RequestFailure error }, Cmd.none )
 
 
-updateWIthVertexDataResponse: Model -> Result Http.Error VertexDataResponse -> Direction -> (Model, Cmd Msg )
-updateWIthVertexDataResponse model result direction =
+updateWithVertexDataResponse : Model -> Result Http.Error VertexDataResponse -> Direction -> ( Model, Cmd Msg )
+updateWithVertexDataResponse model result direction =
     case result of
         Ok response ->
             ( { model | state = VertexRequestsSuccess direction, vertex_data_response = unpackVertexDataResponse response }
@@ -309,7 +309,8 @@ updateWIthVertexDataResponse model result direction =
         Err error ->
             ( { model | state = RequestFailure error }, Cmd.none )
 
-unpackVertexDataResponse: VertexDataResponse -> List VertexData
+
+unpackVertexDataResponse : VertexDataResponse -> List VertexData
 unpackVertexDataResponse vertexDataResponse =
     List.map unpackDynamoVertexData vertexDataResponse.responses.items
 
