@@ -291,7 +291,7 @@ updateWithVertexIdResponse model result direction =
     case result of
         Ok response ->
             ( { model | vertex_ids_response = response.response_vertex_ids }
-            , vertexDataPost (buildVertexDataRequest model) (VertexDataPostReceived direction)
+            , vertexDataPost (buildVertexDataRequest response.response_vertex_ids) (VertexDataPostReceived direction)
             )
 
         Err error ->
@@ -461,11 +461,11 @@ vertexDataPost request toMsg =
         }
 
 
-buildVertexDataRequest : Model -> VertexDataRequest
-buildVertexDataRequest model =
+buildVertexDataRequest : List String -> VertexDataRequest
+buildVertexDataRequest uids =
     VertexDataRequest
         (VertexDataInnerRequest
-            (VertexDataInnerRequestKey (List.map buildVertexDataRequestInnerValues model.vertex_ids_response))
+            (VertexDataInnerRequestKey (List.map buildVertexDataRequestInnerValues uids))
         )
 
 
