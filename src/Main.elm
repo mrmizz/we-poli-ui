@@ -103,7 +103,7 @@ type State
     = BuildingRequest
     | SearchConfirmed
     | Loading
-    | VertexIdsRequestSuccess Direction
+    | VertexRequestsSuccess Direction
     | RequestFailure Http.Error
 
 
@@ -142,8 +142,7 @@ type Msg
     | VertexSelected VertexData
     | DeleteVertexSelection VertexData
     | VertexIdsRequestMade Direction
-    | VertexIdsPostReceivedIn (Result Http.Error VertexIdsResponse)
-    | VertexIdsPostReceivedOut (Result Http.Error VertexIdsResponse)
+    | VertexIdsPostReceived Direction (Result Http.Error VertexIdsResponse)
     | VertexNamePrefixGetReceived (Result Http.Error VertexNamePrefixResponse)
 
 
@@ -164,16 +163,18 @@ update msg model =
         VertexIdsRequestMade direction ->
             case direction of
                 In ->
-                    updateWithVertexIdRequest model (vertexIdsBuildRequest "in") VertexIdsPostReceivedIn
+                    updateWithVertexIdRequest model (vertexIdsBuildRequest "in") (VertexIdsPostReceived In)
 
                 Out ->
-                    updateWithVertexIdRequest model (vertexIdsBuildRequest "out") VertexIdsPostReceivedOut
+                    updateWithVertexIdRequest model (vertexIdsBuildRequest "out") (VertexIdsPostReceived Out)
 
-        VertexIdsPostReceivedIn result ->
-            updateWithVertexIdResponse model result In
+        VertexIdsPostReceived direction result ->
+            case direction of
+                In ->
+                    updateWithVertexIdResponse model result In
 
-        VertexIdsPostReceivedOut result ->
-            updateWithVertexIdResponse model result Out
+                Out ->
+                    updateWithVertexIdResponse model result Out
 
         ClearSearch ->
             ( initialModel, Cmd.none )
@@ -290,7 +291,7 @@ updateWithVertexIdResponse : Model -> Result Http.Error VertexIdsResponse -> Dir
 updateWithVertexIdResponse model result direction =
     case result of
         Ok response ->
-            ( { model | state = VertexIdsRequestSuccess direction, vertex_ids_response = response.response_vertex_ids }
+            ( { model | state = VertexRequestsSuccess direction, vertex_ids_response = response.response_vertex_ids }
             , Cmd.none
             )
 
@@ -474,7 +475,7 @@ view model =
         Loading ->
             viewLoading
 
-        VertexIdsRequestSuccess direction ->
+        VertexRequestsSuccess direction ->
             viewRequestSuccess direction model
 
         RequestFailure error ->
