@@ -35,7 +35,6 @@ type alias Model =
     , vertex_name_search_response : List VertexData
     , vertices_selected : List VertexData
     , aggregation_selected : String
-    , vertex_ids_response : List String
     , vertex_data_response : List VertexData
     }
 
@@ -114,7 +113,6 @@ initialModel =
     , vertex_name_search_response = []
     , aggregation_selected = defaultAggregationInput
     , vertices_selected = []
-    , vertex_ids_response = []
     , vertex_data_response = []
     }
 
@@ -290,7 +288,7 @@ updateWithVertexIdResponse : Model -> Result Http.Error VertexIdsResponse -> Dir
 updateWithVertexIdResponse model result direction =
     case result of
         Ok response ->
-            ( { model | vertex_ids_response = response.response_vertex_ids }
+            ( model
             , vertexDataPost (buildVertexDataRequest response.response_vertex_ids) (VertexDataPostReceived direction)
             )
 
@@ -795,18 +793,8 @@ viewResponse : Model -> String -> Html Msg
 viewResponse model textToDisplay =
     div [ class "response" ]
         [ ul [ class "dropdown" ] ([ text "Searched: " ] ++ List.map fromVertexDataToHTMLNoButtons model.vertices_selected)
-        , ul [] ([ text textToDisplay ] ++ htmlListItems model.vertex_ids_response)
+        , ul [] ([ text textToDisplay ] ++ List.map fromVertexDataToHTMLNoButtons model.vertex_data_response)
         ]
-
-
-htmlListItems : List String -> List (Html Msg)
-htmlListItems items =
-    List.map htmlListItem items
-
-
-htmlListItem : String -> Html Msg
-htmlListItem uid =
-    li [] [ text uid ]
 
 
 
