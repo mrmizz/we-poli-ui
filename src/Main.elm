@@ -35,7 +35,7 @@ type alias Model =
     , vertex_name_search_response : List VertexData
     , vertices_selected : List VertexData
     , aggregation_selected : String
-    , direction_selected: DirectionOption
+    , direction_selected : DirectionOption
     , vertex_data_response : List VertexData
     }
 
@@ -60,6 +60,7 @@ getVertexId : VertexData -> String
 getVertexId vertexData =
     vertexData.uid
 
+
 hasUID : String -> VertexData -> Bool
 hasUID uid vertex =
     vertex.uid == uid
@@ -69,26 +70,31 @@ distinctVertices : List VertexData -> VertexPresence
 distinctVertices vertices =
     List.foldl updateVertexPresence (VertexPresence Set.empty []) vertices
 
+
 filterVerticesByDirection : DirectionOption -> List VertexData -> List VertexData
 filterVerticesByDirection direction vertices =
     case List.filter (sameDirection direction) vertices of
-        [] -> []
+        [] ->
+            []
 
         head :: [] ->
-             case sameDirection direction head of
-                 True ->
-                     [head]
+            case sameDirection direction head of
+                True ->
+                    [ head ]
 
-                 False ->
-                     []
-        list -> list
+                False ->
+                    []
+
+        list ->
+            list
 
 
-sameDirection: DirectionOption -> VertexData -> Bool
+sameDirection : DirectionOption -> VertexData -> Bool
 sameDirection direction vertexData =
-    vertexData.is_committee == (directionToIsCommittee direction)
+    vertexData.is_committee == directionToIsCommittee direction
 
-directionToIsCommittee: DirectionOption -> Bool
+
+directionToIsCommittee : DirectionOption -> Bool
 directionToIsCommittee direction =
     case direction of
         In ->
@@ -180,7 +186,8 @@ type DirectionOption
     = In
     | Out
 
-switchDirection: DirectionOption -> DirectionOption
+
+switchDirection : DirectionOption -> DirectionOption
 switchDirection direction =
     case direction of
         In ->
@@ -189,14 +196,15 @@ switchDirection direction =
         Out ->
             In
 
-updateDirectionOption: Model -> (Model, Cmd Msg)
+
+updateDirectionOption : Model -> ( Model, Cmd Msg )
 updateDirectionOption model =
     case model.direction_selected of
         In ->
-            ({ model | direction_selected = Out, vertices_selected = [], vertex_name_search_response = [], vertex_name_search = Nothing }, Cmd.none)
+            ( { model | direction_selected = Out, vertices_selected = [], vertex_name_search_response = [], vertex_name_search = Nothing }, Cmd.none )
 
         Out ->
-            ({ model | direction_selected = In, vertices_selected = [], vertex_name_search_response = [], vertex_name_search = Nothing }, Cmd.none)
+            ( { model | direction_selected = In, vertices_selected = [], vertex_name_search_response = [], vertex_name_search = Nothing }, Cmd.none )
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -247,8 +255,6 @@ update msg model =
             ( { model | vertices_selected = updateVertexDeleted vertex model.vertices_selected }, Cmd.none )
 
 
-
-
 cleanVertexNameInput : String -> String
 cleanVertexNameInput input =
     String.replace " " "" input
@@ -291,9 +297,9 @@ updateWithVertexNamePrefixResponse model result =
                     ( { model | vertex_name_search_response = [] }, Cmd.none )
 
                 vertices ->
-                    ( { model | vertex_name_search_response = (filterVerticesByDirection model.direction_selected vertices) }
+                    ( { model | vertex_name_search_response = filterVerticesByDirection model.direction_selected vertices }
                     , Cmd.none
-                     )
+                    )
 
         Err error ->
             ( { model | state = RequestFailure error }, Cmd.none )
@@ -340,12 +346,12 @@ unpackDynamoBool dynamoBool =
     dynamoBool.value
 
 
-updateWithVertexIdRequest : Model ->  String -> ( Model, Cmd Msg )
+updateWithVertexIdRequest : Model -> String -> ( Model, Cmd Msg )
 updateWithVertexIdRequest model directionStr =
     ( { model | state = Loading }
     , vertexIdsPost
         (buildVertexIdsRequest directionStr model.vertices_selected model.aggregation_selected)
-        (VertexIdsPostReceived)
+        VertexIdsPostReceived
     )
 
 
@@ -353,26 +359,26 @@ updateWithChildVertexIdRequest : Model -> VertexData -> ( Model, Cmd Msg )
 updateWithChildVertexIdRequest model vertexData =
     case vertexData.is_committee of
         True ->
-            ( { model | state = Loading, vertices_selected = [ vertexData ], direction_selected =  switchDirection model.direction_selected}
+            ( { model | state = Loading, vertices_selected = [ vertexData ], direction_selected = switchDirection model.direction_selected }
             , vertexIdsPost
                 (buildVertexIdsRequest "out" [ vertexData ] model.aggregation_selected)
-                (VertexIdsPostReceived)
+                VertexIdsPostReceived
             )
 
         False ->
-            ( { model | state = Loading, vertices_selected = [ vertexData ], direction_selected =  switchDirection model.direction_selected }
+            ( { model | state = Loading, vertices_selected = [ vertexData ], direction_selected = switchDirection model.direction_selected }
             , vertexIdsPost
                 (buildVertexIdsRequest "in" [ vertexData ] model.aggregation_selected)
-                (VertexIdsPostReceived)
+                VertexIdsPostReceived
             )
 
 
-updateWithVertexIdResponse : Model -> Result Http.Error VertexIdsResponse  -> ( Model, Cmd Msg )
+updateWithVertexIdResponse : Model -> Result Http.Error VertexIdsResponse -> ( Model, Cmd Msg )
 updateWithVertexIdResponse model result =
     case result of
         Ok response ->
             ( model
-            , vertexDataPost (buildVertexDataRequest (List.take 99 response.response_vertex_ids)) (VertexDataPostReceived)
+            , vertexDataPost (buildVertexDataRequest (List.take 99 response.response_vertex_ids)) VertexDataPostReceived
             )
 
         Err error ->
@@ -738,7 +744,7 @@ viewBuildingRequest model =
 viewNoInput : Model -> Html Msg
 viewNoInput model =
     div [ class "dropdown" ]
-        [ dropdownHeadAndBody model [directionOptionButton model.direction_selected] ]
+        [ dropdownHeadAndBody model [ directionOptionButton model.direction_selected ] ]
 
 
 viewBuildingRequestWithNoInputButMaybeSomeConfirmed : Model -> Html Msg
@@ -822,12 +828,13 @@ directedDropdownBody model moreHtml =
             dropdownBody "committee name" moreHtml
 
 
-dropdownBody: String ->  List (Html Msg) -> Html Msg
-dropdownBody entityType moreHtml=
+dropdownBody : String -> List (Html Msg) -> Html Msg
+dropdownBody entityType moreHtml =
     div [ class "dropdown-body" ]
         ([ input [ class "search-box", onInput SearchInput, placeholder entityType ] [] ]
             ++ moreHtml
         )
+
 
 dropdownHeadAndBody : Model -> List (Html Msg) -> Html Msg
 dropdownHeadAndBody model moreHtml =
@@ -841,14 +848,15 @@ directionOptionButton : DirectionOption -> Html Msg
 directionOptionButton direction =
     case direction of
         In ->
-            button [onClick DirectionOptionSelected] [text "Vendors"]
+            button [ onClick DirectionOptionSelected ] [ text "Vendors" ]
 
         Out ->
-            button [onClick DirectionOptionSelected] [text "Committees"]
+            button [ onClick DirectionOptionSelected ] [ text "Committees" ]
+
 
 makeVertexIdsRequestButton : Html Msg
 makeVertexIdsRequestButton =
-    button [ class "button", onClick (VertexIdsRequestMade) ] [ text "Search" ]
+    button [ class "button", onClick VertexIdsRequestMade ] [ text "Search" ]
 
 
 almostClearSearchButton : List (Html Msg) -> Html Msg
