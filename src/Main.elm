@@ -140,7 +140,7 @@ type Msg
     | VertexSelected VertexData
     | DeleteVertexSelection VertexData
     | VertexIdsRequestMade Direction
-    | ChildVertexIdsRequestMade VertexData Direction
+    | ChildVertexIdsRequestMade VertexData
     | VertexIdsPostReceived Direction (Result Http.Error VertexIdsResponse)
     | VertexDataPostReceived Direction (Result Http.Error VertexDataResponse)
     | VertexNamePrefixGetReceived (Result Http.Error VertexNamePrefixResponse)
@@ -168,13 +168,8 @@ update msg model =
                 Out ->
                     updateWithVertexIdRequest model direction "out"
 
-        ChildVertexIdsRequestMade vertexData direction ->
-            case direction of
-                In ->
-                    updateWithChildVertexIdRequest model vertexData direction "in"
-
-                Out ->
-                    updateWithChildVertexIdRequest model vertexData direction "out"
+        ChildVertexIdsRequestMade vertexData ->
+            updateWithChildVertexIdRequest model vertexData
 
         VertexIdsPostReceived direction result ->
             updateWithVertexIdResponse model result direction
@@ -299,13 +294,23 @@ updateWithVertexIdRequest model direction directionStr =
     )
 
 
-updateWithChildVertexIdRequest : Model -> VertexData -> Direction -> String -> ( Model, Cmd Msg )
-updateWithChildVertexIdRequest model vertexData direction directionStr =
-    ( { model | state = Loading, vertices_selected = [ vertexData ] }
-    , vertexIdsPost
-        (buildVertexIdsRequest directionStr [ vertexData ] model.aggregation_selected)
-        (VertexIdsPostReceived direction)
-    )
+updateWithChildVertexIdRequest : Model -> VertexData  -> ( Model, Cmd Msg )
+updateWithChildVertexIdRequest model vertexData =
+    case vertexData.is_committee of
+        True ->
+            ( { model | state = Loading, vertices_selected = [ vertexData ] }
+            , vertexIdsPost
+                (buildVertexIdsRequest "out" [ vertexData ] model.aggregation_selected)
+                (VertexIdsPostReceived Out)
+            )
+
+        False ->
+            ( { model | state = Loading, vertices_selected = [ vertexData ] }
+            , vertexIdsPost
+                (buildVertexIdsRequest "in" [ vertexData ] model.aggregation_selected)
+                (VertexIdsPostReceived In)
+            )
+
 
 
 updateWithVertexIdResponse : Model -> Result Http.Error VertexIdsResponse -> Direction -> ( Model, Cmd Msg )
@@ -807,17 +812,17 @@ viewDirectedResponse : Model -> Direction -> Html Msg
 viewDirectedResponse model direction =
     case direction of
         In ->
-            viewDirectedResponseWithText model direction "Direction: In"
+            viewDirectedResponseWithText model "Direction: In"
 
         Out ->
-            viewDirectedResponseWithText model direction "Direction: Out"
+            viewDirectedResponseWithText model "Direction: Out"
 
 
-viewDirectedResponseWithText : Model -> Direction -> String -> Html Msg
-viewDirectedResponseWithText model direction textToDisplay =
+viewDirectedResponseWithText : Model -> String -> Html Msg
+viewDirectedResponseWithText model textToDisplay =
     div [ class "response" ]
         [ ul [ class "dropdown" ] ([ text "Searched: " ] ++ List.map fromVertexDataToHTMLNoButtons model.vertices_selected)
-        , ul [] ([ text textToDisplay ] ++ List.map (fromVertexDataToHTMLWithSearchButton direction) model.vertex_data_response)
+        , ul [] ([ text textToDisplay ] ++ List.map fromVertexDataToHTMLWithSearchButton model.vertex_data_response)
         ]
 
 
@@ -866,14 +871,9 @@ fromVertexDataToHTMLWithDeleteVertexButton vertexData =
     almostFromVertexDataToHTML vertexData [ button [ onClick (DeleteVertexSelection vertexData) ] [ text "delete" ] ]
 
 
-fromVertexDataToHTMLWithSearchButton : Direction -> VertexData -> Html Msg
-fromVertexDataToHTMLWithSearchButton direction vertexData =
-    case direction of
-        In ->
-            almostFromVertexDataToHTML vertexData [ button [ onClick (ChildVertexIdsRequestMade vertexData direction) ] [ text "In" ] ]
-
-        Out ->
-            almostFromVertexDataToHTML vertexData [ button [ onClick (ChildVertexIdsRequestMade vertexData direction) ] [ text "Out" ] ]
+fromVertexDataToHTMLWithSearchButton : VertexData -> Html Msg
+fromVertexDataToHTMLWithSearchButton vertexData =
+    almostFromVertexDataToHTML vertexData [ button [ onClick (ChildVertexIdsRequestMade vertexData) ] [ text "Search" ] ]
 
 
 fromVertexDataToHTMLNoButtons : VertexData -> Html Msg
