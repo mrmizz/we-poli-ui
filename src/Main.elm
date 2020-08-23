@@ -1,4 +1,4 @@
-module Main exposing (main, updateWithVertexNamePrefixResponse, updateWithVertexIdRequest)
+module Main exposing (main, updateWithVertexIdRequest, updateWithVertexNamePrefixResponse)
 
 import Browser
 import Html exposing (..)
@@ -289,13 +289,15 @@ unpackDynamoBool : DynamoBool -> Bool
 unpackDynamoBool dynamoBool =
     dynamoBool.value
 
-updateWithVertexIdRequest: Model -> Direction -> String -> (Model, Cmd Msg)
-updateWithVertexIdRequest model direction directionStr =
-    ( { model | state = Loading }, vertexIdsPost (buildVertexIdsRequest directionStr model.vertices_selected model.aggregation_selected) (VertexIdsPostReceived direction))
 
-updateWithChildVertexIdRequest: Model -> VertexData -> Direction -> String -> (Model, Cmd Msg)
+updateWithVertexIdRequest : Model -> Direction -> String -> ( Model, Cmd Msg )
+updateWithVertexIdRequest model direction directionStr =
+    ( { model | state = Loading }, vertexIdsPost (buildVertexIdsRequest directionStr model.vertices_selected model.aggregation_selected) (VertexIdsPostReceived direction) )
+
+
+updateWithChildVertexIdRequest : Model -> VertexData -> Direction -> String -> ( Model, Cmd Msg )
 updateWithChildVertexIdRequest model vertexData direction directionStr =
-    ( { model | state = Loading, vertices_selected =  [vertexData] }, vertexIdsPost (buildVertexIdsRequest directionStr [vertexData] model.aggregation_selected) (VertexIdsPostReceived direction) )
+    ( { model | state = Loading, vertices_selected = [ vertexData ] }, vertexIdsPost (buildVertexIdsRequest directionStr [ vertexData ] model.aggregation_selected) (VertexIdsPostReceived direction) )
 
 
 updateWithVertexIdResponse : Model -> Result Http.Error VertexIdsResponse -> Direction -> ( Model, Cmd Msg )
@@ -830,7 +832,7 @@ almostFromVertexDataToHTML vertexData html =
                         ]
                     , li []
                         [ text "is_comittee:"
-                        , ul []  [ li [] [ text (printBool vertexData.is_committee) ] ]
+                        , ul [] [ li [] [ text (printBool vertexData.is_committee) ] ]
                         ]
                     , li []
                         [ text "cities:"
@@ -840,9 +842,10 @@ almostFromVertexDataToHTML vertexData html =
                ]
         )
 
-textListItem: String -> Html Msg
+
+textListItem : String -> Html Msg
 textListItem str =
-    li [] [text str]
+    li [] [ text str ]
 
 
 fromVertexDataToHTMLWithSelectVertexButton : VertexData -> Html Msg
@@ -854,14 +857,15 @@ fromVertexDataToHTMLWithDeleteVertexButton : VertexData -> Html Msg
 fromVertexDataToHTMLWithDeleteVertexButton vertexData =
     almostFromVertexDataToHTML vertexData [ button [ onClick (DeleteVertexSelection vertexData) ] [ text "delete" ] ]
 
-fromVertexDataToHTMLWithSearchButton: Direction -> VertexData -> Html Msg
+
+fromVertexDataToHTMLWithSearchButton : Direction -> VertexData -> Html Msg
 fromVertexDataToHTMLWithSearchButton direction vertexData =
     case direction of
         In ->
-            almostFromVertexDataToHTML vertexData [ button [ onClick (ChildVertexIdsRequestMade vertexData direction)] [text "In"] ]
+            almostFromVertexDataToHTML vertexData [ button [ onClick (ChildVertexIdsRequestMade vertexData direction) ] [ text "In" ] ]
 
         Out ->
-            almostFromVertexDataToHTML vertexData [ button [ onClick (ChildVertexIdsRequestMade vertexData direction)] [text "Out"] ]
+            almostFromVertexDataToHTML vertexData [ button [ onClick (ChildVertexIdsRequestMade vertexData direction) ] [ text "Out" ] ]
 
 
 fromVertexDataToHTMLNoButtons : VertexData -> Html Msg
