@@ -294,7 +294,7 @@ updateWithVertexIdRequest model direction directionStr =
     )
 
 
-updateWithChildVertexIdRequest : Model -> VertexData  -> ( Model, Cmd Msg )
+updateWithChildVertexIdRequest : Model -> VertexData -> ( Model, Cmd Msg )
 updateWithChildVertexIdRequest model vertexData =
     case vertexData.is_committee of
         True ->
@@ -310,7 +310,6 @@ updateWithChildVertexIdRequest model vertexData =
                 (buildVertexIdsRequest "in" [ vertexData ] model.aggregation_selected)
                 (VertexIdsPostReceived In)
             )
-
 
 
 updateWithVertexIdResponse : Model -> Result Http.Error VertexIdsResponse -> Direction -> ( Model, Cmd Msg )
