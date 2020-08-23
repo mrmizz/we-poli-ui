@@ -197,6 +197,7 @@ cleanVertexNameInput input =
     String.replace " " "" input
         |> String.toLower
 
+
 updateVertexSelected : VertexData -> List VertexData -> List VertexData
 updateVertexSelected vertex vertices =
     getVertices (distinctVertices (List.singleton vertex ++ vertices))
@@ -807,6 +808,10 @@ almostFromVertexDataToHTML vertexData html =
         (html
             ++ [ ul []
                     [ li []
+                        [ text "uid:"
+                        , ul [] [ li [] [ text vertexData.uid ] ]
+                        ]
+                    , li []
                         [ text "name:"
                         , ul [] [ li [] [ text vertexData.name ] ]
                         ]
