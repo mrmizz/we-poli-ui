@@ -292,12 +292,20 @@ unpackDynamoBool dynamoBool =
 
 updateWithVertexIdRequest : Model -> Direction -> String -> ( Model, Cmd Msg )
 updateWithVertexIdRequest model direction directionStr =
-    ( { model | state = Loading }, vertexIdsPost (buildVertexIdsRequest directionStr model.vertices_selected model.aggregation_selected) (VertexIdsPostReceived direction) )
+    ( { model | state = Loading }
+    , vertexIdsPost
+        (buildVertexIdsRequest directionStr model.vertices_selected model.aggregation_selected)
+        (VertexIdsPostReceived direction)
+    )
 
 
 updateWithChildVertexIdRequest : Model -> VertexData -> Direction -> String -> ( Model, Cmd Msg )
 updateWithChildVertexIdRequest model vertexData direction directionStr =
-    ( { model | state = Loading, vertices_selected = [ vertexData ] }, vertexIdsPost (buildVertexIdsRequest directionStr [ vertexData ] model.aggregation_selected) (VertexIdsPostReceived direction) )
+    ( { model | state = Loading, vertices_selected = [ vertexData ] }
+    , vertexIdsPost
+        (buildVertexIdsRequest directionStr [ vertexData ] model.aggregation_selected)
+        (VertexIdsPostReceived direction)
+    )
 
 
 updateWithVertexIdResponse : Model -> Result Http.Error VertexIdsResponse -> Direction -> ( Model, Cmd Msg )
