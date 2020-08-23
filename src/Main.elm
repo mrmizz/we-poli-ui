@@ -317,7 +317,7 @@ updateWithVertexIdResponse model result direction =
     case result of
         Ok response ->
             ( model
-            , vertexDataPost (buildVertexDataRequest response.response_vertex_ids) (VertexDataPostReceived direction)
+            , vertexDataPost (buildVertexDataRequest (List.take 99 response.response_vertex_ids)) (VertexDataPostReceived direction)
             )
 
         Err error ->
