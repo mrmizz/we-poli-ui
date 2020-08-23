@@ -1,4 +1,4 @@
-module Main exposing (main, updateWithVertexNamePrefixResponse)
+module Main exposing (main, updateWithVertexNamePrefixResponse, updateWithVertexIdRequest)
 
 import Browser
 import Html exposing (..)
@@ -140,6 +140,7 @@ type Msg
     | VertexSelected VertexData
     | DeleteVertexSelection VertexData
     | VertexIdsRequestMade Direction
+    | ChildVertexIdsRequestMade VertexData Direction
     | VertexIdsPostReceived Direction (Result Http.Error VertexIdsResponse)
     | VertexDataPostReceived Direction (Result Http.Error VertexDataResponse)
     | VertexNamePrefixGetReceived (Result Http.Error VertexNamePrefixResponse)
@@ -162,10 +163,18 @@ update msg model =
         VertexIdsRequestMade direction ->
             case direction of
                 In ->
-                    updateWithVertexIdRequest model (buildVertexIdsRequest "in") (VertexIdsPostReceived direction)
+                    updateWithVertexIdRequest model direction "in"
 
                 Out ->
-                    updateWithVertexIdRequest model (buildVertexIdsRequest "out") (VertexIdsPostReceived direction)
+                    updateWithVertexIdRequest model direction "out"
+
+        ChildVertexIdsRequestMade vertexData direction ->
+            case direction of
+                In ->
+                    updateWithChildVertexIdRequest model vertexData direction "in"
+
+                Out ->
+                    updateWithChildVertexIdRequest model vertexData direction "out"
 
         VertexIdsPostReceived direction result ->
             updateWithVertexIdResponse model result direction
@@ -280,9 +289,13 @@ unpackDynamoBool : DynamoBool -> Bool
 unpackDynamoBool dynamoBool =
     dynamoBool.value
 
+updateWithVertexIdRequest: Model -> Direction -> String -> (Model, Cmd Msg)
+updateWithVertexIdRequest model direction directionStr =
+    ( { model | state = Loading }, vertexIdsPost (buildVertexIdsRequest directionStr model.vertices_selected model.aggregation_selected) (VertexIdsPostReceived direction))
 
-updateWithVertexIdRequest model buildRequestArg toMsg =
-    ( { model | state = Loading }, vertexIdsPost (buildRequestArg model) toMsg )
+updateWithChildVertexIdRequest: Model -> VertexData -> Direction -> String -> (Model, Cmd Msg)
+updateWithChildVertexIdRequest model vertexData direction directionStr =
+    ( { model | state = Loading, vertices_selected =  [vertexData] }, vertexIdsPost (buildVertexIdsRequest directionStr [vertexData] model.aggregation_selected) (VertexIdsPostReceived direction) )
 
 
 updateWithVertexIdResponse : Model -> Result Http.Error VertexIdsResponse -> Direction -> ( Model, Cmd Msg )
@@ -350,9 +363,9 @@ vertexIdsPost request msg =
         }
 
 
-buildVertexIdsRequest : String -> Model -> VertexIdsRequest
-buildVertexIdsRequest directionString model =
-    VertexIdsRequest (List.map getVertexId model.vertices_selected) directionString model.aggregation_selected
+buildVertexIdsRequest : String -> List VertexData -> String -> VertexIdsRequest
+buildVertexIdsRequest directionString vertices agg =
+    VertexIdsRequest (List.map getVertexId vertices) directionString agg
 
 
 vertexIdsRequestEncoder : VertexIdsRequest -> Encode.Value
@@ -747,12 +760,12 @@ dropDownHeadAndBody moreHtml =
 
 makeRequestInDirectionButton : Html Msg
 makeRequestInDirectionButton =
-    button [ class "button", onClick (VertexIdsRequestMade In) ] [ text "in" ]
+    button [ class "button", onClick (VertexIdsRequestMade In) ] [ text "Search In" ]
 
 
 makeRequestOutDirectionButton : Html Msg
 makeRequestOutDirectionButton =
-    button [ class "button", onClick (VertexIdsRequestMade Out) ] [ text "out" ]
+    button [ class "button", onClick (VertexIdsRequestMade Out) ] [ text "Search Out" ]
 
 
 almostClearSearchButton : List (Html Msg) -> Html Msg
@@ -784,17 +797,17 @@ viewDirectedResponse : Model -> Direction -> Html Msg
 viewDirectedResponse model direction =
     case direction of
         In ->
-            viewResponse model "Direction: In"
+            viewDirectedResponseWithText model direction "Direction: In"
 
         Out ->
-            viewResponse model "Direction: Out"
+            viewDirectedResponseWithText model direction "Direction: Out"
 
 
-viewResponse : Model -> String -> Html Msg
-viewResponse model textToDisplay =
+viewDirectedResponseWithText : Model -> Direction -> String -> Html Msg
+viewDirectedResponseWithText model direction textToDisplay =
     div [ class "response" ]
         [ ul [ class "dropdown" ] ([ text "Searched: " ] ++ List.map fromVertexDataToHTMLNoButtons model.vertices_selected)
-        , ul [] ([ text textToDisplay ] ++ List.map fromVertexDataToHTMLNoButtons model.vertex_data_response)
+        , ul [] ([ text textToDisplay ] ++ List.map (fromVertexDataToHTMLWithSearchButton direction) model.vertex_data_response)
         ]
 
 
@@ -840,6 +853,15 @@ fromVertexDataToHTMLWithSelectVertexButton vertexData =
 fromVertexDataToHTMLWithDeleteVertexButton : VertexData -> Html Msg
 fromVertexDataToHTMLWithDeleteVertexButton vertexData =
     almostFromVertexDataToHTML vertexData [ button [ onClick (DeleteVertexSelection vertexData) ] [ text "delete" ] ]
+
+fromVertexDataToHTMLWithSearchButton: Direction -> VertexData -> Html Msg
+fromVertexDataToHTMLWithSearchButton direction vertexData =
+    case direction of
+        In ->
+            almostFromVertexDataToHTML vertexData [ button [ onClick (ChildVertexIdsRequestMade vertexData direction)] [text "In"] ]
+
+        Out ->
+            almostFromVertexDataToHTML vertexData [ button [ onClick (ChildVertexIdsRequestMade vertexData direction)] [text "Out"] ]
 
 
 fromVertexDataToHTMLNoButtons : VertexData -> Html Msg
