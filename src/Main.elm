@@ -195,7 +195,7 @@ update msg model =
 cleanVertexNameInput : String -> String
 cleanVertexNameInput input =
     String.replace " " "" input
-
+        |> String.toLower
 
 updateVertexSelected : VertexData -> List VertexData -> List VertexData
 updateVertexSelected vertex vertices =
