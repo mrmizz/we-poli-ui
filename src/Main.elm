@@ -817,15 +817,19 @@ almostFromVertexDataToHTML vertexData html =
                         ]
                     , li []
                         [ text "is_comittee:"
-                        , ul [] [ li [] [ text (printBool vertexData.is_committee) ] ]
+                        , ul []  [ li [] [ text (printBool vertexData.is_committee) ] ]
                         ]
                     , li []
                         [ text "cities:"
-                        , ul [] [ li [] (List.map text vertexData.cities) ]
+                        , ul [] (List.map textListItem vertexData.cities)
                         ]
                     ]
                ]
         )
+
+textListItem: String -> Html Msg
+textListItem str =
+    li [] [text str]
 
 
 fromVertexDataToHTMLWithSelectVertexButton : VertexData -> Html Msg
