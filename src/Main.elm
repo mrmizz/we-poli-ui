@@ -1,4 +1,4 @@
-module Main exposing (main, updateWithVertexIdRequest, updateWithVertexNamePrefixResponse)
+module Main exposing (main)
 
 import Browser
 import Html exposing (..)
@@ -35,7 +35,7 @@ type alias Model =
     , vertex_name_search_response : List VertexData
     , vertices_selected : List VertexData
     , aggregation_selected : String
-    , direction_selected : DirectionOption
+    , direction_selected : Direction
     , vertex_data_response : List VertexData
     }
 
@@ -71,7 +71,7 @@ distinctVertices vertices =
     List.foldl updateVertexPresence (VertexPresence Set.empty []) vertices
 
 
-filterVerticesByDirection : DirectionOption -> List VertexData -> List VertexData
+filterVerticesByDirection : Direction -> List VertexData -> List VertexData
 filterVerticesByDirection direction vertices =
     case List.filter (sameDirection direction) vertices of
         [] ->
@@ -89,12 +89,12 @@ filterVerticesByDirection direction vertices =
             list
 
 
-sameDirection : DirectionOption -> VertexData -> Bool
+sameDirection : Direction -> VertexData -> Bool
 sameDirection direction vertexData =
     vertexData.is_committee == directionToIsCommittee direction
 
 
-directionToIsCommittee : DirectionOption -> Bool
+directionToIsCommittee : Direction -> Bool
 directionToIsCommittee direction =
     case direction of
         In ->
@@ -182,12 +182,12 @@ type Msg
     | VertexNamePrefixGetReceived (Result Http.Error VertexNamePrefixResponse)
 
 
-type DirectionOption
+type Direction
     = In
     | Out
 
 
-switchDirection : DirectionOption -> DirectionOption
+switchDirection : Direction -> Direction
 switchDirection direction =
     case direction of
         In ->
@@ -763,7 +763,7 @@ viewLoading =
     div [ class "dropdown" ] [ text "Loading . . ." ]
 
 
-viewRequestSuccess : DirectionOption -> Model -> Html Msg
+viewRequestSuccess : Direction -> Model -> Html Msg
 viewRequestSuccess direction model =
     div [ class "dropdown" ]
         [ dropdownHeadAndBody model []
@@ -844,7 +844,7 @@ dropdownHeadAndBody model moreHtml =
         ]
 
 
-directionOptionButton : DirectionOption -> Html Msg
+directionOptionButton : Direction -> Html Msg
 directionOptionButton direction =
     case direction of
         In ->
@@ -884,7 +884,7 @@ returnToSearchButton =
     button [ class "button", onClick ConfirmSearch ] [ text "Return To Existing Search" ]
 
 
-viewDirectedResponse : Model -> DirectionOption -> Html Msg
+viewDirectedResponse : Model -> Direction -> Html Msg
 viewDirectedResponse model direction =
     case direction of
         In ->
