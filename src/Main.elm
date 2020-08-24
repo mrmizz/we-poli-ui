@@ -678,7 +678,8 @@ view model =
 viewSearchConfirmed : Model -> Html Msg
 viewSearchConfirmed model =
     div [ class "dropdown" ]
-        [ dropdownHeadAndBody model [ makeVertexIdsRequestButton ]
+        [ dropdownHead
+        , makeVertexIdsRequestButton
         , defaultClearSearchButton
         , editSearchButton
         , viewAggParam model.aggregation_selected
@@ -766,7 +767,7 @@ viewLoading =
 viewRequestSuccess : Direction -> Model -> Html Msg
 viewRequestSuccess direction model =
     div [ class "dropdown" ]
-        [ dropdownHeadAndBody model []
+        [ dropdownHead
         , defaultClearSearchButton
         , editSearchButton
         , viewAggParam model.aggregation_selected
