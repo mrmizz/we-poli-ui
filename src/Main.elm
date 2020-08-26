@@ -821,7 +821,7 @@ background moreElements =
 
 dropdownHead : Model -> Element Msg
 dropdownHead model =
-    Element.row [ Element.padding 25, Element.centerX] [Element.text "Poli Graph Search: ", Element.html (directionOptionButton model.direction_selected)]
+    Element.row [ Element.padding 50, Element.centerX, Font.size 35] [Element.text "Poli Graph Search: ", Element.html (directionOptionButton model.direction_selected)]
 
 
 directedDropdownBody : Model -> List (Element Msg) -> Element Msg
@@ -836,8 +836,8 @@ directedDropdownBody model moreElements =
 
 dropdownBody : Model -> String -> List (Element Msg) -> Element Msg
 dropdownBody model entityType moreElements =
-    Element.column [ Font.extraLight]
-        ([Input.search [ Element.width (Element.px 1500), Font.color (Element.rgb255 0 0 0 ) ]
+    Element.column [ Font.extraLight, Element.width (Element.px 1000)]
+        ([Input.search [  Font.color (Element.rgb255 0 0 0 ) ]
             { onChange = SearchInput
             , text = model.vertex_name_search
             , placeholder = Just (Input.placeholder [] (Element.text entityType))
