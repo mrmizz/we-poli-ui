@@ -6,8 +6,8 @@ import Element.Background as Background
 import Element.Font as Font
 import Element.Input as Input
 import Html exposing (..)
-import Html.Attributes exposing (class, placeholder)
-import Html.Events exposing (onClick, onInput)
+import Html.Attributes exposing (class)
+import Html.Events exposing (onClick)
 import Http
 import Json.Decode as Decode
 import Json.Encode as Encode
@@ -843,7 +843,11 @@ directedDropdownBody model moreElements =
 
 dropdownBody : Model -> String -> List (Element Msg) -> Element Msg
 dropdownBody model entityType moreElements =
-    Element.column [ Font.extraLight, Element.width (Element.px 1000) ]
+    Element.column
+    [ Font.extraLight
+    , Element.width (Element.px 1000)
+    , Background.color (Element.rgb255 119 136 153)
+    ]
         ([ Input.search [ Font.color (Element.rgb255 0 0 0) ]
             { onChange = SearchInput
             , text = model.vertex_name_search
