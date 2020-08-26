@@ -826,28 +826,21 @@ background moreElements =
 
 dropdownHead : Element Msg
 dropdownHead =
-    Element.text ">Poli Graph Search<"
+    Element.el [Element.centerX, Element.padding 25] (Element.text ">Poli Graph Search<")
 
 
 directedDropdownBody : Model -> List (Element Msg) -> Element Msg
 directedDropdownBody model moreElements =
     case model.direction_selected of
         In ->
-            dropdownBody2 model "vendor name" moreElements
+            dropdownBody model "vendor name" moreElements
 
         Out ->
-            dropdownBody2 model "committee name" moreElements
+            dropdownBody model "committee name" moreElements
 
 
-dropdownBody : String -> List (Html Msg) -> Html Msg
-dropdownBody entityType moreHtml =
-    div [ class "dropdown-body" ]
-        ([ input [ class "search-box", onInput SearchInput, placeholder entityType ] [] ]
-            ++ moreHtml
-        )
-
-dropdownBody2 : Model -> String -> List (Element Msg) -> Element Msg
-dropdownBody2 model entityType moreElements =
+dropdownBody : Model -> String -> List (Element Msg) -> Element Msg
+dropdownBody model entityType moreElements =
     Element.column [] ([Input.search [Element.width (Element.px 500)]         { onChange = SearchInput
                                          , text = model.vertex_name_search
                                          , placeholder = Nothing -- Just (Input.placeholder [] (Element.text "nada"))
