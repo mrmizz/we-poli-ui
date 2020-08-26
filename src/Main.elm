@@ -664,7 +664,7 @@ view : Model -> Html Msg
 view model =
     case model.state of
         BuildingRequest ->
-            Element.layout [] (background [viewBuildingRequest model])
+            Element.layout [] (background [ viewBuildingRequest model ])
 
         SearchConfirmed ->
             viewSearchConfirmed model
@@ -678,11 +678,13 @@ view model =
         RequestFailure error ->
             viewRequestFailure error
 
-styledView: Html Msg -> Html Msg
+
+styledView : Html Msg -> Html Msg
 styledView html =
-    Element.html (html)
-        |> Element.el [Element.centerX, (Element.moveDown 25)]
+    Element.html html
+        |> Element.el [ Element.centerX, Element.moveDown 25 ]
         |> Element.layout []
+
 
 viewSearchConfirmed : Model -> Html Msg
 viewSearchConfirmed model =
@@ -732,11 +734,11 @@ viewBuildingRequest model =
         _ ->
             case model.vertices_selected of
                 [] ->
-                     Element.el [] (dropdownHeadAndBody model [ directionOptionButton model.direction_selected, viewVertexNamePrefixResponse model ])
+                    Element.el [] (dropdownHeadAndBody model [ directionOptionButton model.direction_selected, viewVertexNamePrefixResponse model ])
 
                 _ ->
                     Element.el []
-                        ( dropdownHeadAndBody model
+                        (dropdownHeadAndBody model
                             [ directionOptionButton model.direction_selected
                             , div [] [ confirmSearchButton ]
                             , viewVertexIdsSelected model
@@ -815,18 +817,19 @@ viewAggParam agg =
     div [ class "dropdown" ] [ text "Aggregation: ", button [ onClick AggOptionSelected ] [ text agg ] ]
 
 
-background: List (Element Msg) -> Element Msg
+background : List (Element Msg) -> Element Msg
 background moreElements =
-    Element.el [Background.color (Element.rgb255 50 125 200)
-    , Element.width Element.fill
-    , Element.height Element.fill
-    ] (
-    Element.row [Font.color (Element.rgb255 0 255 255),  Element.centerX ] moreElements
-    )
+    Element.el
+        [ Background.color (Element.rgb255 50 125 200)
+        , Element.width Element.fill
+        , Element.height Element.fill
+        ]
+        (Element.row [ Font.color (Element.rgb255 0 255 255), Element.centerX ] moreElements)
+
 
 dropdownHead : Element Msg
 dropdownHead =
-    Element.el [Element.centerX, Element.padding 25] (Element.text ">Poli Graph Search<")
+    Element.el [ Element.centerX, Element.padding 25 ] (Element.text ">Poli Graph Search<")
 
 
 directedDropdownBody : Model -> List (Element Msg) -> Element Msg
@@ -841,11 +844,16 @@ directedDropdownBody model moreElements =
 
 dropdownBody : Model -> String -> List (Element Msg) -> Element Msg
 dropdownBody model entityType moreElements =
-    Element.column [] ([Input.search [Element.width (Element.px 500)]         { onChange = SearchInput
-                                         , text = model.vertex_name_search
-                                         , placeholder = Nothing -- Just (Input.placeholder [] (Element.text "nada"))
-                                         , label = Input.labelAbove [] (Element.text entityType)
-                                         }] ++ moreElements)
+    Element.column []
+        ([ Input.search [ Element.width (Element.px 500) ]
+            { onChange = SearchInput
+            , text = model.vertex_name_search
+            , placeholder = Nothing -- Just (Input.placeholder [] (Element.text "nada"))
+            , label = Input.labelAbove [] (Element.text entityType)
+            }
+         ]
+            ++ moreElements
+        )
 
 
 dropdownHeadAndBody : Model -> List (Html Msg) -> Element Msg
