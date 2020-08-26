@@ -1,6 +1,10 @@
 module Main exposing (main)
 
 import Browser
+import Element exposing (Element)
+import Element.Background as Background
+import Element.Font as Font
+import Element.Input as Input
 import Html exposing (..)
 import Html.Attributes exposing (class, placeholder)
 import Html.Events exposing (onClick, onInput)
@@ -31,7 +35,7 @@ main =
 
 type alias Model =
     { state : State
-    , vertex_name_search : Maybe String
+    , vertex_name_search : String
     , vertex_name_search_response : List VertexData
     , vertices_selected : List VertexData
     , aggregation_selected : String
@@ -143,7 +147,7 @@ type State
 initialModel : Model
 initialModel =
     { state = BuildingRequest
-    , vertex_name_search = Nothing
+    , vertex_name_search = ""
     , vertex_name_search_response = []
     , aggregation_selected = defaultAggregationInput
     , vertices_selected = []
@@ -201,10 +205,10 @@ updateDirectionOption : Model -> ( Model, Cmd Msg )
 updateDirectionOption model =
     case model.direction_selected of
         In ->
-            ( { model | direction_selected = Out, vertices_selected = [], vertex_name_search_response = [], vertex_name_search = Nothing }, Cmd.none )
+            ( { model | direction_selected = Out, vertices_selected = [], vertex_name_search_response = [], vertex_name_search = "" }, Cmd.none )
 
         Out ->
-            ( { model | direction_selected = In, vertices_selected = [], vertex_name_search_response = [], vertex_name_search = Nothing }, Cmd.none )
+            ( { model | direction_selected = In, vertices_selected = [], vertex_name_search_response = [], vertex_name_search = "" }, Cmd.none )
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -280,10 +284,10 @@ updateWithVertexNamePrefixRequest : Model -> String -> (Result Http.Error Vertex
 updateWithVertexNamePrefixRequest model prefix toMsg =
     case String.length (cleanVertexNameInput prefix) >= 3 of
         False ->
-            ( { model | vertex_name_search = Nothing }, Cmd.none )
+            ( { model | vertex_name_search = prefix }, Cmd.none )
 
         True ->
-            ( { model | vertex_name_search = Just prefix }
+            ( { model | vertex_name_search = prefix }
             , vertexNamePrefixGet (cleanVertexNameInput prefix) toMsg
             )
 
@@ -660,7 +664,7 @@ view : Model -> Html Msg
 view model =
     case model.state of
         BuildingRequest ->
-            viewBuildingRequest model
+            Element.layout [] (background [viewBuildingRequest model])
 
         SearchConfirmed ->
             viewSearchConfirmed model
@@ -674,11 +678,16 @@ view model =
         RequestFailure error ->
             viewRequestFailure error
 
+styledView: Html Msg -> Html Msg
+styledView html =
+    Element.html (html)
+        |> Element.el [Element.centerX, (Element.moveDown 25)]
+        |> Element.layout []
 
 viewSearchConfirmed : Model -> Html Msg
 viewSearchConfirmed model =
     div [ class "dropdown" ]
-        [ dropdownHead
+        [ Element.layout [] dropdownHead
         , makeVertexIdsRequestButton
         , defaultClearSearchButton
         , editSearchButton
@@ -714,49 +723,41 @@ viewVertexIdsSelected model =
         ([ text "We're Searching For:" ] ++ List.map viewVertexSelected model.vertices_selected)
 
 
-viewBuildingRequest : Model -> Html Msg
+viewBuildingRequest : Model -> Element Msg
 viewBuildingRequest model =
     case model.vertex_name_search of
-        Nothing ->
+        "" ->
             viewBuildingRequestWithNoInputButMaybeSomeConfirmed model
 
-        Just title ->
-            case title of
-                "" ->
-                    viewBuildingRequestWithNoInputButMaybeSomeConfirmed model
+        _ ->
+            case model.vertices_selected of
+                [] ->
+                     Element.el [] (dropdownHeadAndBody model [ directionOptionButton model.direction_selected, viewVertexNamePrefixResponse model ])
 
                 _ ->
-                    case model.vertices_selected of
-                        [] ->
-                            div [ class "dropdown" ]
-                                [ dropdownHeadAndBody model [ directionOptionButton model.direction_selected, viewVertexNamePrefixResponse model ] ]
-
-                        _ ->
-                            div [ class "dropdown" ]
-                                [ dropdownHeadAndBody model
-                                    [ directionOptionButton model.direction_selected
-                                    , div [] [ confirmSearchButton ]
-                                    , viewVertexIdsSelected model
-                                    , viewVertexNamePrefixResponse model
-                                    ]
-                                ]
+                    Element.el []
+                        ( dropdownHeadAndBody model
+                            [ directionOptionButton model.direction_selected
+                            , div [] [ confirmSearchButton ]
+                            , viewVertexIdsSelected model
+                            , viewVertexNamePrefixResponse model
+                            ]
+                        )
 
 
-viewNoInput : Model -> Html Msg
+viewNoInput : Model -> Element Msg
 viewNoInput model =
-    div [ class "dropdown" ]
-        [ dropdownHeadAndBody model [ directionOptionButton model.direction_selected ] ]
+    Element.el [] (dropdownHeadAndBody model [ directionOptionButton model.direction_selected ])
 
 
-viewBuildingRequestWithNoInputButMaybeSomeConfirmed : Model -> Html Msg
+viewBuildingRequestWithNoInputButMaybeSomeConfirmed : Model -> Element Msg
 viewBuildingRequestWithNoInputButMaybeSomeConfirmed model =
     case model.vertices_selected of
         [] ->
             viewNoInput model
 
         _ ->
-            div [ class "dropdown" ]
-                [ dropdownHeadAndBody model [ directionOptionButton model.direction_selected, div [] [ confirmSearchButton ], viewVertexIdsSelected model ] ]
+            Element.el [] (dropdownHeadAndBody model [ directionOptionButton model.direction_selected, div [] [ confirmSearchButton ], viewVertexIdsSelected model ])
 
 
 viewLoading : Html Msg
@@ -767,7 +768,7 @@ viewLoading =
 viewRequestSuccess : Direction -> Model -> Html Msg
 viewRequestSuccess direction model =
     div [ class "dropdown" ]
-        [ dropdownHead
+        [ Element.layout [] dropdownHead
         , defaultClearSearchButton
         , editSearchButton
         , viewAggParam model.aggregation_selected
@@ -814,19 +815,28 @@ viewAggParam agg =
     div [ class "dropdown" ] [ text "Aggregation: ", button [ onClick AggOptionSelected ] [ text agg ] ]
 
 
-dropdownHead : Html Msg
+background: List (Element Msg) -> Element Msg
+background moreElements =
+    Element.el [Background.color (Element.rgb255 50 125 200)
+    , Element.width Element.fill
+    , Element.height Element.fill
+    ] (
+    Element.row [Font.color (Element.rgb255 0 255 255),  Element.centerX ] moreElements
+    )
+
+dropdownHead : Element Msg
 dropdownHead =
-    p [ class "header" ] [ text ">Poli Graph Search<" ]
+    Element.text ">Poli Graph Search<"
 
 
-directedDropdownBody : Model -> List (Html Msg) -> Html Msg
-directedDropdownBody model moreHtml =
+directedDropdownBody : Model -> List (Element Msg) -> Element Msg
+directedDropdownBody model moreElements =
     case model.direction_selected of
         In ->
-            dropdownBody "vendor name" moreHtml
+            dropdownBody2 model "vendor name" moreElements
 
         Out ->
-            dropdownBody "committee name" moreHtml
+            dropdownBody2 model "committee name" moreElements
 
 
 dropdownBody : String -> List (Html Msg) -> Html Msg
@@ -836,12 +846,20 @@ dropdownBody entityType moreHtml =
             ++ moreHtml
         )
 
+dropdownBody2 : Model -> String -> List (Element Msg) -> Element Msg
+dropdownBody2 model entityType moreElements =
+    Element.column [] ([Input.search [Element.width (Element.px 500)]         { onChange = SearchInput
+                                         , text = model.vertex_name_search
+                                         , placeholder = Nothing -- Just (Input.placeholder [] (Element.text "nada"))
+                                         , label = Input.labelAbove [] (Element.text entityType)
+                                         }] ++ moreElements)
 
-dropdownHeadAndBody : Model -> List (Html Msg) -> Html Msg
-dropdownHeadAndBody model moreHtml =
-    div [ class "dropdown" ]
+
+dropdownHeadAndBody : Model -> List (Html Msg) -> Element Msg
+dropdownHeadAndBody model moreElements =
+    Element.column []
         [ dropdownHead
-        , directedDropdownBody model moreHtml
+        , directedDropdownBody model (List.map Element.html moreElements)
         ]
 
 
