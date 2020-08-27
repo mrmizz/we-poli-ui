@@ -828,7 +828,7 @@ dropdownHead model =
         , Font.size 35
         ]
         [ Element.text "Poli Graph Search: "
-        , Element.html (directionOptionButton model.direction_selected)
+        , directionOptionButton model.direction_selected
         ]
 
 
@@ -848,7 +848,7 @@ dropdownBody model entityType moreElements =
     [ Font.extraLight
     , Element.width (Element.px 1000)
     , Background.color (Element.rgb255 119 136 153)
-    , Border.rounded 10
+    , Border.rounded 25
     ]
         ([ Input.search [ Font.color (Element.rgb255 0 0 0) ]
             { onChange = SearchInput
@@ -869,14 +869,16 @@ dropdownHeadAndBody model moreElements =
         ]
 
 
-directionOptionButton : Direction -> Html Msg
+directionOptionButton : Direction -> Element Msg
 directionOptionButton direction =
     case direction of
         In ->
-            button [ onClick DirectionOptionSelected ] [ text "Vendors" ]
+            (Input.button [] {onPress = Just DirectionOptionSelected
+            , label = buttonStyle (Element.text "Vendors")})
 
         Out ->
-            button [ onClick DirectionOptionSelected ] [ text "Committees" ]
+            (Input.button [] {onPress = Just DirectionOptionSelected
+            , label = buttonStyle (Element.text "Committees")})
 
 
 makeVertexIdsRequestButton : Html Msg
@@ -964,17 +966,18 @@ textListItem str =
 
 fromVertexDataToHTMLWithSelectVertexButton : VertexData -> Html Msg
 fromVertexDataToHTMLWithSelectVertexButton vertexData =
-    -- almostFromVertexDataToHTML vertexData [ button [ onClick (VertexSelected vertexData) ] [ text "Select" ] ]
     almostFromVertexDataToHTML vertexData [
     Element.layout [] (Input.button [] {onPress = Just (VertexSelected vertexData), label =
-    buttonStyle (Element.text "select or some shit")})
+    buttonStyle (Element.text "select")})
     ]
 
 
 fromVertexDataToHTMLWithDeleteVertexButton : VertexData -> Html Msg
 fromVertexDataToHTMLWithDeleteVertexButton vertexData =
-    almostFromVertexDataToHTML vertexData [ button [ onClick (DeleteVertexSelection vertexData) ] [ text "delete" ] ]
-
+    almostFromVertexDataToHTML vertexData [
+    Element.layout [] (Input.button [] {onPress = Just (DeleteVertexSelection vertexData), label =
+    buttonStyle (Element.text "delete")})
+    ]
 
 fromVertexDataToHTMLWithSearchButton : VertexData -> Html Msg
 fromVertexDataToHTMLWithSearchButton vertexData =
