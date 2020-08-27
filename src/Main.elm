@@ -5,6 +5,7 @@ import Element exposing (Element)
 import Element.Background as Background
 import Element.Font as Font
 import Element.Input as Input
+import Element.Border as Border
 import Html exposing (..)
 import Html.Attributes exposing (class)
 import Html.Events exposing (onClick)
@@ -847,6 +848,7 @@ dropdownBody model entityType moreElements =
     [ Font.extraLight
     , Element.width (Element.px 1000)
     , Background.color (Element.rgb255 119 136 153)
+    , Border.rounded 10
     ]
         ([ Input.search [ Font.color (Element.rgb255 0 0 0) ]
             { onChange = SearchInput
@@ -962,7 +964,11 @@ textListItem str =
 
 fromVertexDataToHTMLWithSelectVertexButton : VertexData -> Html Msg
 fromVertexDataToHTMLWithSelectVertexButton vertexData =
-    almostFromVertexDataToHTML vertexData [ button [ onClick (VertexSelected vertexData) ] [ text "Select" ] ]
+    -- almostFromVertexDataToHTML vertexData [ button [ onClick (VertexSelected vertexData) ] [ text "Select" ] ]
+    almostFromVertexDataToHTML vertexData [
+    Element.layout [] (Input.button [] {onPress = Just (VertexSelected vertexData), label =
+    buttonStyle (Element.text "select or some shit")})
+    ]
 
 
 fromVertexDataToHTMLWithDeleteVertexButton : VertexData -> Html Msg
@@ -978,3 +984,13 @@ fromVertexDataToHTMLWithSearchButton vertexData =
 fromVertexDataToHTMLNoButtons : VertexData -> Html Msg
 fromVertexDataToHTMLNoButtons vertexData =
     almostFromVertexDataToHTML vertexData []
+
+buttonStyle: Element Msg -> Element Msg
+buttonStyle button =
+    Element.el
+    [ Background.color (Element.rgb255 220 220 220)
+    , Font.size 17
+    , Element.paddingXY 7 3
+    , Border.rounded 10
+    , Border.glow (Element.rgb255 210 210 210) 3
+    ] button
