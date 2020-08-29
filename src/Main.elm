@@ -682,26 +682,30 @@ elementView model =
         RequestFailure error ->
             background (viewRequestFailure error)
 
-almostDropdownBody: List (Element Msg) -> Element Msg
+
+almostDropdownBody : List (Element Msg) -> Element Msg
 almostDropdownBody elements =
-        Element.column
-            [ Font.extraLight
-            , Element.width (Element.px 1000)
-            , Background.color (Element.rgb255 119 136 153)
-            , Border.rounded 25
-            , Element.spacing 12
-            ] elements
+    Element.column
+        [ Font.extraLight
+        , Element.width (Element.px 1000)
+        , Background.color (Element.rgb255 119 136 153)
+        , Border.rounded 25
+        , Element.spacing 12
+        ]
+        elements
 
 
 viewSearchConfirmed : Model -> Element Msg
 viewSearchConfirmed model =
     Element.column []
         [ dropdownHead model
-        , almostDropdownBody [makeVertexIdsRequestButton
-        , clearSearchButton
-        , editSearchButton
-        , viewAggParam model.aggregation_selected
-        , viewVerticesConfirmed model.vertices_selected ]
+        , almostDropdownBody
+            [ makeVertexIdsRequestButton
+            , clearSearchButton
+            , editSearchButton
+            , viewAggParam model.aggregation_selected
+            , viewVerticesConfirmed model.vertices_selected
+            ]
         ]
 
 
@@ -729,7 +733,7 @@ buildPotentialSearchMatchView vertices =
 
 viewVerticesSelected : Model -> Element Msg
 viewVerticesSelected model =
-    Element.column [ ]
+    Element.column []
         [ Element.text "We're Searching For:", buildVerticesSelectedView model.vertices_selected ]
 
 
@@ -750,12 +754,11 @@ viewBuildingRequest model =
                     buildBuildingRequestView model [ viewVertexNamePrefixResponse model ]
 
                 _ ->
-                    (buildBuildingRequestView model
+                    buildBuildingRequestView model
                         [ Element.el [] confirmSearchButton
                         , viewVerticesSelected model
                         , viewVertexNamePrefixResponse model
                         ]
-                    )
 
 
 viewNoInput : Model -> Element Msg
@@ -782,11 +785,13 @@ viewRequestSuccess : Direction -> Model -> Element Msg
 viewRequestSuccess direction model =
     Element.column []
         [ dropdownHead model
-        , almostDropdownBody [makeVertexIdsRequestButton
-        , editSearchButton
-        , clearSearchButton
-        , viewAggParam model.aggregation_selected
-        , viewDirectedResponse model direction]
+        , almostDropdownBody
+            [ makeVertexIdsRequestButton
+            , editSearchButton
+            , clearSearchButton
+            , viewAggParam model.aggregation_selected
+            , viewDirectedResponse model direction
+            ]
         ]
 
 
@@ -823,9 +828,10 @@ viewRequestFailure error =
                 , requestFailureRow
                 ]
 
-requestFailureRow: Element Msg
+
+requestFailureRow : Element Msg
 requestFailureRow =
-    Element.row [Element.spacing 12] [ clearSearchButton, editSearchButton, returnToSearchButton ]
+    Element.row [ Element.spacing 12 ] [ clearSearchButton, editSearchButton, returnToSearchButton ]
 
 
 viewAggParam : String -> Element Msg
@@ -896,7 +902,7 @@ buildingRequestDropdownBody model entityType moreElements =
 
 buildBuildingRequestView : Model -> List (Element Msg) -> Element Msg
 buildBuildingRequestView model moreElements =
-    Element.column [ ]
+    Element.column []
         [ dropdownHeadWithDirectionButton model
         , directedBuildingRequestDropdownBody model moreElements
         ]
