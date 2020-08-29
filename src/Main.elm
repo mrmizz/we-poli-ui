@@ -972,11 +972,15 @@ viewDirectedResponse model direction =
 
 viewDirectedResponseWithText : Model -> String -> Element Msg
 viewDirectedResponseWithText model textToDisplay =
-    Element.column [Element.spacing 12]
-        [ Element.column [] [Element.text "Searched: "
-        , fromVerticesToTable model.vertices_selected]
-        , Element.column [] [Element.text textToDisplay
-        , fromVerticesToTableWithSearchButton model.vertex_data_response ]
+    Element.column [ Element.spacing 12 ]
+        [ Element.column []
+            [ Element.text "Searched: "
+            , fromVerticesToTable model.vertices_selected
+            ]
+        , Element.column []
+            [ Element.text textToDisplay
+            , fromVerticesToTableWithSearchButton model.vertex_data_response
+            ]
         ]
 
 
