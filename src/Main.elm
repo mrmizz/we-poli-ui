@@ -714,18 +714,18 @@ viewVertexNamePrefixResponse model =
 
 buildPotentialSearchMatchView : List VertexData -> Element Msg
 buildPotentialSearchMatchView vertices =
-    fromVertexDataToHTMLWithSelectVertexButton2 vertices
+    fromVertexDataToHTMLWithSelectVertexButton vertices
 
 
 viewVerticesSelected : Model -> Element Msg
 viewVerticesSelected model =
     Element.column []
-        [ Element.text "We're Searching For:", buildVerticesSelectedView model.vertex_name_search_response ]
+        [ Element.text "We're Searching For:", buildVerticesSelectedView model.vertices_selected ]
 
 
 buildVerticesSelectedView : List VertexData -> Element Msg
 buildVerticesSelectedView vertices =
-    fromVertexDataToHTMLWithDeleteVertexButton2 vertices
+    fromVertexDataToHTMLWithDeleteVertexButton vertices
 
 
 viewBuildingRequest : Model -> Element Msg
@@ -737,11 +737,11 @@ viewBuildingRequest model =
         _ ->
             case model.vertices_selected of
                 [] ->
-                    Element.el [] (dropdownHeadAndBody model [ viewVertexNamePrefixResponse model ])
+                    Element.el [] (dropdownHeadAndBodyWithDirectionButton model [ viewVertexNamePrefixResponse model ])
 
                 _ ->
                     Element.el []
-                        (dropdownHeadAndBody model
+                        (dropdownHeadAndBodyWithDirectionButton model
                             [ Element.el [] confirmSearchButton
                             , viewVerticesSelected model
                             , viewVertexNamePrefixResponse model
@@ -751,7 +751,7 @@ viewBuildingRequest model =
 
 viewNoInput : Model -> Element Msg
 viewNoInput model =
-    Element.el [] (dropdownHeadAndBody model [])
+    Element.el [] (dropdownHeadAndBodyWithDirectionButton model [])
 
 
 viewBuildingRequestWithNoInputButMaybeSomeConfirmed : Model -> Element Msg
@@ -761,7 +761,7 @@ viewBuildingRequestWithNoInputButMaybeSomeConfirmed model =
             viewNoInput model
 
         _ ->
-            Element.el [] (dropdownHeadAndBody model [ Element.column [] [ confirmSearchButton ], viewVerticesSelected model ])
+            Element.el [] (dropdownHeadAndBodyWithDirectionButton model [ Element.column [] [ confirmSearchButton ], viewVerticesSelected model ])
 
 
 viewLoading : Element Msg
@@ -834,16 +834,24 @@ background moreElements =
         (Element.el [ Font.color (Element.rgb255 250 250 250), Element.centerX ] moreElements)
 
 
-dropdownHead : Model -> Element Msg
-dropdownHead model =
+almostDropdownHead : Model -> (Model -> Element Msg)-> Element Msg
+almostDropdownHead model anotherElement =
     Element.row
         [ Element.padding 50
         , Element.centerX
         , Font.size 35
         ]
         [ Element.text "Poli Graph Search: "
-        , directionOptionButton model.direction_selected
+        , anotherElement model
         ]
+
+dropdownHead : Model -> Element Msg
+dropdownHead model =
+    almostDropdownHead model (\_ -> directionOptionText model)
+
+dropdownHeadWithDirectionButton : Model -> Element Msg
+dropdownHeadWithDirectionButton model =
+     almostDropdownHead model directionOptionButton
 
 
 directedDropdownBody : Model -> List (Element Msg) -> Element Msg
@@ -875,17 +883,17 @@ dropdownBody model entityType moreElements =
         )
 
 
-dropdownHeadAndBody : Model -> List (Element Msg) -> Element Msg
-dropdownHeadAndBody model moreElements =
+dropdownHeadAndBodyWithDirectionButton : Model -> List (Element Msg) -> Element Msg
+dropdownHeadAndBodyWithDirectionButton model moreElements =
     Element.column []
-        [ dropdownHead model
+        [ dropdownHeadWithDirectionButton model
         , directedDropdownBody model moreElements
         ]
 
 
-directionOptionButton : Direction -> Element Msg
-directionOptionButton direction =
-    case direction of
+directionOptionButton : Model -> Element Msg
+directionOptionButton model =
+    case model.direction_selected of
         In ->
             Input.button []
                 { onPress = Just DirectionOptionSelected
@@ -897,6 +905,15 @@ directionOptionButton direction =
                 { onPress = Just DirectionOptionSelected
                 , label = buttonStyle (Element.text "Committees")
                 }
+
+directionOptionText: Model -> Element Msg
+directionOptionText model =
+    case model.direction_selected of
+        In ->
+            Element.text "Vendors"
+
+        Out ->
+            Element.text "Committees"
 
 
 makeVertexIdsRequestButton : Element Msg
@@ -940,7 +957,7 @@ viewDirectedResponseWithText model textToDisplay =
         [ Element.text "Searched: "
         , fromVertexDataToTable model.vertices_selected
         , Element.text textToDisplay
-        , fromVertexDataToHTMLWithSearchButton2 model.vertex_data_response
+        , fromVertexDataToHTMLWithSearchButton model.vertex_data_response
         ]
 
 
@@ -964,12 +981,16 @@ fromVertexDataToRow vertex =
 
 uidColumn : VertexData -> Element Msg
 uidColumn vertex =
-    Element.text vertex.uid
+    Element.column [] [ Element.text "uid:"
+    , Element.text vertex.uid
+    ]
 
 
 nameColumn : VertexData -> Element Msg
 nameColumn vertex =
-    Element.text vertex.name
+    Element.column [] [ Element.text "name:"
+    , Element.text vertex.name
+    ]
 
 
 almostFromVertexDataToTable : List VertexData -> (VertexData -> Msg) -> String -> Element Msg
@@ -980,25 +1001,25 @@ almostFromVertexDataToTable vertices buttonMsg buttonName =
 
 fromVertexDataToRowWithButton : (VertexData -> Msg) -> String -> VertexData -> Element Msg
 fromVertexDataToRowWithButton buttonMsg buttonName vertex =
-    Element.row []
+    Element.row [Element.spacing 25]
         [ Input.button [] { onPress = Just (buttonMsg vertex), label = buttonStyle (Element.text buttonName) }
         , uidColumn vertex
         , nameColumn vertex
         ]
 
 
-fromVertexDataToHTMLWithSelectVertexButton2 : List VertexData -> Element Msg
-fromVertexDataToHTMLWithSelectVertexButton2 vertices =
+fromVertexDataToHTMLWithSelectVertexButton : List VertexData -> Element Msg
+fromVertexDataToHTMLWithSelectVertexButton vertices =
     almostFromVertexDataToTable vertices VertexSelected "select"
 
 
-fromVertexDataToHTMLWithDeleteVertexButton2 : List VertexData -> Element Msg
-fromVertexDataToHTMLWithDeleteVertexButton2 vertices =
+fromVertexDataToHTMLWithDeleteVertexButton : List VertexData -> Element Msg
+fromVertexDataToHTMLWithDeleteVertexButton vertices =
     almostFromVertexDataToTable vertices DeleteVertexSelection "delete"
 
 
-fromVertexDataToHTMLWithSearchButton2 : List VertexData -> Element Msg
-fromVertexDataToHTMLWithSearchButton2 vertices =
+fromVertexDataToHTMLWithSearchButton : List VertexData -> Element Msg
+fromVertexDataToHTMLWithSearchButton vertices =
     almostFromVertexDataToTable vertices ChildVertexIdsRequestMade "Search"
 
 
