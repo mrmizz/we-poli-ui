@@ -661,26 +661,26 @@ vertexDataInnerResponseDecoder =
 
 view : Model -> Html Msg
 view model =
-    Element.layout [] (elementView model)
+    Element.layout [] (background (elementView model))
 
 
 elementView : Model -> Element Msg
 elementView model =
     case model.state of
         BuildingRequest ->
-            background (viewBuildingRequest model)
+            viewBuildingRequest model
 
         SearchConfirmed ->
-            background (viewSearchConfirmed model)
+            viewSearchConfirmed model
 
         Loading ->
-            background viewLoading
+            viewLoading
 
         VertexRequestsSuccess ->
-            background (viewRequestSuccess model.direction_selected model)
+            viewRequestSuccess model.direction_selected model
 
         RequestFailure error ->
-            background (viewRequestFailure error)
+            viewRequestFailure error
 
 
 almostDropdownBody : List (Element Msg) -> Element Msg
