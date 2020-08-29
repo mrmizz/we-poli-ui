@@ -834,7 +834,7 @@ background moreElements =
         (Element.el [ Font.color (Element.rgb255 250 250 250), Element.centerX ] moreElements)
 
 
-almostDropdownHead : Model -> (Model -> Element Msg)-> Element Msg
+almostDropdownHead : Model -> (Model -> Element Msg) -> Element Msg
 almostDropdownHead model anotherElement =
     Element.row
         [ Element.padding 50
@@ -845,13 +845,15 @@ almostDropdownHead model anotherElement =
         , anotherElement model
         ]
 
+
 dropdownHead : Model -> Element Msg
 dropdownHead model =
     almostDropdownHead model (\_ -> directionOptionText model)
 
+
 dropdownHeadWithDirectionButton : Model -> Element Msg
 dropdownHeadWithDirectionButton model =
-     almostDropdownHead model directionOptionButton
+    almostDropdownHead model directionOptionButton
 
 
 directedDropdownBody : Model -> List (Element Msg) -> Element Msg
@@ -906,7 +908,8 @@ directionOptionButton model =
                 , label = buttonStyle (Element.text "Committees")
                 }
 
-directionOptionText: Model -> Element Msg
+
+directionOptionText : Model -> Element Msg
 directionOptionText model =
     case model.direction_selected of
         In ->
@@ -981,16 +984,18 @@ fromVertexDataToRow vertex =
 
 uidColumn : VertexData -> Element Msg
 uidColumn vertex =
-    Element.column [] [ Element.text "uid:"
-    , Element.text vertex.uid
-    ]
+    Element.column []
+        [ Element.text "uid:"
+        , Element.text vertex.uid
+        ]
 
 
 nameColumn : VertexData -> Element Msg
 nameColumn vertex =
-    Element.column [] [ Element.text "name:"
-    , Element.text vertex.name
-    ]
+    Element.column []
+        [ Element.text "name:"
+        , Element.text vertex.name
+        ]
 
 
 almostFromVertexDataToTable : List VertexData -> (VertexData -> Msg) -> String -> Element Msg
@@ -1001,7 +1006,7 @@ almostFromVertexDataToTable vertices buttonMsg buttonName =
 
 fromVertexDataToRowWithButton : (VertexData -> Msg) -> String -> VertexData -> Element Msg
 fromVertexDataToRowWithButton buttonMsg buttonName vertex =
-    Element.row [Element.spacing 25]
+    Element.row [ Element.spacing 25 ]
         [ Input.button [] { onPress = Just (buttonMsg vertex), label = buttonStyle (Element.text buttonName) }
         , uidColumn vertex
         , nameColumn vertex
