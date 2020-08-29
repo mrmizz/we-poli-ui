@@ -3,9 +3,9 @@ module Main exposing (main)
 import Browser
 import Element exposing (Element)
 import Element.Background as Background
+import Element.Border as Border
 import Element.Font as Font
 import Element.Input as Input
-import Element.Border as Border
 import Html exposing (Html)
 import Http
 import Json.Decode as Decode
@@ -657,9 +657,12 @@ vertexDataInnerResponseDecoder =
 
 
 -- VIEW
-view: Model -> Html Msg
+
+
+view : Model -> Html Msg
 view model =
     Element.layout [] (elementView model)
+
 
 elementView : Model -> Element Msg
 elementView model =
@@ -682,7 +685,7 @@ elementView model =
 
 viewSearchConfirmed : Model -> Element Msg
 viewSearchConfirmed model =
-    Element.column [ ]
+    Element.column []
         [ dropdownHead model
         , makeVertexIdsRequestButton
         , clearSearchButton
@@ -694,18 +697,19 @@ viewSearchConfirmed model =
 
 viewVerticesConfirmed : List VertexData -> Element Msg
 viewVerticesConfirmed vertices =
-    Element.column [ ]
-        [ (Element.text "Queued for Search: ") , buildVerticesConfirmedView vertices]
+    Element.column []
+        [ Element.text "Queued for Search: ", buildVerticesConfirmedView vertices ]
 
 
 buildVerticesConfirmedView : List VertexData -> Element Msg
 buildVerticesConfirmedView vertices =
-     fromVertexDataToTable vertices
+    fromVertexDataToTable vertices
+
 
 viewVertexNamePrefixResponse : Model -> Element Msg
 viewVertexNamePrefixResponse model =
-    Element.column [ ]
-        [ (Element.text "Potential Search Matches:") , buildPotentialSearchMatchView model.vertex_name_search_response]
+    Element.column []
+        [ Element.text "Potential Search Matches:", buildPotentialSearchMatchView model.vertex_name_search_response ]
 
 
 buildPotentialSearchMatchView : List VertexData -> Element Msg
@@ -715,8 +719,9 @@ buildPotentialSearchMatchView vertices =
 
 viewVerticesSelected : Model -> Element Msg
 viewVerticesSelected model =
-    Element.column [ ]
-        [ (Element.text "We're Searching For:") , buildVerticesSelectedView model.vertex_name_search_response]
+    Element.column []
+        [ Element.text "We're Searching For:", buildVerticesSelectedView model.vertex_name_search_response ]
+
 
 buildVerticesSelectedView : List VertexData -> Element Msg
 buildVerticesSelectedView vertices =
@@ -761,12 +766,12 @@ viewBuildingRequestWithNoInputButMaybeSomeConfirmed model =
 
 viewLoading : Element Msg
 viewLoading =
-    Element.el [ ] (Element.text "Loading . . .")
+    Element.el [] (Element.text "Loading . . .")
 
 
 viewRequestSuccess : Direction -> Model -> Element Msg
 viewRequestSuccess direction model =
-    Element.column [ ]
+    Element.column []
         [ dropdownHead model
         , clearSearchButton
         , editSearchButton
@@ -811,11 +816,12 @@ viewRequestFailure error =
 
 viewAggParam : String -> Element Msg
 viewAggParam agg =
-    Element.row [] [Element.text "Aggregation: ", viewAggButton agg]
+    Element.row [] [ Element.text "Aggregation: ", viewAggButton agg ]
 
-viewAggButton: String -> Element Msg
+
+viewAggButton : String -> Element Msg
 viewAggButton aggName =
-    (Input.button [] {onPress = Just AggOptionSelected, label = buttonStyle (Element.text aggName)})
+    Input.button [] { onPress = Just AggOptionSelected, label = buttonStyle (Element.text aggName) }
 
 
 background : Element Msg -> Element Msg
@@ -853,11 +859,11 @@ directedDropdownBody model moreElements =
 dropdownBody : Model -> String -> List (Element Msg) -> Element Msg
 dropdownBody model entityType moreElements =
     Element.column
-    [ Font.extraLight
-    , Element.width (Element.px 1000)
-    , Background.color (Element.rgb255 119 136 153)
-    , Border.rounded 25
-    ]
+        [ Font.extraLight
+        , Element.width (Element.px 1000)
+        , Background.color (Element.rgb255 119 136 153)
+        , Border.rounded 25
+        ]
         ([ Input.search [ Font.color (Element.rgb255 0 0 0) ]
             { onChange = SearchInput
             , text = model.vertex_name_search
@@ -881,37 +887,41 @@ directionOptionButton : Direction -> Element Msg
 directionOptionButton direction =
     case direction of
         In ->
-            (Input.button [] {onPress = Just DirectionOptionSelected
-            , label = buttonStyle (Element.text "Vendors")})
+            Input.button []
+                { onPress = Just DirectionOptionSelected
+                , label = buttonStyle (Element.text "Vendors")
+                }
 
         Out ->
-            (Input.button [] {onPress = Just DirectionOptionSelected
-            , label = buttonStyle (Element.text "Committees")})
+            Input.button []
+                { onPress = Just DirectionOptionSelected
+                , label = buttonStyle (Element.text "Committees")
+                }
 
 
 makeVertexIdsRequestButton : Element Msg
 makeVertexIdsRequestButton =
-    (Input.button [] {onPress = Just VertexIdsRequestMade, label = buttonStyle (Element.text "Search")})
+    Input.button [] { onPress = Just VertexIdsRequestMade, label = buttonStyle (Element.text "Search") }
 
 
 clearSearchButton : Element Msg
 clearSearchButton =
-    (Input.button [] {onPress = Just ClearSearch, label = buttonStyle (Element.text "Clear Search")})
+    Input.button [] { onPress = Just ClearSearch, label = buttonStyle (Element.text "Clear Search") }
 
 
 editSearchButton : Element Msg
 editSearchButton =
-    (Input.button [] {onPress = Just EditSearch, label = buttonStyle (Element.text "Edit Search")})
+    Input.button [] { onPress = Just EditSearch, label = buttonStyle (Element.text "Edit Search") }
 
 
 confirmSearchButton : Element Msg
 confirmSearchButton =
-    (Input.button [] {onPress = Just ConfirmSearch, label = buttonStyle (Element.text "Confirm Search")})
+    Input.button [] { onPress = Just ConfirmSearch, label = buttonStyle (Element.text "Confirm Search") }
 
 
 returnToSearchButton : Element Msg
 returnToSearchButton =
-    (Input.button [] {onPress = Just ConfirmSearch, label = buttonStyle (Element.text "Return To Existing Search")})
+    Input.button [] { onPress = Just ConfirmSearch, label = buttonStyle (Element.text "Return To Existing Search") }
 
 
 viewDirectedResponse : Model -> Direction -> Element Msg
@@ -926,10 +936,10 @@ viewDirectedResponse model direction =
 
 viewDirectedResponseWithText : Model -> String -> Element Msg
 viewDirectedResponseWithText model textToDisplay =
-    Element.column [ ]
+    Element.column []
         [ Element.text "Searched: "
         , fromVertexDataToTable model.vertices_selected
-        , (Element.text textToDisplay)
+        , Element.text textToDisplay
         , fromVertexDataToHTMLWithSearchButton2 model.vertex_data_response
         ]
 
@@ -937,60 +947,68 @@ viewDirectedResponseWithText model textToDisplay =
 
 -- TODO: more fields
 
-fromVertexDataToTable: List VertexData -> Element Msg
+
+fromVertexDataToTable : List VertexData -> Element Msg
 fromVertexDataToTable vertices =
     Element.column []
-    (List.map fromVertexDataToRow vertices)
+        (List.map fromVertexDataToRow vertices)
 
 
-fromVertexDataToRow: VertexData -> Element Msg
+fromVertexDataToRow : VertexData -> Element Msg
 fromVertexDataToRow vertex =
     Element.row []
-    [ uidColumn vertex
-    , nameColumn vertex
-    ]
+        [ uidColumn vertex
+        , nameColumn vertex
+        ]
 
-uidColumn: VertexData -> Element Msg
+
+uidColumn : VertexData -> Element Msg
 uidColumn vertex =
     Element.text vertex.uid
 
 
-nameColumn: VertexData -> Element Msg
+nameColumn : VertexData -> Element Msg
 nameColumn vertex =
     Element.text vertex.name
 
+
 almostFromVertexDataToTable : List VertexData -> (VertexData -> Msg) -> String -> Element Msg
-almostFromVertexDataToTable vertices buttonMsg buttonName=
+almostFromVertexDataToTable vertices buttonMsg buttonName =
     Element.column []
-    (List.map (fromVertexDataToRowWithButton buttonMsg buttonName) vertices)
+        (List.map (fromVertexDataToRowWithButton buttonMsg buttonName) vertices)
 
 
-fromVertexDataToRowWithButton: (VertexData -> Msg) -> String -> VertexData -> Element Msg
+fromVertexDataToRowWithButton : (VertexData -> Msg) -> String -> VertexData -> Element Msg
 fromVertexDataToRowWithButton buttonMsg buttonName vertex =
-    Element.row [] [ Input.button [] {onPress = Just (buttonMsg vertex), label = buttonStyle (Element.text buttonName)}
-    , uidColumn vertex
-    , nameColumn vertex
-    ]
+    Element.row []
+        [ Input.button [] { onPress = Just (buttonMsg vertex), label = buttonStyle (Element.text buttonName) }
+        , uidColumn vertex
+        , nameColumn vertex
+        ]
 
-fromVertexDataToHTMLWithSelectVertexButton2: List VertexData -> Element Msg
+
+fromVertexDataToHTMLWithSelectVertexButton2 : List VertexData -> Element Msg
 fromVertexDataToHTMLWithSelectVertexButton2 vertices =
     almostFromVertexDataToTable vertices VertexSelected "select"
 
-fromVertexDataToHTMLWithDeleteVertexButton2: List VertexData -> Element Msg
+
+fromVertexDataToHTMLWithDeleteVertexButton2 : List VertexData -> Element Msg
 fromVertexDataToHTMLWithDeleteVertexButton2 vertices =
     almostFromVertexDataToTable vertices DeleteVertexSelection "delete"
 
+
 fromVertexDataToHTMLWithSearchButton2 : List VertexData -> Element Msg
 fromVertexDataToHTMLWithSearchButton2 vertices =
-    almostFromVertexDataToTable vertices ChildVertexIdsRequestMade  "Search"
+    almostFromVertexDataToTable vertices ChildVertexIdsRequestMade "Search"
 
 
-buttonStyle: Element Msg -> Element Msg
+buttonStyle : Element Msg -> Element Msg
 buttonStyle button =
     Element.el
-    [ Background.color (Element.rgb255 220 220 220)
-    , Font.size 17
-    , Element.paddingXY 7 3
-    , Border.rounded 10
-    , Border.glow (Element.rgb255 210 210 210) 3
-    ] button
+        [ Background.color (Element.rgb255 220 220 220)
+        , Font.size 17
+        , Element.paddingXY 7 3
+        , Border.rounded 10
+        , Border.glow (Element.rgb255 210 210 210) 3
+        ]
+        button
