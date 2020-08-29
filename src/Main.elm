@@ -979,13 +979,13 @@ fromVertexDataToRow vertex =
     almostFromVertexDataToRow vertex Element.none
 
 
-almostFromVertexDataToRow: VertexData -> Element Msg -> Element Msg
+almostFromVertexDataToRow : VertexData -> Element Msg -> Element Msg
 almostFromVertexDataToRow vertex anotherElement =
-        Element.row [Element.spacing 25]
-            [ anotherElement
-            , uidColumn vertex
-            , nameColumn vertex
-            ]
+    Element.row [ Element.spacing 25 ]
+        [ anotherElement
+        , uidColumn vertex
+        , nameColumn vertex
+        ]
 
 
 uidColumn : VertexData -> Element Msg
