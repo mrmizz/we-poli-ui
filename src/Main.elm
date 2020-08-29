@@ -703,7 +703,7 @@ viewVerticesConfirmed vertices =
 
 buildVerticesConfirmedView : List VertexData -> Element Msg
 buildVerticesConfirmedView vertices =
-    fromVertexDataToTable vertices
+    fromVerticesToTable vertices
 
 
 viewVertexNamePrefixResponse : Model -> Element Msg
@@ -714,7 +714,7 @@ viewVertexNamePrefixResponse model =
 
 buildPotentialSearchMatchView : List VertexData -> Element Msg
 buildPotentialSearchMatchView vertices =
-    fromVertexDataToHTMLWithSelectVertexButton vertices
+    fromVerticesToTableWithSelectVertexButton vertices
 
 
 viewVerticesSelected : Model -> Element Msg
@@ -725,7 +725,7 @@ viewVerticesSelected model =
 
 buildVerticesSelectedView : List VertexData -> Element Msg
 buildVerticesSelectedView vertices =
-    fromVertexDataToHTMLWithDeleteVertexButton vertices
+    fromVerticesToTableWithDeleteVertexButton vertices
 
 
 viewBuildingRequest : Model -> Element Msg
@@ -958,9 +958,9 @@ viewDirectedResponseWithText : Model -> String -> Element Msg
 viewDirectedResponseWithText model textToDisplay =
     Element.column []
         [ Element.text "Searched: "
-        , fromVertexDataToTable model.vertices_selected
+        , fromVerticesToTable model.vertices_selected
         , Element.text textToDisplay
-        , fromVertexDataToHTMLWithSearchButton model.vertex_data_response
+        , fromVerticesToTableWithSearchButton model.vertex_data_response
         ]
 
 
@@ -968,18 +968,24 @@ viewDirectedResponseWithText model textToDisplay =
 -- TODO: more fields
 
 
-fromVertexDataToTable : List VertexData -> Element Msg
-fromVertexDataToTable vertices =
+fromVerticesToTable : List VertexData -> Element Msg
+fromVerticesToTable vertices =
     Element.column []
         (List.map fromVertexDataToRow vertices)
 
 
 fromVertexDataToRow : VertexData -> Element Msg
 fromVertexDataToRow vertex =
-    Element.row []
-        [ uidColumn vertex
-        , nameColumn vertex
-        ]
+    almostFromVertexDataToRow vertex Element.none
+
+
+almostFromVertexDataToRow: VertexData -> Element Msg -> Element Msg
+almostFromVertexDataToRow vertex anotherElement =
+        Element.row [Element.spacing 25]
+            [ anotherElement
+            , uidColumn vertex
+            , nameColumn vertex
+            ]
 
 
 uidColumn : VertexData -> Element Msg
@@ -998,34 +1004,30 @@ nameColumn vertex =
         ]
 
 
-almostFromVertexDataToTable : List VertexData -> (VertexData -> Msg) -> String -> Element Msg
-almostFromVertexDataToTable vertices buttonMsg buttonName =
+almostFromVerticesToTable : List VertexData -> (VertexData -> Msg) -> String -> Element Msg
+almostFromVerticesToTable vertices buttonMsg buttonName =
     Element.column []
         (List.map (fromVertexDataToRowWithButton buttonMsg buttonName) vertices)
 
 
 fromVertexDataToRowWithButton : (VertexData -> Msg) -> String -> VertexData -> Element Msg
 fromVertexDataToRowWithButton buttonMsg buttonName vertex =
-    Element.row [ Element.spacing 25 ]
-        [ Input.button [] { onPress = Just (buttonMsg vertex), label = buttonStyle (Element.text buttonName) }
-        , uidColumn vertex
-        , nameColumn vertex
-        ]
+    almostFromVertexDataToRow vertex (Input.button [] { onPress = Just (buttonMsg vertex), label = buttonStyle (Element.text buttonName) })
 
 
-fromVertexDataToHTMLWithSelectVertexButton : List VertexData -> Element Msg
-fromVertexDataToHTMLWithSelectVertexButton vertices =
-    almostFromVertexDataToTable vertices VertexSelected "select"
+fromVerticesToTableWithSelectVertexButton : List VertexData -> Element Msg
+fromVerticesToTableWithSelectVertexButton vertices =
+    almostFromVerticesToTable vertices VertexSelected "select"
 
 
-fromVertexDataToHTMLWithDeleteVertexButton : List VertexData -> Element Msg
-fromVertexDataToHTMLWithDeleteVertexButton vertices =
-    almostFromVertexDataToTable vertices DeleteVertexSelection "delete"
+fromVerticesToTableWithDeleteVertexButton : List VertexData -> Element Msg
+fromVerticesToTableWithDeleteVertexButton vertices =
+    almostFromVerticesToTable vertices DeleteVertexSelection "delete"
 
 
-fromVertexDataToHTMLWithSearchButton : List VertexData -> Element Msg
-fromVertexDataToHTMLWithSearchButton vertices =
-    almostFromVertexDataToTable vertices ChildVertexIdsRequestMade "Search"
+fromVerticesToTableWithSearchButton : List VertexData -> Element Msg
+fromVerticesToTableWithSearchButton vertices =
+    almostFromVerticesToTable vertices ChildVertexIdsRequestMade "Search"
 
 
 buttonStyle : Element Msg -> Element Msg
