@@ -6,9 +6,7 @@ import Element.Background as Background
 import Element.Font as Font
 import Element.Input as Input
 import Element.Border as Border
-import Html exposing (..)
-import Html.Attributes exposing (class)
-import Html.Events exposing (onClick)
+import Html exposing (Html)
 import Http
 import Json.Decode as Decode
 import Json.Encode as Encode
@@ -659,64 +657,70 @@ vertexDataInnerResponseDecoder =
 
 
 -- VIEW
-
-
-view : Model -> Html Msg
+view: Model -> Html Msg
 view model =
+    Element.layout [] (elementView model)
+
+elementView : Model -> Element Msg
+elementView model =
     case model.state of
         BuildingRequest ->
-            Element.layout [] (background (viewBuildingRequest model))
+            background (viewBuildingRequest model)
 
         SearchConfirmed ->
-            viewSearchConfirmed model
+            background (viewSearchConfirmed model)
 
         Loading ->
-            viewLoading
+            background viewLoading
 
         VertexRequestsSuccess ->
-            viewRequestSuccess model.direction_selected model
+            background (viewRequestSuccess model.direction_selected model)
 
         RequestFailure error ->
-            viewRequestFailure error
+            background (viewRequestFailure error)
 
 
-viewSearchConfirmed : Model -> Html Msg
+viewSearchConfirmed : Model -> Element Msg
 viewSearchConfirmed model =
-    div [ class "dropdown" ]
-        [ Element.layout [] (dropdownHead model)
+    Element.column [ ]
+        [ dropdownHead model
         , makeVertexIdsRequestButton
-        , defaultClearSearchButton
+        , clearSearchButton
         , editSearchButton
         , viewAggParam model.aggregation_selected
         , viewVerticesConfirmed model.vertices_selected
         ]
 
 
-viewVerticesConfirmed : List VertexData -> Html Msg
+viewVerticesConfirmed : List VertexData -> Element Msg
 viewVerticesConfirmed vertices =
-    ul [ class "dropdown" ] ([ text "Queued for Search: " ] ++ List.map fromVertexDataToHTMLNoButtons vertices)
+    Element.column [ ]
+        [ (Element.text "Queued for Search: ") , buildVerticesConfirmedView vertices]
 
 
-viewVertexNamePrefixResponse : Model -> Html Msg
+buildVerticesConfirmedView : List VertexData -> Element Msg
+buildVerticesConfirmedView vertices =
+     fromVertexDataToTable vertices
+
+viewVertexNamePrefixResponse : Model -> Element Msg
 viewVertexNamePrefixResponse model =
-    ul [ class "dropdown" ]
-        ([ text "Potential Search Matches:" ] ++ buildPotentialSearchMatch model.vertex_name_search_response)
+    Element.column [ ]
+        [ (Element.text "Potential Search Matches:") , buildPotentialSearchMatchView model.vertex_name_search_response]
 
 
-buildPotentialSearchMatch : List VertexData -> List (Html Msg)
-buildPotentialSearchMatch vertexData =
-    List.map fromVertexDataToHTMLWithSelectVertexButton vertexData
+buildPotentialSearchMatchView : List VertexData -> Element Msg
+buildPotentialSearchMatchView vertices =
+    fromVertexDataToHTMLWithSelectVertexButton2 vertices
 
 
-viewVertexSelected : VertexData -> Html Msg
-viewVertexSelected vertexData =
-    fromVertexDataToHTMLWithDeleteVertexButton vertexData
+viewVerticesSelected : Model -> Element Msg
+viewVerticesSelected model =
+    Element.column [ ]
+        [ (Element.text "We're Searching For:") , buildVerticesSelectedView model.vertex_name_search_response]
 
-
-viewVertexIdsSelected : Model -> Html Msg
-viewVertexIdsSelected model =
-    ul [ class "dropdown" ]
-        ([ text "We're Searching For:" ] ++ List.map viewVertexSelected model.vertices_selected)
+buildVerticesSelectedView : List VertexData -> Element Msg
+buildVerticesSelectedView vertices =
+    fromVertexDataToHTMLWithDeleteVertexButton2 vertices
 
 
 viewBuildingRequest : Model -> Element Msg
@@ -733,8 +737,8 @@ viewBuildingRequest model =
                 _ ->
                     Element.el []
                         (dropdownHeadAndBody model
-                            [ div [] [ confirmSearchButton ]
-                            , viewVertexIdsSelected model
+                            [ Element.el [] confirmSearchButton
+                            , viewVerticesSelected model
                             , viewVertexNamePrefixResponse model
                             ]
                         )
@@ -752,62 +756,66 @@ viewBuildingRequestWithNoInputButMaybeSomeConfirmed model =
             viewNoInput model
 
         _ ->
-            Element.el [] (dropdownHeadAndBody model [ div [] [ confirmSearchButton ], viewVertexIdsSelected model ])
+            Element.el [] (dropdownHeadAndBody model [ Element.column [] [ confirmSearchButton ], viewVerticesSelected model ])
 
 
-viewLoading : Html Msg
+viewLoading : Element Msg
 viewLoading =
-    div [ class "dropdown" ] [ text "Loading . . ." ]
+    Element.el [ ] (Element.text "Loading . . .")
 
 
-viewRequestSuccess : Direction -> Model -> Html Msg
+viewRequestSuccess : Direction -> Model -> Element Msg
 viewRequestSuccess direction model =
-    div [ class "dropdown" ]
-        [ Element.layout [] (dropdownHead model)
-        , defaultClearSearchButton
+    Element.column [ ]
+        [ dropdownHead model
+        , clearSearchButton
         , editSearchButton
         , viewAggParam model.aggregation_selected
         , viewDirectedResponse model direction
         ]
 
 
-viewRequestFailure : Http.Error -> Html Msg
+viewRequestFailure : Http.Error -> Element Msg
 viewRequestFailure error =
     case error of
         Http.BadUrl string ->
-            div []
-                [ text ("Bad Url: " ++ string)
-                , div [] [ defaultClearSearchButton, editSearchButton, returnToSearchButton ]
+            Element.column []
+                [ Element.text ("Bad Url: " ++ string)
+                , Element.row [] [ clearSearchButton, editSearchButton, returnToSearchButton ]
                 ]
 
         Http.Timeout ->
-            div []
-                [ text "Server Timeout"
-                , div [] [ defaultClearSearchButton, editSearchButton, returnToSearchButton ]
+            Element.column []
+                [ Element.text "Server Timeout"
+                , Element.row [] [ clearSearchButton, editSearchButton, returnToSearchButton ]
                 ]
 
         Http.NetworkError ->
-            div []
-                [ text "Network Error"
-                , div [] [ defaultClearSearchButton, editSearchButton, returnToSearchButton ]
+            Element.column []
+                [ Element.text "Network Error"
+                , Element.row [] [ clearSearchButton, editSearchButton, returnToSearchButton ]
                 ]
 
         Http.BadStatus int ->
-            div []
-                [ text (String.fromInt int ++ " Error: Bad Input")
-                , div [] [ defaultClearSearchButton, editSearchButton, returnToSearchButton ]
+            Element.column []
+                [ Element.text (String.fromInt int ++ " Error: Bad Input")
+                , Element.row [] [ clearSearchButton, editSearchButton, returnToSearchButton ]
                 ]
 
         Http.BadBody body ->
-            div []
-                [ text ("Bad Body: " ++ body)
-                , div [] [ defaultClearSearchButton, editSearchButton, returnToSearchButton ]
+            Element.column []
+                [ Element.text ("Bad Body: " ++ body)
+                , Element.row [] [ clearSearchButton, editSearchButton, returnToSearchButton ]
                 ]
 
 
-viewAggParam : String -> Html Msg
+viewAggParam : String -> Element Msg
 viewAggParam agg =
-    div [ class "dropdown" ] [ text "Aggregation: ", button [ onClick AggOptionSelected ] [ text agg ] ]
+    Element.row [] [Element.text "Aggregation: ", viewAggButton agg]
+
+viewAggButton: String -> Element Msg
+viewAggButton aggName =
+    (Input.button [] {onPress = Just AggOptionSelected, label = buttonStyle (Element.text aggName)})
 
 
 background : Element Msg -> Element Msg
@@ -861,11 +869,11 @@ dropdownBody model entityType moreElements =
         )
 
 
-dropdownHeadAndBody : Model -> List (Html Msg) -> Element Msg
+dropdownHeadAndBody : Model -> List (Element Msg) -> Element Msg
 dropdownHeadAndBody model moreElements =
     Element.column []
         [ dropdownHead model
-        , directedDropdownBody model (List.map Element.html moreElements)
+        , directedDropdownBody model moreElements
         ]
 
 
@@ -881,37 +889,32 @@ directionOptionButton direction =
             , label = buttonStyle (Element.text "Committees")})
 
 
-makeVertexIdsRequestButton : Html Msg
+makeVertexIdsRequestButton : Element Msg
 makeVertexIdsRequestButton =
-    button [ class "button", onClick VertexIdsRequestMade ] [ text "Search" ]
+    (Input.button [] {onPress = Just VertexIdsRequestMade, label = buttonStyle (Element.text "Search")})
 
 
-almostClearSearchButton : List (Html Msg) -> Html Msg
-almostClearSearchButton =
-    button [ class "button", onClick ClearSearch ]
+clearSearchButton : Element Msg
+clearSearchButton =
+    (Input.button [] {onPress = Just ClearSearch, label = buttonStyle (Element.text "Clear Search")})
 
 
-defaultClearSearchButton : Html Msg
-defaultClearSearchButton =
-    almostClearSearchButton [ text "Clear Search" ]
-
-
-editSearchButton : Html Msg
+editSearchButton : Element Msg
 editSearchButton =
-    button [ class "button", onClick EditSearch ] [ text "Edit Search" ]
+    (Input.button [] {onPress = Just EditSearch, label = buttonStyle (Element.text "Edit Search")})
 
 
-confirmSearchButton : Html Msg
+confirmSearchButton : Element Msg
 confirmSearchButton =
-    button [ class "button", onClick ConfirmSearch ] [ text "Confirm Search" ]
+    (Input.button [] {onPress = Just ConfirmSearch, label = buttonStyle (Element.text "Confirm Search")})
 
 
-returnToSearchButton : Html Msg
+returnToSearchButton : Element Msg
 returnToSearchButton =
-    button [ class "button", onClick ConfirmSearch ] [ text "Return To Existing Search" ]
+    (Input.button [] {onPress = Just ConfirmSearch, label = buttonStyle (Element.text "Return To Existing Search")})
 
 
-viewDirectedResponse : Model -> Direction -> Html Msg
+viewDirectedResponse : Model -> Direction -> Element Msg
 viewDirectedResponse model direction =
     case direction of
         In ->
@@ -921,72 +924,66 @@ viewDirectedResponse model direction =
             viewDirectedResponseWithText model "Related Vendors"
 
 
-viewDirectedResponseWithText : Model -> String -> Html Msg
+viewDirectedResponseWithText : Model -> String -> Element Msg
 viewDirectedResponseWithText model textToDisplay =
-    div [ class "response" ]
-        [ ul [ class "dropdown" ] ([ text "Searched: " ] ++ List.map fromVertexDataToHTMLNoButtons model.vertices_selected)
-        , ul [] ([ text textToDisplay ] ++ List.map fromVertexDataToHTMLWithSearchButton model.vertex_data_response)
+    Element.column [ ]
+        [ Element.text "Searched: "
+        , fromVertexDataToTable model.vertices_selected
+        , (Element.text textToDisplay)
+        , fromVertexDataToHTMLWithSearchButton2 model.vertex_data_response
         ]
 
 
 
 -- TODO: more fields
 
-
-almostFromVertexDataToHTML : VertexData -> List (Html Msg) -> Html Msg
-almostFromVertexDataToHTML vertexData html =
-    li []
-        (html
-            ++ [ ul []
-                    [ li []
-                        [ text "uid:"
-                        , ul [] [ li [] [ text vertexData.uid ] ]
-                        ]
-                    , li []
-                        [ text "name:"
-                        , ul [] [ li [] [ text vertexData.name ] ]
-                        ]
-                    , li []
-                        [ text "is_comittee:"
-                        , ul [] [ li [] [ text (printBool vertexData.is_committee) ] ]
-                        ]
-                    , li []
-                        [ text "cities:"
-                        , ul [] (List.map textListItem vertexData.cities)
-                        ]
-                    ]
-               ]
-        )
+fromVertexDataToTable: List VertexData -> Element Msg
+fromVertexDataToTable vertices =
+    Element.column []
+    (List.map fromVertexDataToRow vertices)
 
 
-textListItem : String -> Html Msg
-textListItem str =
-    li [] [ text str ]
-
-
-fromVertexDataToHTMLWithSelectVertexButton : VertexData -> Html Msg
-fromVertexDataToHTMLWithSelectVertexButton vertexData =
-    almostFromVertexDataToHTML vertexData [
-    Element.layout [] (Input.button [] {onPress = Just (VertexSelected vertexData), label =
-    buttonStyle (Element.text "select")})
+fromVertexDataToRow: VertexData -> Element Msg
+fromVertexDataToRow vertex =
+    Element.row []
+    [ uidColumn vertex
+    , nameColumn vertex
     ]
 
+uidColumn: VertexData -> Element Msg
+uidColumn vertex =
+    Element.text vertex.uid
 
-fromVertexDataToHTMLWithDeleteVertexButton : VertexData -> Html Msg
-fromVertexDataToHTMLWithDeleteVertexButton vertexData =
-    almostFromVertexDataToHTML vertexData [
-    Element.layout [] (Input.button [] {onPress = Just (DeleteVertexSelection vertexData), label =
-    buttonStyle (Element.text "delete")})
+
+nameColumn: VertexData -> Element Msg
+nameColumn vertex =
+    Element.text vertex.name
+
+almostFromVertexDataToTable : List VertexData -> (VertexData -> Msg) -> String -> Element Msg
+almostFromVertexDataToTable vertices buttonMsg buttonName=
+    Element.column []
+    (List.map (fromVertexDataToRowWithButton buttonMsg buttonName) vertices)
+
+
+fromVertexDataToRowWithButton: (VertexData -> Msg) -> String -> VertexData -> Element Msg
+fromVertexDataToRowWithButton buttonMsg buttonName vertex =
+    Element.row [] [ Input.button [] {onPress = Just (buttonMsg vertex), label = buttonStyle (Element.text buttonName)}
+    , uidColumn vertex
+    , nameColumn vertex
     ]
 
-fromVertexDataToHTMLWithSearchButton : VertexData -> Html Msg
-fromVertexDataToHTMLWithSearchButton vertexData =
-    almostFromVertexDataToHTML vertexData [ button [ onClick (ChildVertexIdsRequestMade vertexData) ] [ text "Search" ] ]
+fromVertexDataToHTMLWithSelectVertexButton2: List VertexData -> Element Msg
+fromVertexDataToHTMLWithSelectVertexButton2 vertices =
+    almostFromVertexDataToTable vertices VertexSelected "select"
 
+fromVertexDataToHTMLWithDeleteVertexButton2: List VertexData -> Element Msg
+fromVertexDataToHTMLWithDeleteVertexButton2 vertices =
+    almostFromVertexDataToTable vertices DeleteVertexSelection "delete"
 
-fromVertexDataToHTMLNoButtons : VertexData -> Html Msg
-fromVertexDataToHTMLNoButtons vertexData =
-    almostFromVertexDataToHTML vertexData []
+fromVertexDataToHTMLWithSearchButton2 : List VertexData -> Element Msg
+fromVertexDataToHTMLWithSearchButton2 vertices =
+    almostFromVertexDataToTable vertices ChildVertexIdsRequestMade  "Search"
+
 
 buttonStyle: Element Msg -> Element Msg
 buttonStyle button =
