@@ -682,16 +682,26 @@ elementView model =
         RequestFailure error ->
             background (viewRequestFailure error)
 
+almostDropdownBody: List (Element Msg) -> Element Msg
+almostDropdownBody elements =
+        Element.column
+            [ Font.extraLight
+            , Element.width (Element.px 1000)
+            , Background.color (Element.rgb255 119 136 153)
+            , Border.rounded 25
+            , Element.spacing 12
+            ] elements
+
 
 viewSearchConfirmed : Model -> Element Msg
 viewSearchConfirmed model =
     Element.column []
         [ dropdownHead model
-        , makeVertexIdsRequestButton
+        , almostDropdownBody [makeVertexIdsRequestButton
         , clearSearchButton
         , editSearchButton
         , viewAggParam model.aggregation_selected
-        , viewVerticesConfirmed model.vertices_selected
+        , viewVerticesConfirmed model.vertices_selected ]
         ]
 
 
@@ -719,7 +729,7 @@ buildPotentialSearchMatchView vertices =
 
 viewVerticesSelected : Model -> Element Msg
 viewVerticesSelected model =
-    Element.column []
+    Element.column [ ]
         [ Element.text "We're Searching For:", buildVerticesSelectedView model.vertices_selected ]
 
 
@@ -737,21 +747,20 @@ viewBuildingRequest model =
         _ ->
             case model.vertices_selected of
                 [] ->
-                    Element.el [] (dropdownHeadAndBodyWithDirectionButton model [ viewVertexNamePrefixResponse model ])
+                    buildBuildingRequestView model [ viewVertexNamePrefixResponse model ]
 
                 _ ->
-                    Element.el []
-                        (dropdownHeadAndBodyWithDirectionButton model
-                            [ Element.el [] confirmSearchButton
-                            , viewVerticesSelected model
-                            , viewVertexNamePrefixResponse model
-                            ]
-                        )
+                    (buildBuildingRequestView model
+                        [ Element.el [] confirmSearchButton
+                        , viewVerticesSelected model
+                        , viewVertexNamePrefixResponse model
+                        ]
+                    )
 
 
 viewNoInput : Model -> Element Msg
 viewNoInput model =
-    Element.el [] (dropdownHeadAndBodyWithDirectionButton model [])
+    buildBuildingRequestView model []
 
 
 viewBuildingRequestWithNoInputButMaybeSomeConfirmed : Model -> Element Msg
@@ -761,7 +770,7 @@ viewBuildingRequestWithNoInputButMaybeSomeConfirmed model =
             viewNoInput model
 
         _ ->
-            Element.el [] (dropdownHeadAndBodyWithDirectionButton model [ Element.column [] [ confirmSearchButton ], viewVerticesSelected model ])
+            buildBuildingRequestView model [ Element.column [] [ confirmSearchButton ], viewVerticesSelected model ]
 
 
 viewLoading : Element Msg
@@ -773,10 +782,11 @@ viewRequestSuccess : Direction -> Model -> Element Msg
 viewRequestSuccess direction model =
     Element.column []
         [ dropdownHead model
-        , clearSearchButton
+        , almostDropdownBody [makeVertexIdsRequestButton
         , editSearchButton
+        , clearSearchButton
         , viewAggParam model.aggregation_selected
-        , viewDirectedResponse model direction
+        , viewDirectedResponse model direction]
         ]
 
 
@@ -786,32 +796,36 @@ viewRequestFailure error =
         Http.BadUrl string ->
             Element.column []
                 [ Element.text ("Bad Url: " ++ string)
-                , Element.row [] [ clearSearchButton, editSearchButton, returnToSearchButton ]
+                , requestFailureRow
                 ]
 
         Http.Timeout ->
             Element.column []
                 [ Element.text "Server Timeout"
-                , Element.row [] [ clearSearchButton, editSearchButton, returnToSearchButton ]
+                , requestFailureRow
                 ]
 
         Http.NetworkError ->
             Element.column []
                 [ Element.text "Network Error"
-                , Element.row [] [ clearSearchButton, editSearchButton, returnToSearchButton ]
+                , requestFailureRow
                 ]
 
         Http.BadStatus int ->
             Element.column []
                 [ Element.text (String.fromInt int ++ " Error: Bad Input")
-                , Element.row [] [ clearSearchButton, editSearchButton, returnToSearchButton ]
+                , requestFailureRow
                 ]
 
         Http.BadBody body ->
             Element.column []
                 [ Element.text ("Bad Body: " ++ body)
-                , Element.row [] [ clearSearchButton, editSearchButton, returnToSearchButton ]
+                , requestFailureRow
                 ]
+
+requestFailureRow: Element Msg
+requestFailureRow =
+    Element.row [Element.spacing 12] [ clearSearchButton, editSearchButton, returnToSearchButton ]
 
 
 viewAggParam : String -> Element Msg
@@ -856,24 +870,19 @@ dropdownHeadWithDirectionButton model =
     almostDropdownHead model directionOptionButton
 
 
-directedDropdownBody : Model -> List (Element Msg) -> Element Msg
-directedDropdownBody model moreElements =
+directedBuildingRequestDropdownBody : Model -> List (Element Msg) -> Element Msg
+directedBuildingRequestDropdownBody model moreElements =
     case model.direction_selected of
         In ->
-            dropdownBody model "vendor name" moreElements
+            buildingRequestDropdownBody model "vendor name" moreElements
 
         Out ->
-            dropdownBody model "committee name" moreElements
+            buildingRequestDropdownBody model "committee name" moreElements
 
 
-dropdownBody : Model -> String -> List (Element Msg) -> Element Msg
-dropdownBody model entityType moreElements =
-    Element.column
-        [ Font.extraLight
-        , Element.width (Element.px 1000)
-        , Background.color (Element.rgb255 119 136 153)
-        , Border.rounded 25
-        ]
+buildingRequestDropdownBody : Model -> String -> List (Element Msg) -> Element Msg
+buildingRequestDropdownBody model entityType moreElements =
+    almostDropdownBody
         ([ Input.search [ Font.color (Element.rgb255 0 0 0) ]
             { onChange = SearchInput
             , text = model.vertex_name_search
@@ -885,11 +894,11 @@ dropdownBody model entityType moreElements =
         )
 
 
-dropdownHeadAndBodyWithDirectionButton : Model -> List (Element Msg) -> Element Msg
-dropdownHeadAndBodyWithDirectionButton model moreElements =
-    Element.column []
+buildBuildingRequestView : Model -> List (Element Msg) -> Element Msg
+buildBuildingRequestView model moreElements =
+    Element.column [ ]
         [ dropdownHeadWithDirectionButton model
-        , directedDropdownBody model moreElements
+        , directedBuildingRequestDropdownBody model moreElements
         ]
 
 
