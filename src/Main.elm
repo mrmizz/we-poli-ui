@@ -992,9 +992,12 @@ viewDirectedResponseWithText model textToDisplay =
 
 fromVerticesToTable : List VertexData -> Element Msg
 fromVerticesToTable vertices =
-    Element.column []
+    Element.column tableStyle
         (List.map fromVertexDataToRow vertices)
 
+tableStyle: List (Element.Attribute Msg)
+tableStyle =
+    [Element.spacing 10]
 
 fromVertexDataToRow : VertexData -> Element Msg
 fromVertexDataToRow vertex =
@@ -1009,10 +1012,15 @@ almostFromVertexDataToRow vertex anotherElement =
         , nameColumn vertex
         ]
 
+columnStyle: List (Element.Attribute Msg)
+columnStyle =
+    [ Border.dotted
+    , Border.innerGlow (Element.rgb255 20 50 100) 5
+    ]
 
 uidColumn : VertexData -> Element Msg
 uidColumn vertex =
-    Element.column []
+    Element.column columnStyle
         [ Element.text "uid:"
         , Element.text vertex.uid
         ]
@@ -1020,7 +1028,7 @@ uidColumn vertex =
 
 nameColumn : VertexData -> Element Msg
 nameColumn vertex =
-    Element.column []
+    Element.column columnStyle
         [ Element.text "name:"
         , Element.text vertex.name
         ]
@@ -1028,7 +1036,7 @@ nameColumn vertex =
 
 almostFromVerticesToTable : List VertexData -> (VertexData -> Msg) -> String -> Element Msg
 almostFromVerticesToTable vertices buttonMsg buttonName =
-    Element.column []
+    Element.column tableStyle
         (List.map (fromVertexDataToRowWithButton buttonMsg buttonName) vertices)
 
 
