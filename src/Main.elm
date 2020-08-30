@@ -869,7 +869,7 @@ dropdownBodyStyle =
 almostDropdownHead : Model -> (Model -> Element Msg) -> Element Msg
 almostDropdownHead model anotherElement =
     Element.row []
-        [ Element.text "Poli Graph Search: "
+        [ Element.el columnStyle (Element.text "Poli Graph Search: ")
         , anotherElement model
         ]
 
@@ -1098,6 +1098,6 @@ buttonStyle button =
         , Font.size 17
         , Element.paddingXY 7 3
         , Border.rounded 10
-        , Border.glow (Element.rgb255 210 210 210) 3
+        , Border.glow (Element.rgb255 210 210 210) 1.5
         ]
         button
