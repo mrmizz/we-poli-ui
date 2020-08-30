@@ -688,12 +688,12 @@ elementView model =
 viewSearchConfirmed : Model -> Element Msg
 viewSearchConfirmed model =
     almostDropdownHeadAndBody (dropdownHead model)
-            [ makeVertexIdsRequestButton
-            , clearSearchButton
-            , editSearchButton
-            , viewAggParam model.aggregation_selected
-            , viewVerticesConfirmed model.vertices_selected
-            ]
+        [ makeVertexIdsRequestButton
+        , clearSearchButton
+        , editSearchButton
+        , viewAggParam model.aggregation_selected
+        , viewVerticesConfirmed model.vertices_selected
+        ]
 
 
 viewVerticesConfirmed : List VertexData -> Element Msg
@@ -771,12 +771,12 @@ viewLoading =
 viewRequestSuccess : Direction -> Model -> Element Msg
 viewRequestSuccess direction model =
     almostDropdownHeadAndBody (dropdownHead model)
-            [ makeVertexIdsRequestButton
-            , editSearchButton
-            , clearSearchButton
-            , viewAggParam model.aggregation_selected
-            , viewDirectedResponse model direction
-            ]
+        [ makeVertexIdsRequestButton
+        , editSearchButton
+        , clearSearchButton
+        , viewAggParam model.aggregation_selected
+        , viewDirectedResponse model direction
+        ]
 
 
 viewRequestFailure : Http.Error -> Element Msg
@@ -827,14 +827,16 @@ viewAggButton : String -> Element Msg
 viewAggButton aggName =
     Input.button [] { onPress = Just AggOptionSelected, label = buttonStyle (Element.text aggName) }
 
+
 almostDropdownHeadAndBody : Element Msg -> List (Element Msg) -> Element Msg
 almostDropdownHeadAndBody head body =
     Element.column backgroundStyle
-    [ Element.el dropdownHeadStyle head
-    , Element.column dropdownBodyStyle body
-    ]
+        [ Element.el dropdownHeadStyle head
+        , Element.column dropdownBodyStyle body
+        ]
 
-backgroundStyle: List (Element.Attribute Msg)
+
+backgroundStyle : List (Element.Attribute Msg)
 backgroundStyle =
     [ Background.color (Element.rgb255 50 125 200)
     , Font.color (Element.rgb255 250 250 250)
@@ -842,9 +844,13 @@ backgroundStyle =
     , Element.height Element.fill
     ]
 
+
 dropdownHeadStyle : List (Element.Attribute Msg)
 dropdownHeadStyle =
-    [ Element.centerX ]
+    [ Element.centerX
+    , Element.padding 50
+    , Font.size 35
+    ]
 
 
 dropdownBodyStyle : List (Element.Attribute Msg)
@@ -862,11 +868,7 @@ dropdownBodyStyle =
 
 almostDropdownHead : Model -> (Model -> Element Msg) -> Element Msg
 almostDropdownHead model anotherElement =
-    Element.row
-        [ Element.padding 50
-        , Element.centerX
-        , Font.size 35
-        ]
+    Element.row []
         [ Element.text "Poli Graph Search: "
         , anotherElement model
         ]
@@ -892,7 +894,7 @@ directedBuildingRequestDropdownBody model head body =
             buildingRequestDropdownBody model "committee name" head body
 
 
-buildingRequestDropdownBody : Model -> String -> Element Msg ->List (Element Msg) -> Element Msg
+buildingRequestDropdownBody : Model -> String -> Element Msg -> List (Element Msg) -> Element Msg
 buildingRequestDropdownBody model entityType head body =
     almostDropdownHeadAndBody head
         ([ Input.search [ Font.color (Element.rgb255 0 0 0) ]
@@ -908,7 +910,7 @@ buildingRequestDropdownBody model entityType head body =
 
 buildBuildingRequestView : Model -> List (Element Msg) -> Element Msg
 buildBuildingRequestView model body =
-    directedBuildingRequestDropdownBody model ( dropdownHeadWithDirectionButton model ) body
+    directedBuildingRequestDropdownBody model (dropdownHeadWithDirectionButton model) body
 
 
 directionOptionButton : Model -> Element Msg
