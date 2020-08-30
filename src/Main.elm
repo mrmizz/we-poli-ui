@@ -850,14 +850,16 @@ backgroundStyle =
     , Font.color (Element.rgb255 250 250 250)
     , Element.width Element.fill
     , Element.height Element.fill
+    , Border.innerGlow (Element.rgb255 20 50 100) 5
     ]
 
 
 dropdownHeadStyle : List (Element.Attribute Msg)
 dropdownHeadStyle =
-    [ Element.centerX
+    [ Element.width Element.fill
     , Element.padding 50
     , Font.size 35
+    , Border.innerGlow (Element.rgb255 20 50 100) 5
     ]
 
 
@@ -871,22 +873,22 @@ dropdownBodyStyle =
     , Element.paddingXY 100 50
     , Element.centerX
     , Border.glow (Element.rgb255 210 210 210) 1.5
-    , Background.color (Element.rgb255 119 136 153)
     ]
 
 dropdownStyle : List (Element.Attribute Msg)
 dropdownStyle =
-    [Element.width (Element.fillPortion 5)
+    [Element.width (Element.fillPortion 10)
     , Element.height Element.fill
     , Element.scrollbarX
     , Border.glow (Element.rgb255 210 210 210) 1.5
+    , Background.color (Element.rgb255 119 136 153)
     ]
 
 
 almostDropdownHead : Model -> (Model -> Element Msg) -> Element Msg
 almostDropdownHead model anotherElement =
-    Element.row []
-        [ Element.el columnStyle (Element.text "Poli Graph Search: ")
+    Element.row [Element.centerX]
+        [ Element.text "Poli Graph Search: "
         , anotherElement model
         ]
 
