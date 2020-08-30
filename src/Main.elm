@@ -663,7 +663,7 @@ vertexDataInnerResponseDecoder =
 
 view : Model -> Html Msg
 view model =
-    Element.layout [] (background (elementView model))
+    Element.layout [] (elementView model)
 
 
 elementView : Model -> Element Msg
@@ -837,16 +837,32 @@ background moreElements =
         ]
         (Element.el [ Font.color (Element.rgb255 250 250 250), Element.centerX ] moreElements)
 
-
 almostDropdownHeadAndBody : Element Msg -> List (Element Msg) -> Element Msg
 almostDropdownHeadAndBody head body =
-    Element.column dropdownStyle ([head] ++ body)
+    Element.column backgroundStyle
+    [ Element.el dropdownHeadStyle head
+    , Element.column dropdownBodyStyle body
+    ]
+
+backgroundStyle: List (Element.Attribute Msg)
+backgroundStyle =
+    [ Background.color (Element.rgb255 50 125 200)
+    , Element.width Element.fill
+    , Element.height Element.fill
+    ]
+
+dropdownHeadStyle : List (Element.Attribute Msg)
+dropdownHeadStyle =
+    [ Font.color (Element.rgb255 250 250 250)
+    , Element.centerX
+    ]
 
 
-dropdownStyle : List (Element.Attribute Msg)
-dropdownStyle =
+dropdownBodyStyle : List (Element.Attribute Msg)
+dropdownBodyStyle =
     [ Font.extraLight
     , Element.width Element.fill
+    -- , Element.scrollbarX
     , Element.spacing 12
     , Element.padding 30
     , Background.color (Element.rgb255 119 136 153)
@@ -1008,6 +1024,10 @@ almostFromVertexDataToRow vertex anotherElement =
         , uidColumn vertex
         , isCommitteeColumn vertex
         , nameColumn vertex
+        , citiesColumn vertex
+        , citiesColumn vertex
+        , citiesColumn vertex
+        , citiesColumn vertex
 
         -- , citiesColumn vertex TODO: toLower & drop duplicates
         ]
