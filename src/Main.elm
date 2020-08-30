@@ -831,17 +831,18 @@ viewAggButton aggName =
 almostDropdownHeadAndBody : Element Msg -> List (Element Msg) -> Element Msg
 almostDropdownHeadAndBody head body =
     Element.row backgroundStyle
-        [ borderElement,
-         Element.column dropdownStyle
+        [ borderElement
+        , Element.column dropdownStyle
             [ Element.el dropdownHeadStyle head
             , Element.column dropdownBodyStyle body
             ]
         , borderElement
         ]
 
-borderElement: Element Msg
+
+borderElement : Element Msg
 borderElement =
-    Element.el [Element.width (Element.fillPortion 1)] Element.none
+    Element.el [ Element.width (Element.fillPortion 1) ] Element.none
 
 
 backgroundStyle : List (Element.Attribute Msg)
@@ -875,9 +876,10 @@ dropdownBodyStyle =
     , Border.glow (Element.rgb255 210 210 210) 1.5
     ]
 
+
 dropdownStyle : List (Element.Attribute Msg)
 dropdownStyle =
-    [Element.width (Element.fillPortion 10)
+    [ Element.width (Element.fillPortion 10)
     , Element.height Element.fill
     , Element.scrollbarX
     , Border.glow (Element.rgb255 210 210 210) 1.5
@@ -887,7 +889,7 @@ dropdownStyle =
 
 almostDropdownHead : Model -> (Model -> Element Msg) -> Element Msg
 almostDropdownHead model anotherElement =
-    Element.row [Element.centerX]
+    Element.row [ Element.centerX ]
         [ Element.text "Poli Graph Search: "
         , anotherElement model
         ]
