@@ -689,7 +689,7 @@ almostDropdownBody : List (Element Msg) -> Element Msg
 almostDropdownBody elements =
     Element.column
         [ Font.extraLight
-        , Element.width (Element.fill)
+        , Element.width Element.fill
         , Background.color (Element.rgb255 119 136 153)
         , Border.rounded 25
         , Element.spacing 12
@@ -995,9 +995,11 @@ fromVerticesToTable vertices =
     Element.column tableStyle
         (List.map fromVertexDataToRow vertices)
 
-tableStyle: List (Element.Attribute Msg)
+
+tableStyle : List (Element.Attribute Msg)
 tableStyle =
-    [Element.spacing 10]
+    [ Element.spacing 10 ]
+
 
 fromVertexDataToRow : VertexData -> Element Msg
 fromVertexDataToRow vertex =
@@ -1012,11 +1014,13 @@ almostFromVertexDataToRow vertex anotherElement =
         , nameColumn vertex
         ]
 
-columnStyle: List (Element.Attribute Msg)
+
+columnStyle : List (Element.Attribute Msg)
 columnStyle =
     [ Border.dotted
     , Border.innerGlow (Element.rgb255 20 50 100) 5
     ]
+
 
 uidColumn : VertexData -> Element Msg
 uidColumn vertex =
