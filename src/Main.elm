@@ -687,16 +687,13 @@ elementView model =
 
 viewSearchConfirmed : Model -> Element Msg
 viewSearchConfirmed model =
-    Element.column []
-        [ dropdownHead model
-        , almostDropdownBody
+    almostDropdownHeadAndBody (dropdownHead model)
             [ makeVertexIdsRequestButton
             , clearSearchButton
             , editSearchButton
             , viewAggParam model.aggregation_selected
             , viewVerticesConfirmed model.vertices_selected
             ]
-        ]
 
 
 viewVerticesConfirmed : List VertexData -> Element Msg
@@ -773,16 +770,13 @@ viewLoading =
 
 viewRequestSuccess : Direction -> Model -> Element Msg
 viewRequestSuccess direction model =
-    Element.column []
-        [ dropdownHead model
-        , almostDropdownBody
+    almostDropdownHeadAndBody (dropdownHead model)
             [ makeVertexIdsRequestButton
             , editSearchButton
             , clearSearchButton
             , viewAggParam model.aggregation_selected
             , viewDirectedResponse model direction
             ]
-        ]
 
 
 viewRequestFailure : Http.Error -> Element Msg
@@ -844,9 +838,9 @@ background moreElements =
         (Element.el [ Font.color (Element.rgb255 250 250 250), Element.centerX ] moreElements)
 
 
-almostDropdownBody : List (Element Msg) -> Element Msg
-almostDropdownBody elements =
-    Element.column dropdownStyle elements
+almostDropdownHeadAndBody : Element Msg -> List (Element Msg) -> Element Msg
+almostDropdownHeadAndBody head body =
+    Element.column dropdownStyle ([head] ++ body)
 
 
 dropdownStyle : List (Element.Attribute Msg)
@@ -883,19 +877,19 @@ dropdownHeadWithDirectionButton model =
     almostDropdownHead model directionOptionButton
 
 
-directedBuildingRequestDropdownBody : Model -> List (Element Msg) -> Element Msg
-directedBuildingRequestDropdownBody model moreElements =
+directedBuildingRequestDropdownBody : Model -> Element Msg -> List (Element Msg) -> Element Msg
+directedBuildingRequestDropdownBody model head body =
     case model.direction_selected of
         In ->
-            buildingRequestDropdownBody model "vendor name" moreElements
+            buildingRequestDropdownBody model "vendor name" head body
 
         Out ->
-            buildingRequestDropdownBody model "committee name" moreElements
+            buildingRequestDropdownBody model "committee name" head body
 
 
-buildingRequestDropdownBody : Model -> String -> List (Element Msg) -> Element Msg
-buildingRequestDropdownBody model entityType moreElements =
-    almostDropdownBody
+buildingRequestDropdownBody : Model -> String -> Element Msg ->List (Element Msg) -> Element Msg
+buildingRequestDropdownBody model entityType head body =
+    almostDropdownHeadAndBody head
         ([ Input.search [ Font.color (Element.rgb255 0 0 0) ]
             { onChange = SearchInput
             , text = model.vertex_name_search
@@ -903,16 +897,13 @@ buildingRequestDropdownBody model entityType moreElements =
             , label = Input.labelHidden "hidden label"
             }
          ]
-            ++ moreElements
+            ++ body
         )
 
 
 buildBuildingRequestView : Model -> List (Element Msg) -> Element Msg
-buildBuildingRequestView model moreElements =
-    Element.column []
-        [ dropdownHeadWithDirectionButton model
-        , directedBuildingRequestDropdownBody model moreElements
-        ]
+buildBuildingRequestView model body =
+    directedBuildingRequestDropdownBody model ( dropdownHeadWithDirectionButton model ) body
 
 
 directionOptionButton : Model -> Element Msg
