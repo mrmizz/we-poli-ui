@@ -1013,6 +1013,7 @@ almostFromVertexDataToRow vertex anotherElement =
         , uidColumn vertex
         , isCommitteeColumn vertex
         , nameColumn vertex
+
         -- , citiesColumn vertex TODO: toLower & drop duplicates
         ]
 
@@ -1033,12 +1034,14 @@ uidColumn vertex =
         , Element.text vertex.uid
         ]
 
-isCommitteeColumn: VertexData -> Element Msg
+
+isCommitteeColumn : VertexData -> Element Msg
 isCommitteeColumn vertex =
     Element.column columnStyle
-        [Element.text "is_committee:"
+        [ Element.text "is_committee:"
         , Element.text (printBool vertex.is_committee)
         ]
+
 
 nameColumn : VertexData -> Element Msg
 nameColumn vertex =
@@ -1047,10 +1050,13 @@ nameColumn vertex =
         , Element.text vertex.name
         ]
 
-citiesColumn: VertexData -> Element Msg
+
+citiesColumn : VertexData -> Element Msg
 citiesColumn vertex =
-    Element.column columnStyle ([Element.text "cities:"] ++
-    (List.map (Element.text) vertex.cities))
+    Element.column columnStyle
+        ([ Element.text "cities:" ]
+            ++ List.map Element.text vertex.cities
+        )
 
 
 almostFromVerticesToTable : List VertexData -> (VertexData -> Msg) -> String -> Element Msg
