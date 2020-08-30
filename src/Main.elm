@@ -853,10 +853,10 @@ dropdownStyle : List (Element.Attribute Msg)
 dropdownStyle =
     [ Font.extraLight
     , Element.width Element.fill
-    , Background.color (Element.rgb255 119 136 153)
-    , Border.rounded 25
     , Element.spacing 12
     , Element.padding 30
+    , Background.color (Element.rgb255 119 136 153)
+    , Border.rounded 25
     , Border.glow (Element.rgb255 210 210 210) 1.5
     ]
 
