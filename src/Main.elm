@@ -687,15 +687,18 @@ elementView model =
 
 almostDropdownBody : List (Element Msg) -> Element Msg
 almostDropdownBody elements =
-    Element.column
-        [ Font.extraLight
-        , Element.width Element.fill
-        , Background.color (Element.rgb255 119 136 153)
-        , Border.rounded 25
-        , Element.spacing 12
-        , Element.padding 30
-        ]
-        elements
+    Element.column dropdownStyle elements
+
+dropdownStyle: List (Element.Attribute Msg)
+dropdownStyle =
+    [ Font.extraLight
+    , Element.width Element.fill
+    , Background.color (Element.rgb255 119 136 153)
+    , Border.rounded 25
+    , Element.spacing 12
+    , Element.padding 30
+    , Border.glow (Element.rgb255 210 210 210) 1.5
+    ]
 
 
 viewSearchConfirmed : Model -> Element Msg
