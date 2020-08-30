@@ -689,7 +689,8 @@ almostDropdownBody : List (Element Msg) -> Element Msg
 almostDropdownBody elements =
     Element.column dropdownStyle elements
 
-dropdownStyle: List (Element.Attribute Msg)
+
+dropdownStyle : List (Element.Attribute Msg)
 dropdownStyle =
     [ Font.extraLight
     , Element.width Element.fill
