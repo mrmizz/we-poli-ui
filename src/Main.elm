@@ -1074,7 +1074,10 @@ nameColumn vertex =
         ]
 
 
+
 -- TODO: toLower & drop duplicates
+
+
 citiesColumn : VertexData -> Element Msg
 citiesColumn vertex =
     Element.column columnStyle
@@ -1082,7 +1085,8 @@ citiesColumn vertex =
         , Element.text (String.join ", " vertex.cities)
         ]
 
-statesColumn: VertexData -> Element Msg
+
+statesColumn : VertexData -> Element Msg
 statesColumn vertex =
     Element.column columnStyle
         [ Element.text "states:"
