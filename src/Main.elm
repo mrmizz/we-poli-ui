@@ -687,7 +687,7 @@ almostDropdownBody : List (Element Msg) -> Element Msg
 almostDropdownBody elements =
     Element.column
         [ Font.extraLight
-        , Element.width (Element.px 1000)
+        , Element.width (Element.fill)
         , Background.color (Element.rgb255 119 136 153)
         , Border.rounded 25
         , Element.spacing 12
