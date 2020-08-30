@@ -685,23 +685,6 @@ elementView model =
             viewRequestFailure error
 
 
-almostDropdownBody : List (Element Msg) -> Element Msg
-almostDropdownBody elements =
-    Element.column dropdownStyle elements
-
-
-dropdownStyle : List (Element.Attribute Msg)
-dropdownStyle =
-    [ Font.extraLight
-    , Element.width Element.fill
-    , Background.color (Element.rgb255 119 136 153)
-    , Border.rounded 25
-    , Element.spacing 12
-    , Element.padding 30
-    , Border.glow (Element.rgb255 210 210 210) 1.5
-    ]
-
-
 viewSearchConfirmed : Model -> Element Msg
 viewSearchConfirmed model =
     Element.column []
@@ -859,6 +842,23 @@ background moreElements =
         , Element.height Element.fill
         ]
         (Element.el [ Font.color (Element.rgb255 250 250 250), Element.centerX ] moreElements)
+
+
+almostDropdownBody : List (Element Msg) -> Element Msg
+almostDropdownBody elements =
+    Element.column dropdownStyle elements
+
+
+dropdownStyle : List (Element.Attribute Msg)
+dropdownStyle =
+    [ Font.extraLight
+    , Element.width Element.fill
+    , Background.color (Element.rgb255 119 136 153)
+    , Border.rounded 25
+    , Element.spacing 12
+    , Element.padding 30
+    , Border.glow (Element.rgb255 210 210 210) 1.5
+    ]
 
 
 almostDropdownHead : Model -> (Model -> Element Msg) -> Element Msg
