@@ -827,16 +827,6 @@ viewAggButton : String -> Element Msg
 viewAggButton aggName =
     Input.button [] { onPress = Just AggOptionSelected, label = buttonStyle (Element.text aggName) }
 
-
-background : Element Msg -> Element Msg
-background moreElements =
-    Element.el
-        [ Background.color (Element.rgb255 50 125 200)
-        , Element.width Element.fill
-        , Element.height Element.fill
-        ]
-        (Element.el [ Font.color (Element.rgb255 250 250 250), Element.centerX ] moreElements)
-
 almostDropdownHeadAndBody : Element Msg -> List (Element Msg) -> Element Msg
 almostDropdownHeadAndBody head body =
     Element.column backgroundStyle
@@ -847,27 +837,26 @@ almostDropdownHeadAndBody head body =
 backgroundStyle: List (Element.Attribute Msg)
 backgroundStyle =
     [ Background.color (Element.rgb255 50 125 200)
+    , Font.color (Element.rgb255 250 250 250)
     , Element.width Element.fill
     , Element.height Element.fill
     ]
 
 dropdownHeadStyle : List (Element.Attribute Msg)
 dropdownHeadStyle =
-    [ Font.color (Element.rgb255 250 250 250)
-    , Element.centerX
-    ]
+    [ Element.centerX ]
 
 
 dropdownBodyStyle : List (Element.Attribute Msg)
 dropdownBodyStyle =
     [ Font.extraLight
     , Element.width Element.fill
-    -- , Element.scrollbarX
+    , Element.height Element.fill
+    , Element.scrollbarX
     , Element.spacing 12
-    , Element.padding 30
-    , Background.color (Element.rgb255 119 136 153)
-    , Border.rounded 25
+    , Element.paddingXY 100 50
     , Border.glow (Element.rgb255 210 210 210) 1.5
+    , Background.color (Element.rgb255 119 136 153)
     ]
 
 
