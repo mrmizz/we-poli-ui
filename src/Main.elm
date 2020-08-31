@@ -263,9 +263,9 @@ update msg model =
 cleanVertexNameInput : String -> Model -> String
 cleanVertexNameInput input model =
     (printBool (directionToIsCommittee model.direction_selected))
-        |> String.toLower
         |> String.append "_"
         |> String.append (String.replace " " "" input)
+        |> String.toLower
 
 
 updateVertexSelected : VertexData -> List VertexData -> List VertexData
