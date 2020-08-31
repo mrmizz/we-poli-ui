@@ -262,7 +262,7 @@ update msg model =
 
 cleanVertexNameInput : String -> Model -> String
 cleanVertexNameInput input model =
-    (printBool (directionToIsCommittee model.direction_selected))
+    printBool (directionToIsCommittee model.direction_selected)
         |> String.append "_"
         |> String.append (String.replace " " "" input)
         |> String.toLower
@@ -1076,19 +1076,17 @@ nameColumn vertex =
         ]
 
 
-
-
-
 citiesColumn : VertexData -> Element Msg
 citiesColumn vertex =
     -- TODO: toLower & drop duplicates in the backend
     Element.column columnStyle
         [ Element.text "cities:"
-        , Element.text ((List.map String.toLower vertex.cities)
-            |> Set.fromList
-            |> Set.toList
-            |> String.join ", "
-            |> String.toUpper
+        , Element.text
+            (List.map String.toLower vertex.cities
+                |> Set.fromList
+                |> Set.toList
+                |> String.join ", "
+                |> String.toUpper
             )
         ]
 
