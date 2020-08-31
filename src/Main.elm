@@ -1077,14 +1077,19 @@ nameColumn vertex =
 
 
 
--- TODO: toLower & drop duplicates
 
 
 citiesColumn : VertexData -> Element Msg
 citiesColumn vertex =
+    -- TODO: toLower & drop duplicates in the backend
     Element.column columnStyle
         [ Element.text "cities:"
-        , Element.text (String.join ", " vertex.cities)
+        , Element.text ((List.map String.toLower vertex.cities)
+            |> Set.fromList
+            |> Set.toList
+            |> String.join ", "
+            |> String.toUpper
+            )
         ]
 
 
