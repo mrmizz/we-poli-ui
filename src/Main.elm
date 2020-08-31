@@ -260,10 +260,12 @@ update msg model =
             ( { model | vertices_selected = updateVertexDeleted vertex model.vertices_selected }, Cmd.none )
 
 
-cleanVertexNameInput : String -> String
-cleanVertexNameInput input =
-    String.replace " " "" input
+cleanVertexNameInput : String -> Model -> String
+cleanVertexNameInput input model =
+    (printBool (directionToIsCommittee model.direction_selected))
         |> String.toLower
+        |> String.append "_"
+        |> String.append (String.replace " " "" input)
 
 
 updateVertexSelected : VertexData -> List VertexData -> List VertexData
@@ -283,13 +285,13 @@ updateVertexDeleted vertex vertices =
 
 updateWithVertexNamePrefixRequest : Model -> String -> (Result Http.Error VertexNamePrefixResponse -> Msg) -> ( Model, Cmd Msg )
 updateWithVertexNamePrefixRequest model prefix toMsg =
-    case String.length (cleanVertexNameInput prefix) >= 3 of
+    case String.length prefix >= 3 of
         False ->
             ( { model | vertex_name_search = prefix }, Cmd.none )
 
         True ->
             ( { model | vertex_name_search = prefix }
-            , vertexNamePrefixGet (cleanVertexNameInput prefix) toMsg
+            , vertexNamePrefixGet (cleanVertexNameInput prefix model) toMsg
             )
 
 
