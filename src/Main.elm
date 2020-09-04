@@ -233,8 +233,6 @@ update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         SearchInput prefix ->
-            -- TODO: dynamo sort key (is_committee)
-            -- vendor names are dominating committee names
             updateWithVertexNamePrefixRequest model prefix VertexNamePrefixGetReceived
 
         VertexNamePrefixGetReceived result ->
