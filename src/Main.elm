@@ -27,6 +27,18 @@ main =
         , subscriptions = \_ -> Sub.none
         }
 
+{-  BACKEND URLs -}
+graphTraversalURL: String
+graphTraversalURL =
+    "https://7qfeute799.execute-api.us-west-2.amazonaws.com/default/v1/tap-in"
+
+graphDataURL: String
+graphDataURL =
+    "https://yf87qmn85l.execute-api.us-west-2.amazonaws.com/prod/poli/graph"
+
+prefixURL: String
+prefixURL =
+    "https://yf87qmn85l.execute-api.us-west-2.amazonaws.com/prod/poli/prefix/"
 
 
 -- Model
@@ -439,7 +451,7 @@ type alias VertexIdsResponse =
 vertexIdsPost : VertexIdsRequest -> (Result Http.Error VertexIdsResponse -> Msg) -> Cmd Msg
 vertexIdsPost request msg =
     Http.post
-        { url = "https://7qfeute799.execute-api.us-west-2.amazonaws.com/default/v1/tap-in"
+        { url = graphTraversalURL
         , body = Http.jsonBody (vertexIdsRequestEncoder request)
         , expect = Http.expectJson msg vertexIdsResponseDecoder
         }
@@ -498,7 +510,7 @@ type alias DynamoVertexDataInner =
 vertexNamePrefixGet : String -> (Result Http.Error VertexNamePrefixResponse -> Msg) -> Cmd Msg
 vertexNamePrefixGet prefix toMsg =
     Http.get
-        { url = "https://yf87qmn85l.execute-api.us-west-2.amazonaws.com/v1/poli/prefix/" ++ prefix
+        { url = prefixURL ++ prefix
         , expect = Http.expectJson toMsg vertexNamePrefixResponseDecoder
         }
 
@@ -549,7 +561,7 @@ type alias VertexDataInnerRequestUIDValue =
 vertexDataPost : VertexDataRequest -> (Result Http.Error VertexDataResponse -> Msg) -> Cmd Msg
 vertexDataPost request toMsg =
     Http.post
-        { url = "https://yf87qmn85l.execute-api.us-west-2.amazonaws.com/v1/poli/vertex"
+        { url = graphDataURL
         , body = Http.jsonBody (vertexDataRequestEncoder request)
         , expect = Http.expectJson toMsg vertexDataResponseDecoder
         }
