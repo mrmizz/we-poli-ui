@@ -27,18 +27,25 @@ main =
         , subscriptions = \_ -> Sub.none
         }
 
-{-  BACKEND URLs -}
-graphTraversalURL: String
+
+
+{- BACKEND URLs -}
+
+
+graphTraversalURL : String
 graphTraversalURL =
     "https://7qfeute799.execute-api.us-west-2.amazonaws.com/default/v1/tap-in"
 
-graphDataURL: String
+
+graphDataURL : String
 graphDataURL =
     "https://yf87qmn85l.execute-api.us-west-2.amazonaws.com/prod/poli/graph"
 
-prefixURL: String
+
+prefixURL : String
 prefixURL =
     "https://yf87qmn85l.execute-api.us-west-2.amazonaws.com/prod/poli/prefix/"
+
 
 
 -- Model
