@@ -202,6 +202,7 @@ type Msg
     | VertexIdsPostReceived (Result Http.Error VertexIdsResponse)
     | VertexDataPostReceived (Result Http.Error VertexDataResponse)
     | VertexNamePrefixGetReceived (Result Http.Error VertexNamePrefixResponse)
+    | TraversalPostReceived (Result Http.Error TraversalResponse)
 
 
 type Direction
@@ -239,12 +240,10 @@ update msg model =
             updateWithVertexNamePrefixResponse model result
 
         VertexIdsRequestMade ->
-            case model.direction_selected of
-                In ->
-                    updateWithVertexIdRequest model "in"
+            updateWithTraversalRequest model
 
-                Out ->
-                    updateWithVertexIdRequest model "out"
+        TraversalPostReceived result ->
+            updateWithTraversalResponse model result
 
         ChildVertexIdsRequestMade vertexData ->
             updateWithChildVertexIdRequest model vertexData
@@ -275,6 +274,8 @@ update msg model =
 
         DeleteVertexSelection vertex ->
             ( { model | vertices_selected = updateVertexDeleted vertex model.vertices_selected }, Cmd.none )
+
+
 
 
 cleanVertexNameInput : String -> Model -> String
@@ -378,6 +379,14 @@ updateWithVertexIdRequest model directionStr =
         VertexIdsPostReceived
     )
 
+updateWithTraversalRequest : Model -> ( Model, Cmd Msg )
+updateWithTraversalRequest model =
+    ( { model | state = Loading }
+    , traversalPost
+        (buildTraversalRequest (List.map (\vertexData -> VertexPage (getVertexId vertexData) "1") model.vertices_selected))
+        TraversalPostReceived
+    )
+
 
 updateWithChildVertexIdRequest : Model -> VertexData -> ( Model, Cmd Msg )
 updateWithChildVertexIdRequest model vertexData =
@@ -409,6 +418,7 @@ updateWithVertexIdResponse model result =
             ( { model | state = RequestFailure error }, Cmd.none )
 
 
+
 updateWithVertexDataResponse : Model -> Result Http.Error VertexDataResponse -> ( Model, Cmd Msg )
 updateWithVertexDataResponse model result =
     case result of
@@ -436,6 +446,24 @@ updateAggInputAndOptions model =
             ( { model | aggregation_selected = "Or" }, Cmd.none )
 
 
+updateWithTraversalResponse: Model -> Result Http.Error TraversalResponse -> (Model, Cmd Msg)
+updateWithTraversalResponse model result =
+    case result of
+        Ok response ->
+            ( model
+            , vertexDataPost (buildVertexDataRequest (unpackTraversalResponse response)) VertexDataPostReceived
+            )
+
+        Err error ->
+            ( { model | state = RequestFailure error }, Cmd.none )
+
+unpackTraversalResponse: TraversalResponse -> List String
+unpackTraversalResponse traversalResponse =
+    List.concatMap unpackDynamoTraversal traversalResponse.responses.items
+
+unpackDynamoTraversal : DynamoTraversal -> List String
+unpackDynamoTraversal dynamoTraversal =
+    (List.map unpackDynamoValue dynamoTraversal.related_vertex_ids.list)
 
 -- HTTP
 
@@ -543,6 +571,10 @@ dynamoVertexDataInnerInnerDecoder =
     Decode.map DynamoVertexDataInnerInner (Decode.field "M" vertexDataInnerResponseDecoder)
 
 
+
+
+
+
 type alias VertexDataRequest =
     { request_items : VertexDataInnerRequest }
 
@@ -602,7 +634,7 @@ vertexDataInnerRequestKeysEncoder vertexDataInnerRequestKey =
 vertexDataInnerRequestKeyEncoder : VertexDataInnerRequestKey -> Encode.Value
 vertexDataInnerRequestKeyEncoder vertexDataInnerRequestUID =
     Encode.object
-        [ ( "uid", dynamoValueNumberEncoder vertexDataInnerRequestUID.uid ) ]
+        [ ( "uid", dynamoNumberValueEncoder vertexDataInnerRequestUID.uid ) ]
 
 
 type alias VertexDataResponse =
@@ -623,6 +655,123 @@ poliVertexTable =
     Decode.map PoliVertexTable (Decode.field "PoliVertex" (Decode.list vertexDataInnerResponseDecoder))
 
 
+
+
+
+
+
+
+
+type alias TraversalRequest =
+    { request_items : TraversalInnerRequest }
+
+
+type alias TraversalInnerRequest =
+    { poli_traversals_page : TraversalInnerRequestKeys }
+
+
+type alias TraversalInnerRequestKeys =
+    { keys : List TraversalInnerRequestKey }
+
+
+type alias TraversalInnerRequestKey =
+    { vertex_id : DynamoValue
+    , page_num: DynamoValue
+     }
+
+
+traversalPost : TraversalRequest -> (Result Http.Error TraversalResponse -> Msg) -> Cmd Msg
+traversalPost request toMsg =
+    Http.post
+        { url = graphDataURL
+        , body = Http.jsonBody (traversalRequestEncoder request)
+        , expect = Http.expectJson toMsg traversalResponseDecoder
+        }
+
+type alias VertexPage =
+    { vertex_id: String
+    , page_number: String
+    }
+
+
+buildTraversalRequest : List VertexPage -> TraversalRequest
+buildTraversalRequest vertexPages =
+    TraversalRequest
+        (TraversalInnerRequest
+            (TraversalInnerRequestKeys (List.map buildTraversalRequestInnerValues vertexPages))
+        )
+
+
+buildTraversalRequestInnerValues : VertexPage -> TraversalInnerRequestKey
+buildTraversalRequestInnerValues vertexPage =
+    TraversalInnerRequestKey (DynamoValue vertexPage.vertex_id) (DynamoValue vertexPage.page_number)
+
+
+traversalRequestEncoder : TraversalRequest -> Encode.Value
+traversalRequestEncoder traversalRequest =
+    Encode.object
+        [ ( "RequestItems", traversalInnerRequestEncoder traversalRequest.request_items ) ]
+
+
+traversalInnerRequestEncoder : TraversalInnerRequest -> Encode.Value
+traversalInnerRequestEncoder traversalInnerRequest =
+    Encode.object
+        [ ( "PoliTraversalsPage", traversalInnerRequestKeysEncoder traversalInnerRequest.poli_traversals_page ) ]
+
+
+traversalInnerRequestKeysEncoder : TraversalInnerRequestKeys -> Encode.Value
+traversalInnerRequestKeysEncoder traversalInnerRequestKeys =
+    Encode.object
+        [ ( "Keys", Encode.list traversalInnerRequestKeyEncoder traversalInnerRequestKeys.keys ) ]
+
+
+traversalInnerRequestKeyEncoder : TraversalInnerRequestKey -> Encode.Value
+traversalInnerRequestKeyEncoder traversalInnerRequestKey =
+    Encode.object
+        [ ( "vertex_id", dynamoNumberValueEncoder traversalInnerRequestKey.vertex_id )
+         , ( "page_num", dynamoNumberValueEncoder traversalInnerRequestKey.page_num )
+         ]
+
+
+
+type alias TraversalResponse =
+    { responses : PoliTraversalsPageTable }
+
+
+type alias PoliTraversalsPageTable =
+    { items : List DynamoTraversal }
+
+type alias DynamoTraversal =
+    { vertex_id : DynamoValue
+    , page_num : DynamoValue
+    , related_vertex_ids : DynamoArrayValue
+    }
+
+
+traversalResponseDecoder : Decode.Decoder TraversalResponse
+traversalResponseDecoder =
+    Decode.map TraversalResponse (Decode.field "Responses" poliTraversalsPageTable)
+
+
+poliTraversalsPageTable : Decode.Decoder PoliTraversalsPageTable
+poliTraversalsPageTable =
+    Decode.map PoliTraversalsPageTable (Decode.field "PoliTraversalsPage" (Decode.list traversalInnerResponseDecoder))
+
+
+traversalInnerResponseDecoder : Decode.Decoder DynamoTraversal
+traversalInnerResponseDecoder =
+    Decode.map3 DynamoTraversal
+        (Decode.field "vertex_id" dynamoNumberValueDecoder)
+        (Decode.field "page_num" dynamoNumberValueDecoder)
+        (Decode.field "related_vertex_ids" dynamoArrayNumberValueDecoder)
+
+
+
+
+
+
+
+
 type alias DynamoArrayValue =
     { list : List DynamoValue }
 
@@ -639,14 +788,18 @@ dynamoArrayStringValueDecoder : Decode.Decoder DynamoArrayValue
 dynamoArrayStringValueDecoder =
     Decode.map DynamoArrayValue (Decode.field "L" (Decode.list dynamoStringValueDecoder))
 
+dynamoArrayNumberValueDecoder : Decode.Decoder DynamoArrayValue
+dynamoArrayNumberValueDecoder =
+    Decode.map DynamoArrayValue (Decode.field "L" (Decode.list dynamoNumberValueDecoder))
+
 
 dynamoNumberValueDecoder : Decode.Decoder DynamoValue
 dynamoNumberValueDecoder =
     Decode.map DynamoValue (Decode.field "N" Decode.string)
 
 
-dynamoValueNumberEncoder : DynamoValue -> Encode.Value
-dynamoValueNumberEncoder dynamoValue =
+dynamoNumberValueEncoder : DynamoValue -> Encode.Value
+dynamoNumberValueEncoder dynamoValue =
     Encode.object
         [ ( "N", Encode.string dynamoValue.value ) ]
 
