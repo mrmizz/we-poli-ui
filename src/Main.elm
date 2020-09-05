@@ -543,12 +543,6 @@ dynamoVertexDataInnerInnerDecoder =
     Decode.map DynamoVertexDataInnerInner (Decode.field "M" vertexDataInnerResponseDecoder)
 
 
-
-
-
-
-
-
 type alias VertexDataRequest =
     { request_items : VertexDataInnerRequest }
 
@@ -629,12 +623,6 @@ poliVertexTable =
     Decode.map PoliVertexTable (Decode.field "PoliVertex" (Decode.list vertexDataInnerResponseDecoder))
 
 
-
-
-
-
-
-
 type alias DynamoArrayValue =
     { list : List DynamoValue }
 
@@ -656,10 +644,12 @@ dynamoNumberValueDecoder : Decode.Decoder DynamoValue
 dynamoNumberValueDecoder =
     Decode.map DynamoValue (Decode.field "N" Decode.string)
 
+
 dynamoValueNumberEncoder : DynamoValue -> Encode.Value
 dynamoValueNumberEncoder dynamoValue =
     Encode.object
         [ ( "N", Encode.string dynamoValue.value ) ]
+
 
 dynamoStringValueDecoder : Decode.Decoder DynamoValue
 dynamoStringValueDecoder =
