@@ -543,24 +543,26 @@ dynamoVertexDataInnerInnerDecoder =
     Decode.map DynamoVertexDataInnerInner (Decode.field "M" vertexDataInnerResponseDecoder)
 
 
+
+
+
+
+
+
 type alias VertexDataRequest =
     { request_items : VertexDataInnerRequest }
 
 
 type alias VertexDataInnerRequest =
-    { poli_vertex : VertexDataInnerRequestKey }
+    { poli_vertex : VertexDataInnerRequestKeys }
+
+
+type alias VertexDataInnerRequestKeys =
+    { keys : List VertexDataInnerRequestKey }
 
 
 type alias VertexDataInnerRequestKey =
-    { keys : List VertexDataInnerRequestUID }
-
-
-type alias VertexDataInnerRequestUID =
-    { uid : VertexDataInnerRequestUIDValue }
-
-
-type alias VertexDataInnerRequestUIDValue =
-    { number : String }
+    { uid : DynamoValue }
 
 
 vertexDataPost : VertexDataRequest -> (Result Http.Error VertexDataResponse -> Msg) -> Cmd Msg
@@ -576,13 +578,13 @@ buildVertexDataRequest : List String -> VertexDataRequest
 buildVertexDataRequest uids =
     VertexDataRequest
         (VertexDataInnerRequest
-            (VertexDataInnerRequestKey (List.map buildVertexDataRequestInnerValues uids))
+            (VertexDataInnerRequestKeys (List.map buildVertexDataRequestInnerValues uids))
         )
 
 
-buildVertexDataRequestInnerValues : String -> VertexDataInnerRequestUID
+buildVertexDataRequestInnerValues : String -> VertexDataInnerRequestKey
 buildVertexDataRequestInnerValues uid =
-    VertexDataInnerRequestUID (VertexDataInnerRequestUIDValue uid)
+    VertexDataInnerRequestKey (DynamoValue uid)
 
 
 vertexDataRequestEncoder : VertexDataRequest -> Encode.Value
@@ -594,25 +596,19 @@ vertexDataRequestEncoder vertexDataRequest =
 vertexDataInnerRequestEncoder : VertexDataInnerRequest -> Encode.Value
 vertexDataInnerRequestEncoder vertexDataInnerRequest =
     Encode.object
-        [ ( "PoliVertex", vertexDataInnerRequestKeyEncoder vertexDataInnerRequest.poli_vertex ) ]
+        [ ( "PoliVertex", vertexDataInnerRequestKeysEncoder vertexDataInnerRequest.poli_vertex ) ]
+
+
+vertexDataInnerRequestKeysEncoder : VertexDataInnerRequestKeys -> Encode.Value
+vertexDataInnerRequestKeysEncoder vertexDataInnerRequestKey =
+    Encode.object
+        [ ( "Keys", Encode.list vertexDataInnerRequestKeyEncoder vertexDataInnerRequestKey.keys ) ]
 
 
 vertexDataInnerRequestKeyEncoder : VertexDataInnerRequestKey -> Encode.Value
-vertexDataInnerRequestKeyEncoder vertexDataInnerRequestKey =
+vertexDataInnerRequestKeyEncoder vertexDataInnerRequestUID =
     Encode.object
-        [ ( "Keys", Encode.list vertexDataInnerRequestUIDEncoder vertexDataInnerRequestKey.keys ) ]
-
-
-vertexDataInnerRequestUIDEncoder : VertexDataInnerRequestUID -> Encode.Value
-vertexDataInnerRequestUIDEncoder vertexDataInnerRequestUID =
-    Encode.object
-        [ ( "uid", vertexDataInnerRequestUIDValueEncoder vertexDataInnerRequestUID.uid ) ]
-
-
-vertexDataInnerRequestUIDValueEncoder : VertexDataInnerRequestUIDValue -> Encode.Value
-vertexDataInnerRequestUIDValueEncoder vertexDataInnerRequestUIDValue =
-    Encode.object
-        [ ( "N", Encode.string vertexDataInnerRequestUIDValue.number ) ]
+        [ ( "uid", dynamoValueNumberEncoder vertexDataInnerRequestUID.uid ) ]
 
 
 type alias VertexDataResponse =
@@ -631,6 +627,12 @@ vertexDataResponseDecoder =
 poliVertexTable : Decode.Decoder PoliVertexTable
 poliVertexTable =
     Decode.map PoliVertexTable (Decode.field "PoliVertex" (Decode.list vertexDataInnerResponseDecoder))
+
+
+
+
+
+
 
 
 type alias DynamoArrayValue =
@@ -654,6 +656,10 @@ dynamoNumberValueDecoder : Decode.Decoder DynamoValue
 dynamoNumberValueDecoder =
     Decode.map DynamoValue (Decode.field "N" Decode.string)
 
+dynamoValueNumberEncoder : DynamoValue -> Encode.Value
+dynamoValueNumberEncoder dynamoValue =
+    Encode.object
+        [ ( "N", Encode.string dynamoValue.value ) ]
 
 dynamoStringValueDecoder : Decode.Decoder DynamoValue
 dynamoStringValueDecoder =
