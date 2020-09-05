@@ -276,8 +276,6 @@ update msg model =
             ( { model | vertices_selected = updateVertexDeleted vertex model.vertices_selected }, Cmd.none )
 
 
-
-
 cleanVertexNameInput : String -> Model -> String
 cleanVertexNameInput input model =
     printBool (directionToIsCommittee model.direction_selected)
@@ -379,6 +377,7 @@ updateWithVertexIdRequest model directionStr =
         VertexIdsPostReceived
     )
 
+
 updateWithTraversalRequest : Model -> ( Model, Cmd Msg )
 updateWithTraversalRequest model =
     ( { model | state = Loading }
@@ -418,7 +417,6 @@ updateWithVertexIdResponse model result =
             ( { model | state = RequestFailure error }, Cmd.none )
 
 
-
 updateWithVertexDataResponse : Model -> Result Http.Error VertexDataResponse -> ( Model, Cmd Msg )
 updateWithVertexDataResponse model result =
     case result of
@@ -446,7 +444,7 @@ updateAggInputAndOptions model =
             ( { model | aggregation_selected = "Or" }, Cmd.none )
 
 
-updateWithTraversalResponse: Model -> Result Http.Error TraversalResponse -> (Model, Cmd Msg)
+updateWithTraversalResponse : Model -> Result Http.Error TraversalResponse -> ( Model, Cmd Msg )
 updateWithTraversalResponse model result =
     case result of
         Ok response ->
@@ -457,13 +455,17 @@ updateWithTraversalResponse model result =
         Err error ->
             ( { model | state = RequestFailure error }, Cmd.none )
 
-unpackTraversalResponse: TraversalResponse -> List String
+
+unpackTraversalResponse : TraversalResponse -> List String
 unpackTraversalResponse traversalResponse =
     List.concatMap unpackDynamoTraversal traversalResponse.responses.items
 
+
 unpackDynamoTraversal : DynamoTraversal -> List String
 unpackDynamoTraversal dynamoTraversal =
-    (List.map unpackDynamoValue dynamoTraversal.related_vertex_ids.list)
+    List.map unpackDynamoValue dynamoTraversal.related_vertex_ids.list
+
+
 
 -- HTTP
 
@@ -571,10 +573,6 @@ dynamoVertexDataInnerInnerDecoder =
     Decode.map DynamoVertexDataInnerInner (Decode.field "M" vertexDataInnerResponseDecoder)
 
 
-
-
-
-
 type alias VertexDataRequest =
     { request_items : VertexDataInnerRequest }
 
@@ -655,13 +653,6 @@ poliVertexTable =
     Decode.map PoliVertexTable (Decode.field "PoliVertex" (Decode.list vertexDataInnerResponseDecoder))
 
 
-
-
-
-
-
-
-
 type alias TraversalRequest =
     { request_items : TraversalInnerRequest }
 
@@ -676,8 +667,8 @@ type alias TraversalInnerRequestKeys =
 
 type alias TraversalInnerRequestKey =
     { vertex_id : DynamoValue
-    , page_num: DynamoValue
-     }
+    , page_num : DynamoValue
+    }
 
 
 traversalPost : TraversalRequest -> (Result Http.Error TraversalResponse -> Msg) -> Cmd Msg
@@ -688,9 +679,10 @@ traversalPost request toMsg =
         , expect = Http.expectJson toMsg traversalResponseDecoder
         }
 
+
 type alias VertexPage =
-    { vertex_id: String
-    , page_number: String
+    { vertex_id : String
+    , page_number : String
     }
 
 
@@ -729,9 +721,8 @@ traversalInnerRequestKeyEncoder : TraversalInnerRequestKey -> Encode.Value
 traversalInnerRequestKeyEncoder traversalInnerRequestKey =
     Encode.object
         [ ( "vertex_id", dynamoNumberValueEncoder traversalInnerRequestKey.vertex_id )
-         , ( "page_num", dynamoNumberValueEncoder traversalInnerRequestKey.page_num )
-         ]
-
+        , ( "page_num", dynamoNumberValueEncoder traversalInnerRequestKey.page_num )
+        ]
 
 
 type alias TraversalResponse =
@@ -740,6 +731,7 @@ type alias TraversalResponse =
 
 type alias PoliTraversalsPageTable =
     { items : List DynamoTraversal }
+
 
 type alias DynamoTraversal =
     { vertex_id : DynamoValue
@@ -766,12 +758,6 @@ traversalInnerResponseDecoder =
         (Decode.field "related_vertex_ids" dynamoArrayNumberValueDecoder)
 
 
-
-
-
-
-
-
 type alias DynamoArrayValue =
     { list : List DynamoValue }
 
@@ -787,6 +773,7 @@ type alias DynamoBool =
 dynamoArrayStringValueDecoder : Decode.Decoder DynamoArrayValue
 dynamoArrayStringValueDecoder =
     Decode.map DynamoArrayValue (Decode.field "L" (Decode.list dynamoStringValueDecoder))
+
 
 dynamoArrayNumberValueDecoder : Decode.Decoder DynamoArrayValue
 dynamoArrayNumberValueDecoder =
