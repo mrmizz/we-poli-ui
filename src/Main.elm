@@ -53,9 +53,14 @@ type alias Model =
     , vertices_selected : List VertexData
     , aggregation_selected : String
     , direction_selected : Direction
+    , traversal_response: List Traversal
     , vertex_data_response : List VertexData
     }
 
+type alias Traversal =
+    { src_id: String
+    , dst_ids: List String
+    }
 
 type alias VertexData =
     { uid : String
@@ -165,6 +170,7 @@ initialModel =
     , aggregation_selected = defaultAggregationInput
     , vertices_selected = []
     , direction_selected = Out
+    , traversal_response = []
     , vertex_data_response = []
     }
 
@@ -409,22 +415,27 @@ updateWithTraversalResponse : Model -> Result Http.Error TraversalResponse -> ( 
 updateWithTraversalResponse model result =
     case result of
         Ok response ->
-            ( model
-            , vertexDataPost (buildVertexDataRequest (unpackTraversalResponse response)) VertexDataPostReceived
-            )
+            let
+                traversals = unpackTraversalResponse response
+            in
+                ( { model | traversal_response = traversals }
+                , vertexDataPost (buildVertexDataRequest (List.concatMap (\trv -> trv.dst_ids) traversals)) VertexDataPostReceived
+                )
 
         Err error ->
             ( { model | state = RequestFailure error }, Cmd.none )
 
 
-unpackTraversalResponse : TraversalResponse -> List String
+unpackTraversalResponse : TraversalResponse -> List Traversal
 unpackTraversalResponse traversalResponse =
-    List.concatMap unpackDynamoTraversal traversalResponse.responses.items
+    List.map unpackDynamoTraversal traversalResponse.responses.items
 
 
-unpackDynamoTraversal : DynamoTraversal -> List String
+unpackDynamoTraversal : DynamoTraversal -> Traversal
 unpackDynamoTraversal dynamoTraversal =
-    List.map unpackDynamoValue dynamoTraversal.related_vertex_ids.list
+    Traversal
+        (unpackDynamoValue dynamoTraversal.vertex_id)
+        (List.map unpackDynamoValue dynamoTraversal.related_vertex_ids.list)
 
 
 
