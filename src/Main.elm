@@ -32,11 +32,6 @@ main =
 {- BACKEND URLs -}
 
 
-graphTraversalURL : String
-graphTraversalURL =
-    "https://7qfeute799.execute-api.us-west-2.amazonaws.com/default/v1/tap-in"
-
-
 graphDataURL : String
 graphDataURL =
     "https://yf87qmn85l.execute-api.us-west-2.amazonaws.com/prod/poli/graph"
@@ -197,9 +192,8 @@ type Msg
     | DirectionOptionSelected
     | VertexSelected VertexData
     | DeleteVertexSelection VertexData
-    | VertexIdsRequestMade
-    | ChildVertexIdsRequestMade VertexData
-    | VertexIdsPostReceived (Result Http.Error VertexIdsResponse)
+    | TraversalRequestMade
+    | ChildTraversalRequestMade VertexData
     | VertexDataPostReceived (Result Http.Error VertexDataResponse)
     | VertexNamePrefixGetReceived (Result Http.Error VertexNamePrefixResponse)
     | TraversalPostReceived (Result Http.Error TraversalResponse)
@@ -239,17 +233,14 @@ update msg model =
         VertexNamePrefixGetReceived result ->
             updateWithVertexNamePrefixResponse model result
 
-        VertexIdsRequestMade ->
+        TraversalRequestMade ->
             updateWithTraversalRequest model
 
         TraversalPostReceived result ->
             updateWithTraversalResponse model result
 
-        ChildVertexIdsRequestMade vertexData ->
-            updateWithChildVertexIdRequest model vertexData
-
-        VertexIdsPostReceived result ->
-            updateWithVertexIdResponse model result
+        ChildTraversalRequestMade vertexData ->
+            updateWithChildTraversalRequest model vertexData
 
         VertexDataPostReceived result ->
             updateWithVertexDataResponse model result
@@ -369,15 +360,6 @@ unpackDynamoBool dynamoBool =
     dynamoBool.value
 
 
-updateWithVertexIdRequest : Model -> String -> ( Model, Cmd Msg )
-updateWithVertexIdRequest model directionStr =
-    ( { model | state = Loading }
-    , vertexIdsPost
-        (buildVertexIdsRequest directionStr model.vertices_selected model.aggregation_selected)
-        VertexIdsPostReceived
-    )
-
-
 updateWithTraversalRequest : Model -> ( Model, Cmd Msg )
 updateWithTraversalRequest model =
     ( { model | state = Loading }
@@ -387,34 +369,13 @@ updateWithTraversalRequest model =
     )
 
 
-updateWithChildVertexIdRequest : Model -> VertexData -> ( Model, Cmd Msg )
-updateWithChildVertexIdRequest model vertexData =
-    case vertexData.is_committee of
-        True ->
-            ( { model | state = Loading, vertices_selected = [ vertexData ], direction_selected = switchDirection model.direction_selected }
-            , vertexIdsPost
-                (buildVertexIdsRequest "out" [ vertexData ] model.aggregation_selected)
-                VertexIdsPostReceived
-            )
-
-        False ->
-            ( { model | state = Loading, vertices_selected = [ vertexData ], direction_selected = switchDirection model.direction_selected }
-            , vertexIdsPost
-                (buildVertexIdsRequest "in" [ vertexData ] model.aggregation_selected)
-                VertexIdsPostReceived
-            )
-
-
-updateWithVertexIdResponse : Model -> Result Http.Error VertexIdsResponse -> ( Model, Cmd Msg )
-updateWithVertexIdResponse model result =
-    case result of
-        Ok response ->
-            ( model
-            , vertexDataPost (buildVertexDataRequest (List.take 99 response.response_vertex_ids)) VertexDataPostReceived
-            )
-
-        Err error ->
-            ( { model | state = RequestFailure error }, Cmd.none )
+updateWithChildTraversalRequest : Model -> VertexData -> ( Model, Cmd Msg )
+updateWithChildTraversalRequest model vertexData =
+    ( { model | state = Loading, vertices_selected = [ vertexData ], direction_selected = switchDirection model.direction_selected }
+    , traversalPost
+        (buildTraversalRequest [VertexPage (getVertexId vertexData) "1"] )
+        TraversalPostReceived
+    )
 
 
 updateWithVertexDataResponse : Model -> Result Http.Error VertexDataResponse -> ( Model, Cmd Msg )
@@ -468,49 +429,6 @@ unpackDynamoTraversal dynamoTraversal =
 
 
 -- HTTP
-
-
-type alias VertexIdsRequest =
-    { vertex_ids : List String
-    , direction : String
-    , agg : String
-    }
-
-
-type alias VertexIdsResponse =
-    { request_vertex_ids : List String
-    , response_vertex_ids : List String
-    }
-
-
-vertexIdsPost : VertexIdsRequest -> (Result Http.Error VertexIdsResponse -> Msg) -> Cmd Msg
-vertexIdsPost request msg =
-    Http.post
-        { url = graphTraversalURL
-        , body = Http.jsonBody (vertexIdsRequestEncoder request)
-        , expect = Http.expectJson msg vertexIdsResponseDecoder
-        }
-
-
-buildVertexIdsRequest : String -> List VertexData -> String -> VertexIdsRequest
-buildVertexIdsRequest directionString vertices agg =
-    VertexIdsRequest (List.map getVertexId vertices) directionString agg
-
-
-vertexIdsRequestEncoder : VertexIdsRequest -> Encode.Value
-vertexIdsRequestEncoder request =
-    Encode.object
-        [ ( "vertex_ids", Encode.list Encode.string request.vertex_ids )
-        , ( "direction", Encode.string request.direction )
-        , ( "agg", Encode.string request.agg )
-        ]
-
-
-vertexIdsResponseDecoder : Decode.Decoder VertexIdsResponse
-vertexIdsResponseDecoder =
-    Decode.map2 VertexIdsResponse
-        (Decode.field "vertex_ids" (Decode.list Decode.string))
-        (Decode.field "response_vertex_ids" (Decode.list Decode.string))
 
 
 type alias VertexNamePrefixResponse =
@@ -1117,7 +1035,7 @@ directionOptionText model =
 
 makeVertexIdsRequestButton : Element Msg
 makeVertexIdsRequestButton =
-    Input.button [] { onPress = Just VertexIdsRequestMade, label = buttonStyle (Element.text "Search") }
+    Input.button [] { onPress = Just TraversalRequestMade, label = buttonStyle (Element.text "Search") }
 
 
 clearSearchButton : Element Msg
@@ -1275,7 +1193,7 @@ fromVerticesToTableWithDeleteVertexButton vertices =
 
 fromVerticesToTableWithSearchButton : List VertexData -> Element Msg
 fromVerticesToTableWithSearchButton vertices =
-    almostFromVerticesToTable vertices ChildVertexIdsRequestMade "Search"
+    almostFromVerticesToTable vertices ChildTraversalRequestMade "Search"
 
 
 buttonStyle : Element Msg -> Element Msg
