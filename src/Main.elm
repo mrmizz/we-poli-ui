@@ -55,6 +55,7 @@ type alias Model =
     , direction_selected : Direction
     , traversal_response : List Traversal
     , traversal_data_response : List TraversalVertexData
+    , agg_traversal_data_response: List VertexData
     }
 
 
@@ -180,6 +181,7 @@ initialModel =
     , direction_selected = Out
     , traversal_response = []
     , traversal_data_response = []
+    , agg_traversal_data_response = []
     }
 
 
@@ -396,12 +398,41 @@ updateWithVertexDataResponse : Model -> Result Http.Error VertexDataResponse -> 
 updateWithVertexDataResponse model result =
     case result of
         Ok response ->
-            ( { model | state = VertexRequestsSuccess, traversal_data_response = partitionVertexDataResponse model (unpackVertexDataResponse response) }
+            ( { model | state = VertexRequestsSuccess
+                , traversal_data_response = partitionVertexDataResponse model (unpackVertexDataResponse response)
+                , agg_traversal_data_response =
+                }
             , Cmd.none
             )
 
         Err error ->
             ( { model | state = RequestFailure error }, Cmd.none )
+
+aggregatePartionedVertexData: Model -> List TraversalVertexData -> List VertexData
+aggregatePartitionedVertexData model traversals =
+    case model.direction_selected of
+        In ->
+            case model.traversal_response of
+                _ :: [] ->
+                    List.concatMap (\trv -> trv.dst_vertices) traversals
+
+                head :: tail ->
+                    let
+                        headSet : Set String
+                        headSet =
+                            Set.fromList head.dst_ids
+                        tailSets : List (Set String)
+                        tailSets =
+                            List.map (\trv -> Set.fromList trv.dst_ids) tail
+                        intersection : Set String
+                        intersection =
+                            List.foldl Set.intersect headSet tailSets
+                    in
+                        List.concatMap (\trv -> trv.dst_vertices) traversals
+                        |> List.filter (\vertex -> Set.member (getVertexId vertex) intersection)
+
+        Out ->
+            List.concatMap (\trv -> trv.dst_vertices) traversals
 
 
 partitionVertexDataResponse : Model -> List VertexData -> List TraversalVertexData
