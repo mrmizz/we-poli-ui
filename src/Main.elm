@@ -53,19 +53,22 @@ type alias Model =
     , vertices_selected : List VertexData
     , aggregation_selected : String
     , direction_selected : Direction
-    , traversal_response: List Traversal
+    , traversal_response : List Traversal
     , traversal_data_response : List TraversalVertexData
     }
 
+
 type alias Traversal =
-    { src_id: String
-    , dst_ids: List String
+    { src_id : String
+    , dst_ids : List String
     }
 
+
 type alias TraversalVertexData =
-    { src_id: String
-    , dst_vertices: List VertexData
+    { src_id : String
+    , dst_vertices : List VertexData
     }
+
 
 type alias VertexData =
     { uid : String
@@ -400,20 +403,22 @@ updateWithVertexDataResponse model result =
         Err error ->
             ( { model | state = RequestFailure error }, Cmd.none )
 
-partitionVertexDataResponse: Model -> List VertexData -> List (TraversalVertexData)
+
+partitionVertexDataResponse : Model -> List VertexData -> List TraversalVertexData
 partitionVertexDataResponse model vertices =
     let
-        clause: List String -> String -> Bool
+        clause : List String -> String -> Bool
         clause set element =
             List.member element set
     in
-        List.map
-            (\traversal ->
-                TraversalVertexData
-                    traversal.src_id
-                    (List.filter (\vertexData -> clause traversal.dst_ids (getVertexId vertexData)) vertices)
-            )
-            model.traversal_response
+    List.map
+        (\traversal ->
+            TraversalVertexData
+                traversal.src_id
+                (List.filter (\vertexData -> clause traversal.dst_ids (getVertexId vertexData)) vertices)
+        )
+        model.traversal_response
+
 
 unpackVertexDataResponse : VertexDataResponse -> List VertexData
 unpackVertexDataResponse vertexDataResponse =
@@ -436,11 +441,12 @@ updateWithTraversalResponse model result =
         Ok response ->
             let
                 traversals : List Traversal
-                traversals = unpackTraversalResponse response
+                traversals =
+                    unpackTraversalResponse response
             in
-                ( { model | traversal_response = traversals }
-                , vertexDataPost (buildVertexDataRequest (List.concatMap (\trv -> trv.dst_ids) traversals)) VertexDataPostReceived
-                )
+            ( { model | traversal_response = traversals }
+            , vertexDataPost (buildVertexDataRequest (List.concatMap (\trv -> trv.dst_ids) traversals)) VertexDataPostReceived
+            )
 
         Err error ->
             ( { model | state = RequestFailure error }, Cmd.none )
