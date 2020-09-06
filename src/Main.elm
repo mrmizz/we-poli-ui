@@ -54,12 +54,17 @@ type alias Model =
     , aggregation_selected : String
     , direction_selected : Direction
     , traversal_response: List Traversal
-    , vertex_data_response : List VertexData
+    , traversal_data_response : List TraversalVertexData
     }
 
 type alias Traversal =
     { src_id: String
     , dst_ids: List String
+    }
+
+type alias TraversalVertexData =
+    { src_id: String
+    , dst_vertices: List VertexData
     }
 
 type alias VertexData =
@@ -171,7 +176,7 @@ initialModel =
     , vertices_selected = []
     , direction_selected = Out
     , traversal_response = []
-    , vertex_data_response = []
+    , traversal_data_response = []
     }
 
 
@@ -388,13 +393,27 @@ updateWithVertexDataResponse : Model -> Result Http.Error VertexDataResponse -> 
 updateWithVertexDataResponse model result =
     case result of
         Ok response ->
-            ( { model | state = VertexRequestsSuccess, vertex_data_response = unpackVertexDataResponse response }
+            ( { model | state = VertexRequestsSuccess, traversal_data_response = partitionVertexDataResponse model (unpackVertexDataResponse response) }
             , Cmd.none
             )
 
         Err error ->
             ( { model | state = RequestFailure error }, Cmd.none )
 
+partitionVertexDataResponse: Model -> List VertexData -> List (TraversalVertexData)
+partitionVertexDataResponse model vertices =
+    let
+        clause: List String -> String -> Bool
+        clause set element =
+            List.member element set
+    in
+        List.map
+            (\traversal ->
+                TraversalVertexData
+                    traversal.src_id
+                    (List.filter (\vertexData -> clause traversal.dst_ids (getVertexId vertexData)) vertices)
+            )
+            model.traversal_response
 
 unpackVertexDataResponse : VertexDataResponse -> List VertexData
 unpackVertexDataResponse vertexDataResponse =
@@ -416,6 +435,7 @@ updateWithTraversalResponse model result =
     case result of
         Ok response ->
             let
+                traversals : List Traversal
                 traversals = unpackTraversalResponse response
             in
                 ( { model | traversal_response = traversals }
@@ -1088,7 +1108,7 @@ viewDirectedResponseWithText model textToDisplay =
             ]
         , Element.column []
             [ Element.text textToDisplay
-            , fromVerticesToTableWithSearchButton model.vertex_data_response
+            , fromVerticesToTableWithSearchButton (List.concatMap (\trv -> trv.dst_vertices) model.traversal_data_response)
             ]
         ]
 
