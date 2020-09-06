@@ -373,7 +373,7 @@ updateWithChildTraversalRequest : Model -> VertexData -> ( Model, Cmd Msg )
 updateWithChildTraversalRequest model vertexData =
     ( { model | state = Loading, vertices_selected = [ vertexData ], direction_selected = switchDirection model.direction_selected }
     , traversalPost
-        (buildTraversalRequest [VertexPage (getVertexId vertexData) "1"] )
+        (buildTraversalRequest [ VertexPage (getVertexId vertexData) "1" ])
         TraversalPostReceived
     )
 
