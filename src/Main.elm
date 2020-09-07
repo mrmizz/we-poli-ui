@@ -208,11 +208,13 @@ type Direction
     = In
     | Out
 
+
 type Aggregation
     = And
     | Or
 
-printAgg: Aggregation -> String
+
+printAgg : Aggregation -> String
 printAgg agg =
     case agg of
         And ->
