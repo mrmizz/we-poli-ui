@@ -374,7 +374,7 @@ updateWithTraversalRequest : Model -> ( Model, Cmd Msg )
 updateWithTraversalRequest model =
     ( { model | state = Loading }
     , traversalPost
-        (buildTraversalRequest (List.map (\vertexData -> VertexPage (getVertexId vertexData) "1") model.vertices_selected))
+        (buildTraversalRequest (List.map (\vertexData -> TraversalPage (getVertexId vertexData) "1") model.vertices_selected))
         TraversalPostReceived
     )
 
@@ -383,7 +383,7 @@ updateWithChildTraversalRequest : Model -> VertexData -> ( Model, Cmd Msg )
 updateWithChildTraversalRequest model vertexData =
     ( { model | state = Loading, vertices_selected = [ vertexData ], direction_selected = switchDirection model.direction_selected }
     , traversalPost
-        (buildTraversalRequest [ VertexPage (getVertexId vertexData) "1" ])
+        (buildTraversalRequest [ TraversalPage (getVertexId vertexData) "1" ])
         TraversalPostReceived
     )
 
@@ -689,23 +689,23 @@ traversalPost request toMsg =
         }
 
 
-type alias VertexPage =
+type alias TraversalPage =
     { vertex_id : String
     , page_number : String
     }
 
 
-buildTraversalRequest : List VertexPage -> TraversalRequest
-buildTraversalRequest vertexPages =
+buildTraversalRequest : List TraversalPage -> TraversalRequest
+buildTraversalRequest traversalPages =
     TraversalRequest
         (TraversalInnerRequest
-            (TraversalInnerRequestKeys (List.map buildTraversalRequestInnerValues vertexPages))
+            (TraversalInnerRequestKeys (List.map buildTraversalRequestInnerValues traversalPages))
         )
 
 
-buildTraversalRequestInnerValues : VertexPage -> TraversalInnerRequestKey
-buildTraversalRequestInnerValues vertexPage =
-    TraversalInnerRequestKey (DynamoValue vertexPage.vertex_id) (DynamoValue vertexPage.page_number)
+buildTraversalRequestInnerValues : TraversalPage -> TraversalInnerRequestKey
+buildTraversalRequestInnerValues traversalPage =
+    TraversalInnerRequestKey (DynamoValue traversalPage.vertex_id) (DynamoValue traversalPage.page_number)
 
 
 traversalRequestEncoder : TraversalRequest -> Encode.Value
