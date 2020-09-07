@@ -55,7 +55,7 @@ type alias Model =
     , direction_selected : Direction
     , traversal_response : List Traversal
     , traversal_data_response : List VertexData
-    , agg_traversal_data_response: List VertexData
+    , agg_traversal_data_response : List VertexData
     }
 
 
@@ -397,10 +397,11 @@ updateWithVertexDataResponse model result =
                 unpacked =
                     unpackVertexDataResponse response
             in
-            ( { model | state = VertexRequestsSuccess
+            ( { model
+                | state = VertexRequestsSuccess
                 , traversal_data_response = unpacked
                 , agg_traversal_data_response = aggregateVertices model unpacked
-                }
+              }
             , Cmd.none
             )
 
@@ -408,7 +409,7 @@ updateWithVertexDataResponse model result =
             ( { model | state = RequestFailure error }, Cmd.none )
 
 
-aggregateVertices: Model -> List VertexData -> List VertexData
+aggregateVertices : Model -> List VertexData -> List VertexData
 aggregateVertices model vertices =
     case model.aggregation_selected of
         "And" ->
@@ -421,9 +422,11 @@ aggregateVertices model vertices =
                         headSet : Set String
                         headSet =
                             Set.fromList head.dst_ids
+
                         tailSets : List (Set String)
                         tailSets =
                             List.map (\trv -> Set.fromList trv.dst_ids) tail
+
                         intersection : Set String
                         intersection =
                             List.foldl Set.intersect headSet tailSets
@@ -437,25 +440,27 @@ aggregateVertices model vertices =
             vertices
 
 
+
 -- TODO: edge analytics
-zipVerticesWithSrcId : Model -> List VertexData -> List (String, VertexData)
+
+
+zipVerticesWithSrcId : Model -> List VertexData -> List ( String, VertexData )
 zipVerticesWithSrcId model vertices =
     let
-        clause : Traversal -> VertexData -> Maybe (String, VertexData)
+        clause : Traversal -> VertexData -> Maybe ( String, VertexData )
         clause traversal vertex =
             case List.member (getVertexId vertex) traversal.dst_ids of
                 True ->
-                    Just (traversal.src_id, vertex)
+                    Just ( traversal.src_id, vertex )
 
                 False ->
                     Nothing
     in
     List.concatMap
         (\traversal ->
-                (List.filterMap
-                    (\vertexData -> clause traversal vertexData)
-                     vertices
-                )
+            List.filterMap
+                (\vertexData -> clause traversal vertexData)
+                vertices
         )
         model.traversal_response
 
@@ -487,15 +492,14 @@ updateWithTraversalResponse model result =
             ( { model | traversal_response = traversals }
             , vertexDataPost
                 -- TODO: paginate requests
-                (
-                    buildVertexDataRequest (
-                        (List.concatMap (\trv -> trv.dst_ids) traversals)
+                (buildVertexDataRequest
+                    (List.concatMap (\trv -> trv.dst_ids) traversals
                         |> Set.fromList
                         |> Set.toList
-                         |> List.take 99
-                         )
-                         )
-                 VertexDataPostReceived
+                        |> List.take 99
+                    )
+                )
+                VertexDataPostReceived
             )
 
         Err error ->
