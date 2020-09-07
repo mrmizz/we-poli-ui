@@ -485,7 +485,10 @@ updateWithTraversalResponse model result =
                     unpackTraversalResponse response
             in
             ( { model | traversal_response = traversals }
-            , vertexDataPost (buildVertexDataRequest (List.concatMap (\trv -> trv.dst_ids) traversals)) VertexDataPostReceived
+            , vertexDataPost
+                -- TODO: paginate requests
+                (buildVertexDataRequest ((List.concatMap (\trv -> trv.dst_ids) traversals) |> List.take 99))
+                 VertexDataPostReceived
             )
 
         Err error ->
