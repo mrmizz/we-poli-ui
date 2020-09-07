@@ -86,9 +86,9 @@ getVertexId vertexData =
     vertexData.uid
 
 
-hasUID : String -> VertexData -> Bool
-hasUID uid vertex =
-    vertex.uid == uid
+notUID : String -> VertexData -> Bool
+notUID uid vertex =
+    vertex.uid /= uid
 
 
 distinctVertices : List VertexData -> VertexPresence
@@ -297,7 +297,7 @@ updateVertexDeleted vertex vertices =
             []
 
         _ ->
-            List.filter (hasUID vertex.uid) vertices
+            List.filter (notUID vertex.uid) vertices
 
 
 updateWithVertexNamePrefixRequest : Model -> String -> (Result Http.Error VertexNamePrefixResponse -> Msg) -> ( Model, Cmd Msg )
@@ -1157,7 +1157,7 @@ viewDirectedResponseWithText model textToDisplay =
             ]
         , Element.column []
             [ Element.text textToDisplay
-            , fromVerticesToTableWithSearchButton model.traversal_data_response
+            , fromVerticesToTableWithSearchButton model.agg_traversal_data_response
             ]
         ]
 
