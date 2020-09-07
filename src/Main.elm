@@ -51,7 +51,7 @@ type alias Model =
     , vertex_name_search : String
     , vertex_name_search_response : List VertexData
     , vertices_selected : List VertexData
-    , aggregation_selected : String -- TODO: union type for agg
+    , aggregation_selected : Aggregation
     , direction_selected : Direction
     , traversal_response : List Traversal
     , traversal_data_response : List VertexData
@@ -170,7 +170,7 @@ initialModel =
     { state = BuildingRequest
     , vertex_name_search = ""
     , vertex_name_search_response = []
-    , aggregation_selected = defaultAggregationInput
+    , aggregation_selected = Or
     , vertices_selected = []
     , direction_selected = Out
     , traversal_response = []
@@ -182,11 +182,6 @@ initialModel =
 init : () -> ( Model, Cmd Msg )
 init _ =
     ( initialModel, Cmd.none )
-
-
-defaultAggregationInput : String
-defaultAggregationInput =
-    "Or"
 
 
 
@@ -212,6 +207,19 @@ type Msg
 type Direction
     = In
     | Out
+
+type Aggregation
+    = And
+    | Or
+
+printAgg: Aggregation -> String
+printAgg agg =
+    case agg of
+        And ->
+            "And"
+
+        Or ->
+            "Or"
 
 
 switchDirection : Direction -> Direction
@@ -412,7 +420,7 @@ updateWithVertexDataResponse model result =
 aggregateVertices : Model -> List VertexData -> List VertexData
 aggregateVertices model vertices =
     case model.aggregation_selected of
-        "And" ->
+        And ->
             case model.traversal_response of
                 _ :: [] ->
                     vertices
@@ -436,7 +444,7 @@ aggregateVertices model vertices =
                 [] ->
                     vertices
 
-        _ ->
+        Or ->
             vertices
 
 
@@ -473,11 +481,11 @@ unpackVertexDataResponse vertexDataResponse =
 updateAggInputAndOptions : Model -> ( Model, Cmd Msg )
 updateAggInputAndOptions model =
     case model.aggregation_selected of
-        "Or" ->
-            ( { model | aggregation_selected = "And" }, Cmd.none )
+        And ->
+            ( { model | aggregation_selected = Or }, Cmd.none )
 
-        _ ->
-            ( { model | aggregation_selected = "Or" }, Cmd.none )
+        Or ->
+            ( { model | aggregation_selected = And }, Cmd.none )
 
 
 updateWithTraversalResponse : Model -> Result Http.Error TraversalResponse -> ( Model, Cmd Msg )
@@ -982,14 +990,14 @@ requestFailureRow =
     Element.row [ Element.spacing 12 ] [ clearSearchButton, editSearchButton, returnToSearchButton ]
 
 
-viewAggParam : String -> Element Msg
+viewAggParam : Aggregation -> Element Msg
 viewAggParam agg =
     Element.row [] [ Element.text "Aggregation: ", viewAggButton agg ]
 
 
-viewAggButton : String -> Element Msg
-viewAggButton aggName =
-    Input.button [] { onPress = Just AggOptionSelected, label = buttonStyle (Element.text aggName) }
+viewAggButton : Aggregation -> Element Msg
+viewAggButton agg =
+    Input.button [] { onPress = Just AggOptionSelected, label = buttonStyle (Element.text (printAgg agg)) }
 
 
 almostDropdownHeadAndBody : Element Msg -> List (Element Msg) -> Element Msg
