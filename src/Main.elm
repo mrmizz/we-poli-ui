@@ -487,7 +487,14 @@ updateWithTraversalResponse model result =
             ( { model | traversal_response = traversals }
             , vertexDataPost
                 -- TODO: paginate requests
-                (buildVertexDataRequest ((List.concatMap (\trv -> trv.dst_ids) traversals) |> List.take 99))
+                (
+                    buildVertexDataRequest (
+                        (List.concatMap (\trv -> trv.dst_ids) traversals)
+                        |> Set.fromList
+                        |> Set.toList
+                         |> List.take 99
+                         )
+                         )
                  VertexDataPostReceived
             )
 
