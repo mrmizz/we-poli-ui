@@ -51,10 +51,10 @@ type alias Model =
     , vertex_name_search : String
     , vertex_name_search_response : List VertexData
     , vertices_selected : List VertexData
-    , aggregation_selected : String
+    , aggregation_selected : String -- TODO: union type for agg
     , direction_selected : Direction
     , traversal_response : List Traversal
-    , traversal_data_response : List TraversalVertexData
+    , traversal_data_response : List VertexData
     , agg_traversal_data_response: List VertexData
     }
 
@@ -62,12 +62,6 @@ type alias Model =
 type alias Traversal =
     { src_id : String
     , dst_ids : List String
-    }
-
-
-type alias TraversalVertexData =
-    { src_id : String
-    , dst_vertices : List VertexData
     }
 
 
@@ -204,7 +198,7 @@ type Msg
     | EditSearch
     | ConfirmSearch
     | SearchInput String
-    | AggOptionSelected
+    | AggOptionSelected -- TODO: update aggregated vertices
     | DirectionOptionSelected
     | VertexSelected VertexData
     | DeleteVertexSelection VertexData
@@ -398,9 +392,14 @@ updateWithVertexDataResponse : Model -> Result Http.Error VertexDataResponse -> 
 updateWithVertexDataResponse model result =
     case result of
         Ok response ->
+            let
+                unpacked : List VertexData
+                unpacked =
+                    unpackVertexDataResponse response
+            in
             ( { model | state = VertexRequestsSuccess
-                , traversal_data_response = partitionVertexDataResponse model (unpackVertexDataResponse response)
-                , agg_traversal_data_response =
+                , traversal_data_response = unpacked
+                , agg_traversal_data_response = aggregateVertices model unpacked
                 }
             , Cmd.none
             )
@@ -408,13 +407,14 @@ updateWithVertexDataResponse model result =
         Err error ->
             ( { model | state = RequestFailure error }, Cmd.none )
 
-aggregatePartionedVertexData: Model -> List TraversalVertexData -> List VertexData
-aggregatePartitionedVertexData model traversals =
-    case model.direction_selected of
-        In ->
+
+aggregateVertices: Model -> List VertexData -> List VertexData
+aggregateVertices model vertices =
+    case model.aggregation_selected of
+        "And" ->
             case model.traversal_response of
                 _ :: [] ->
-                    List.concatMap (\trv -> trv.dst_vertices) traversals
+                    vertices
 
                 head :: tail ->
                     let
@@ -428,25 +428,34 @@ aggregatePartitionedVertexData model traversals =
                         intersection =
                             List.foldl Set.intersect headSet tailSets
                     in
-                        List.concatMap (\trv -> trv.dst_vertices) traversals
-                        |> List.filter (\vertex -> Set.member (getVertexId vertex) intersection)
+                    List.filter (\vertex -> Set.member (getVertexId vertex) intersection) vertices
 
-        Out ->
-            List.concatMap (\trv -> trv.dst_vertices) traversals
+                [] ->
+                    vertices
+
+        _ ->
+            vertices
 
 
-partitionVertexDataResponse : Model -> List VertexData -> List TraversalVertexData
-partitionVertexDataResponse model vertices =
+-- TODO: edge analytics
+zipVerticesWithSrcId : Model -> List VertexData -> List (String, VertexData)
+zipVerticesWithSrcId model vertices =
     let
-        clause : List String -> String -> Bool
-        clause set element =
-            List.member element set
+        clause : Traversal -> VertexData -> Maybe (String, VertexData)
+        clause traversal vertex =
+            case List.member (getVertexId vertex) traversal.dst_ids of
+                True ->
+                    Just (traversal.src_id, vertex)
+
+                False ->
+                    Nothing
     in
-    List.map
+    List.concatMap
         (\traversal ->
-            TraversalVertexData
-                traversal.src_id
-                (List.filter (\vertexData -> clause traversal.dst_ids (getVertexId vertexData)) vertices)
+                (List.filterMap
+                    (\vertexData -> clause traversal vertexData)
+                     vertices
+                )
         )
         model.traversal_response
 
@@ -1145,7 +1154,7 @@ viewDirectedResponseWithText model textToDisplay =
             ]
         , Element.column []
             [ Element.text textToDisplay
-            , fromVerticesToTableWithSearchButton (List.concatMap (\trv -> trv.dst_vertices) model.traversal_data_response)
+            , fromVerticesToTableWithSearchButton model.traversal_data_response
             ]
         ]
 
