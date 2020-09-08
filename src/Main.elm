@@ -193,7 +193,7 @@ type Msg
     | EditSearch
     | ConfirmSearch
     | SearchInput String
-    | AggOptionSelected -- TODO: update aggregated vertices
+    | AggOptionSelected
     | DirectionOptionSelected
     | VertexSelected VertexData
     | DeleteVertexSelection VertexData
@@ -234,8 +234,8 @@ switchDirection direction =
             In
 
 
-updateDirectionOption : Model -> ( Model, Cmd Msg )
-updateDirectionOption model =
+updateWithDirectionOption : Model -> ( Model, Cmd Msg )
+updateWithDirectionOption model =
     case model.direction_selected of
         In ->
             ( { model | direction_selected = Out, vertices_selected = [], vertex_name_search_response = [], vertex_name_search = "" }, Cmd.none )
@@ -275,10 +275,10 @@ update msg model =
             ( { model | state = SearchConfirmed }, Cmd.none )
 
         AggOptionSelected ->
-            updateAggInputAndOptions model
+            updateWithAggOption model
 
         DirectionOptionSelected ->
-            updateDirectionOption model
+            updateWithDirectionOption model
 
         VertexSelected vertex ->
             ( { model | vertices_selected = updateVertexSelected vertex model.vertices_selected }, Cmd.none )
@@ -480,14 +480,23 @@ unpackVertexDataResponse vertexDataResponse =
     List.map unpackDynamoVertexData vertexDataResponse.responses.items
 
 
-updateAggInputAndOptions : Model -> ( Model, Cmd Msg )
-updateAggInputAndOptions model =
-    case model.aggregation_selected of
-        And ->
-            ( { model | aggregation_selected = Or }, Cmd.none )
+updateWithAggOption : Model -> ( Model, Cmd Msg )
+updateWithAggOption model =
+    let
+        semiUpdate : Model
+        semiUpdate =
+            case model.aggregation_selected of
+                And ->
+                    { model | aggregation_selected = Or }
 
-        Or ->
-            ( { model | aggregation_selected = And }, Cmd.none )
+                Or ->
+                    { model | aggregation_selected = And }
+
+        agg : List VertexData
+        agg =
+            aggregateVertices semiUpdate semiUpdate.traversal_data_response
+    in
+    ( { semiUpdate | agg_traversal_data_response = agg }, Cmd.none )
 
 
 updateWithTraversalResponse : Model -> Result Http.Error TraversalResponse -> ( Model, Cmd Msg )
