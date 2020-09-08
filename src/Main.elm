@@ -786,6 +786,156 @@ traversalInnerResponseDecoder =
         (Decode.field "related_vertex_ids" dynamoArrayNumberValueDecoder)
 
 
+
+
+
+
+
+
+
+
+
+
+
+type alias EdgeRequest =
+    { request_items : EdgeInnerRequest }
+
+
+type alias EdgeInnerRequest =
+    { poli_edge : EdgeInnerRequestKeys }
+
+
+type alias EdgeInnerRequestKeys =
+    { keys : List EdgeInnerRequestKey }
+
+
+type alias EdgeInnerRequestKey =
+    { src_id : DynamoValue
+    , dst_id : DynamoValue
+    }
+
+
+edgePost : EdgeRequest -> (Result Http.Error EdgeResponse -> Msg) -> Cmd Msg
+edgePost request toMsg =
+    Http.post
+        { url = graphDataURL
+        , body = Http.jsonBody (edgeRequestEncoder request)
+        , expect = Http.expectJson toMsg edgeResponseDecoder
+        }
+
+
+type alias Edge =
+    { src_id : String
+    , dst_id : String
+    }
+
+
+buildEdgeRequest : List Edge -> EdgeRequest
+buildEdgeRequest edges =
+    EdgeRequest
+        (EdgeInnerRequest
+            (EdgeInnerRequestKeys (List.map buildEdgeRequestInnerValues edges))
+        )
+
+
+buildEdgeRequestInnerValues : Edge -> EdgeInnerRequestKey
+buildEdgeRequestInnerValues edge =
+    EdgeInnerRequestKey (DynamoValue edge.src_id) (DynamoValue edge.dst_id)
+
+
+edgeRequestEncoder : EdgeRequest -> Encode.Value
+edgeRequestEncoder edgeRequest =
+    Encode.object
+        [ ( "RequestItems", edgeInnerRequestEncoder edgeRequest.request_items ) ]
+
+
+edgeInnerRequestEncoder : EdgeInnerRequest -> Encode.Value
+edgeInnerRequestEncoder edgeInnerRequest =
+    Encode.object
+        [ ( "PoliEdge", edgeInnerRequestKeysEncoder edgeInnerRequest.poli_edge ) ]
+
+
+edgeInnerRequestKeysEncoder : EdgeInnerRequestKeys -> Encode.Value
+edgeInnerRequestKeysEncoder edgeInnerRequestKeys =
+    Encode.object
+        [ ( "Keys", Encode.list edgeInnerRequestKeyEncoder edgeInnerRequestKeys.keys ) ]
+
+
+edgeInnerRequestKeyEncoder : EdgeInnerRequestKey -> Encode.Value
+edgeInnerRequestKeyEncoder edgeInnerRequestKey =
+    Encode.object
+        [ ( "src_id", dynamoNumberValueEncoder edgeInnerRequestKey.src_id )
+        , ( "dst_id", dynamoNumberValueEncoder edgeInnerRequestKey.dst_id )
+        ]
+
+
+type alias EdgeResponse =
+    { responses : PoliEdgeTable }
+
+
+type alias PoliEdgeTable =
+    { items : List DynamoEdge }
+
+
+type alias DynamoEdge =
+    { src_id : DynamoValue
+    , dst_id : DynamoValue
+    , num_transactions: DynamoValue
+    , total_spend: DynamoValue
+    , avg_spend: DynamoValue
+    , max_spend: DynamoValue
+    , min_spend: DynamoValue
+    }
+
+
+edgeResponseDecoder : Decode.Decoder EdgeResponse
+edgeResponseDecoder =
+    Decode.map EdgeResponse (Decode.field "Responses" poliEdgeTableDecoder)
+
+
+poliEdgeTableDecoder : Decode.Decoder PoliEdgeTable
+poliEdgeTableDecoder =
+    Decode.map PoliEdgeTable (Decode.field "PoliEdge" (Decode.list edgeInnerResponseDecoder))
+
+
+edgeInnerResponseDecoder : Decode.Decoder DynamoEdge
+edgeInnerResponseDecoder =
+    Decode.map7 DynamoEdge
+        (Decode.field "src_id" dynamoNumberValueDecoder)
+        (Decode.field "dst_id" dynamoNumberValueDecoder)
+        (Decode.field "num_transactions" dynamoNumberValueDecoder)
+        (Decode.field "total_spend" dynamoNumberValueDecoder)
+        (Decode.field "avg_spend" dynamoNumberValueDecoder)
+        (Decode.field "max_spend" dynamoNumberValueDecoder)
+        (Decode.field "min_spend" dynamoNumberValueDecoder)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 type alias DynamoArrayValue =
     { list : List DynamoValue }
 
