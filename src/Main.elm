@@ -870,7 +870,8 @@ buildEdgeDataRequest direction traversals =
     in
     EdgeDataRequest
         (EdgeDataInnerRequest
-            (EdgeDataInnerRequestKeys (List.map buildEdgeDataRequestInnerValues edges))
+            -- TODO: paginate requests
+            (EdgeDataInnerRequestKeys (List.map buildEdgeDataRequestInnerValues (List.take 99 edges)))
         )
 
 
