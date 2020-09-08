@@ -56,12 +56,23 @@ type alias Model =
     , traversal_response : List Traversal
     , traversal_data_response : List VertexData
     , agg_traversal_data_response : List VertexData
+    , edge_data_response: List EdgeData
     }
 
 
 type alias Traversal =
     { src_id : String
     , dst_ids : List String
+    }
+
+type alias EdgeData =
+    { src_id: String
+    , dst_id: String
+    , num_transactions : String
+    , total_spend : String
+    , avg_spend : String
+    , max_spend : String
+    , min_spend : String
     }
 
 
@@ -176,6 +187,7 @@ initialModel =
     , traversal_response = []
     , traversal_data_response = []
     , agg_traversal_data_response = []
+    , edge_data_response = []
     }
 
 
@@ -200,6 +212,7 @@ type Msg
     | TraversalRequestMade
     | ChildTraversalRequestMade VertexData
     | VertexDataPostReceived (Result Http.Error VertexDataResponse)
+    | EdgeDataPostReceived (Result Http.Error EdgeDataResponse)
     | VertexNamePrefixGetReceived (Result Http.Error VertexNamePrefixResponse)
     | TraversalPostReceived (Result Http.Error TraversalResponse)
 
@@ -285,6 +298,9 @@ update msg model =
 
         DeleteVertexSelection vertex ->
             ( { model | vertices_selected = updateVertexDeleted vertex model.vertices_selected }, Cmd.none )
+
+        EdgeDataPostReceived result ->
+            updateWithEdgeDataResponse model result
 
 
 cleanVertexNameInput : String -> Model -> String
@@ -408,11 +424,10 @@ updateWithVertexDataResponse model result =
                     unpackVertexDataResponse response
             in
             ( { model
-                | state = VertexRequestsSuccess
-                , traversal_data_response = unpacked
+                | traversal_data_response = unpacked
                 , agg_traversal_data_response = aggregateVertices model unpacked
               }
-            , Cmd.none
+            , edgeDataPost (buildEdgeDataRequest model.traversal_response) EdgeDataPostReceived
             )
 
         Err error ->
@@ -535,6 +550,31 @@ unpackDynamoTraversal dynamoTraversal =
     Traversal
         (unpackDynamoValue dynamoTraversal.vertex_id)
         (List.map unpackDynamoValue dynamoTraversal.related_vertex_ids.list)
+
+
+updateWithEdgeDataResponse: Model -> Result Http.Error EdgeDataResponse -> (Model, Cmd Msg)
+updateWithEdgeDataResponse model result =
+    case result of
+        Ok response ->
+            ( { model | state = VertexRequestsSuccess, edge_data_response = unpackEdgeDataResponse response }, Cmd.none )
+
+        Err error ->
+            ( { model | state = RequestFailure error }, Cmd.none )
+
+unpackEdgeDataResponse: EdgeDataResponse -> List EdgeData
+unpackEdgeDataResponse edgeDataResponse =
+    List.map unpackDynamoEdgeData edgeDataResponse.responses.items
+
+unpackDynamoEdgeData: DynamoEdgeData -> EdgeData
+unpackDynamoEdgeData dynamoEdgeData =
+    EdgeData
+        (unpackDynamoValue dynamoEdgeData.src_id)
+        (unpackDynamoValue dynamoEdgeData.dst_id)
+        (unpackDynamoValue dynamoEdgeData.num_transactions)
+        (unpackDynamoValue dynamoEdgeData.total_spend)
+        (unpackDynamoValue dynamoEdgeData.avg_spend)
+        (unpackDynamoValue dynamoEdgeData.max_spend)
+        (unpackDynamoValue dynamoEdgeData.min_spend)
 
 
 
@@ -812,24 +852,24 @@ edgeDataPost request toMsg =
         , expect = Http.expectJson toMsg edgeDataResponseDecoder
         }
 
+buildEdgeDataRequest : List Traversal -> EdgeDataRequest
+buildEdgeDataRequest traversals =
+    let
+        edges: List (String, String)
+        edges =
+            -- TODO: direction
+            List.concatMap (\trv -> (List.map (\dst_id -> (trv.src_id, dst_id)) trv.dst_ids)) traversals
 
-type alias EdgeData =
-    { src_id : String
-    , dst_id : String
-    }
-
-
-buildEdgeDataRequest : List EdgeData -> EdgeDataRequest
-buildEdgeDataRequest edges =
+    in
     EdgeDataRequest
         (EdgeDataInnerRequest
             (EdgeDataInnerRequestKeys (List.map buildEdgeDataRequestInnerValues edges))
         )
 
 
-buildEdgeDataRequestInnerValues : EdgeData -> EdgeDataInnerRequestKey
-buildEdgeDataRequestInnerValues edgeData =
-    EdgeDataInnerRequestKey (DynamoValue edgeData.src_id) (DynamoValue edgeData.dst_id)
+buildEdgeDataRequestInnerValues : (String, String) -> EdgeDataInnerRequestKey
+buildEdgeDataRequestInnerValues tuple =
+    EdgeDataInnerRequestKey (DynamoValue (Tuple.first tuple)) (DynamoValue (Tuple.second tuple))
 
 
 edgeDataRequestEncoder : EdgeDataRequest -> Encode.Value
