@@ -872,8 +872,8 @@ viewSearchConfirmed : Model -> Element Msg
 viewSearchConfirmed model =
     almostDropdownHeadAndBody (dropdownHead model)
         [ makeVertexIdsRequestButton
-        , clearSearchButton
         , editSearchButton
+        , clearSearchButton
         , viewAggParam model.aggregation_selected
         , viewVerticesConfirmed model.vertices_selected
         ]
