@@ -1,5 +1,6 @@
 module Main exposing (main)
 
+import Basics as Basics
 import Browser
 import Element exposing (Element)
 import Element.Background as Background
@@ -12,7 +13,6 @@ import Json.Decode as Decode
 import Json.Encode as Encode
 import List
 import Set exposing (Set)
-import Basics as Basics
 
 
 
@@ -470,41 +470,42 @@ aggregateVertices model vertices =
 
 -- TODO: edgeData analytics
 
+
 type alias VertexDataWithEdgeIds =
-    { src_id: String
-    , dst_id: String
-    , vertex: VertexData
+    { src_id : String
+    , dst_id : String
+    , vertex : VertexData
     }
 
 
 zipVerticesAndEdges : Model -> List ( EdgeData, VertexData )
 zipVerticesAndEdges model =
     let
-        zipClause : Traversal -> VertexData -> Maybe ( VertexDataWithEdgeIds )
+        zipClause : Traversal -> VertexData -> Maybe VertexDataWithEdgeIds
         zipClause traversal vertex =
             case List.member (getVertexId vertex) traversal.dst_ids of
                 True ->
                     case model.direction_selected of
                         In ->
-                            Just ( VertexDataWithEdgeIds vertex.uid traversal.src_id vertex )
+                            Just (VertexDataWithEdgeIds vertex.uid traversal.src_id vertex)
 
                         Out ->
-                            Just ( VertexDataWithEdgeIds traversal.src_id vertex.uid vertex )
+                            Just (VertexDataWithEdgeIds traversal.src_id vertex.uid vertex)
 
                 False ->
                     Nothing
 
-        verticesWithEdgeIds : List (VertexDataWithEdgeIds)
+        verticesWithEdgeIds : List VertexDataWithEdgeIds
         verticesWithEdgeIds =
-                List.concatMap
-                    (\traversal ->
-                        List.filterMap
-                            (\vertexData -> zipClause traversal vertexData)
-                            model.traversal_data_response
-                    )
-                    model.traversal_response
+            List.concatMap
+                (\traversal ->
+                    List.filterMap
+                        (\vertexData -> zipClause traversal vertexData)
+                        model.traversal_data_response
+                )
+                model.traversal_response
 
-        genericSortClause : (String, String) -> (String, String) -> Order
+        genericSortClause : ( String, String ) -> ( String, String ) -> Order
         genericSortClause left right =
             case Basics.compare (Tuple.first left) (Tuple.first right) of
                 Basics.LT ->
@@ -516,22 +517,21 @@ zipVerticesAndEdges model =
                 Basics.GT ->
                     Basics.GT
 
-        vertexSortClause: VertexDataWithEdgeIds -> VertexDataWithEdgeIds -> Order
+        vertexSortClause : VertexDataWithEdgeIds -> VertexDataWithEdgeIds -> Order
         vertexSortClause left right =
-            genericSortClause (left.src_id, left.dst_id) (right.src_id, right.dst_id)
+            genericSortClause ( left.src_id, left.dst_id ) ( right.src_id, right.dst_id )
 
-        edgeSortClause: EdgeData -> EdgeData -> Order
+        edgeSortClause : EdgeData -> EdgeData -> Order
         edgeSortClause left right =
-            genericSortClause (left.src_id, left.dst_id) (right.src_id, right.dst_id)
+            genericSortClause ( left.src_id, left.dst_id ) ( right.src_id, right.dst_id )
 
         sortedVertices : List VertexData
         sortedVertices =
             List.map (\ve -> ve.vertex) (List.sortWith vertexSortClause verticesWithEdgeIds)
 
-        sortedEdges: List EdgeData
+        sortedEdges : List EdgeData
         sortedEdges =
             List.sortWith edgeSortClause model.edge_data_response
-
     in
     List.map2 Tuple.pair sortedEdges sortedVertices
 
@@ -1420,14 +1420,14 @@ fromVertexDataToRow vertex =
 
 almostFromVertexDataToRow : VertexData -> List (Element Msg) -> Element Msg
 almostFromVertexDataToRow vertex moreElements =
-    Element.row [ Element.spacing 10 ] (
-        moreElements ++
-        [ uidColumn vertex
-        , isCommitteeColumn vertex
-        , nameColumn vertex
-        , citiesColumn vertex
-        , statesColumn vertex
-        ]
+    Element.row [ Element.spacing 10 ]
+        (moreElements
+            ++ [ uidColumn vertex
+               , isCommitteeColumn vertex
+               , nameColumn vertex
+               , citiesColumn vertex
+               , statesColumn vertex
+               ]
         )
 
 
@@ -1486,7 +1486,8 @@ statesColumn vertex =
         , Element.text (String.join ", " vertex.states)
         ]
 
-edgeColumn: EdgeData -> Element Msg
+
+edgeColumn : EdgeData -> Element Msg
 edgeColumn edge =
     Element.column columnStyle
         [ Element.text "transactions:"
@@ -1508,7 +1509,7 @@ almostFromVerticesToTable vertices buttonMsg buttonName =
 
 fromVertexDataToRowWithButton : (VertexData -> Msg) -> String -> VertexData -> Element Msg
 fromVertexDataToRowWithButton buttonMsg buttonName vertex =
-    almostFromVertexDataToRow vertex [Input.button [] { onPress = Just (buttonMsg vertex), label = buttonStyle (Element.text buttonName) }]
+    almostFromVertexDataToRow vertex [ Input.button [] { onPress = Just (buttonMsg vertex), label = buttonStyle (Element.text buttonName) } ]
 
 
 fromVerticesToTableWithSelectVertexButton : List VertexData -> Element Msg
@@ -1525,21 +1526,23 @@ fromVerticesToTableWithSearchButton : List VertexData -> Element Msg
 fromVerticesToTableWithSearchButton vertices =
     almostFromVerticesToTable vertices ChildTraversalRequestMade "Search"
 
-fromVerticesAndEdgesToTableWithSearchButton: List (EdgeData, VertexData) -> Element Msg
+
+fromVerticesAndEdgesToTableWithSearchButton : List ( EdgeData, VertexData ) -> Element Msg
 fromVerticesAndEdgesToTableWithSearchButton verticesAndEdges =
     let
-        row: (EdgeData, VertexData) -> Element Msg
+        row : ( EdgeData, VertexData ) -> Element Msg
         row tuple =
             almostFromVertexDataToRow
                 (Tuple.second tuple)
                 [ Input.button []
                     { onPress = Just (ChildTraversalRequestMade (Tuple.second tuple))
                     , label = buttonStyle (Element.text "Search")
-                     }
-                 , edgeColumn (Tuple.first tuple)
-                 ]
+                    }
+                , edgeColumn (Tuple.first tuple)
+                ]
     in
     Element.column tableStyle (List.map row verticesAndEdges)
+
 
 buttonStyle : Element Msg -> Element Msg
 buttonStyle button =
