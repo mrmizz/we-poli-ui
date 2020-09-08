@@ -786,17 +786,6 @@ traversalInnerResponseDecoder =
         (Decode.field "related_vertex_ids" dynamoArrayNumberValueDecoder)
 
 
-
-
-
-
-
-
-
-
-
-
-
 type alias EdgeRequest =
     { request_items : EdgeInnerRequest }
 
@@ -880,11 +869,11 @@ type alias PoliEdgeTable =
 type alias DynamoEdge =
     { src_id : DynamoValue
     , dst_id : DynamoValue
-    , num_transactions: DynamoValue
-    , total_spend: DynamoValue
-    , avg_spend: DynamoValue
-    , max_spend: DynamoValue
-    , min_spend: DynamoValue
+    , num_transactions : DynamoValue
+    , total_spend : DynamoValue
+    , avg_spend : DynamoValue
+    , max_spend : DynamoValue
+    , min_spend : DynamoValue
     }
 
 
@@ -908,32 +897,6 @@ edgeInnerResponseDecoder =
         (Decode.field "avg_spend" dynamoNumberValueDecoder)
         (Decode.field "max_spend" dynamoNumberValueDecoder)
         (Decode.field "min_spend" dynamoNumberValueDecoder)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 type alias DynamoArrayValue =
