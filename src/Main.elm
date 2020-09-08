@@ -451,7 +451,7 @@ aggregateVertices model vertices =
 
 
 
--- TODO: edge analytics
+-- TODO: edgeData analytics
 
 
 zipVerticesWithSrcId : Model -> List VertexData -> List ( String, VertexData )
@@ -786,87 +786,87 @@ traversalInnerResponseDecoder =
         (Decode.field "related_vertex_ids" dynamoArrayNumberValueDecoder)
 
 
-type alias EdgeRequest =
-    { request_items : EdgeInnerRequest }
+type alias EdgeDataRequest =
+    { request_items : EdgeDataInnerRequest }
 
 
-type alias EdgeInnerRequest =
-    { poli_edge : EdgeInnerRequestKeys }
+type alias EdgeDataInnerRequest =
+    { poli_edge : EdgeDataInnerRequestKeys }
 
 
-type alias EdgeInnerRequestKeys =
-    { keys : List EdgeInnerRequestKey }
+type alias EdgeDataInnerRequestKeys =
+    { keys : List EdgeDataInnerRequestKey }
 
 
-type alias EdgeInnerRequestKey =
+type alias EdgeDataInnerRequestKey =
     { src_id : DynamoValue
     , dst_id : DynamoValue
     }
 
 
-edgePost : EdgeRequest -> (Result Http.Error EdgeResponse -> Msg) -> Cmd Msg
-edgePost request toMsg =
+edgeDataPost : EdgeDataRequest -> (Result Http.Error EdgeDataResponse -> Msg) -> Cmd Msg
+edgeDataPost request toMsg =
     Http.post
         { url = graphDataURL
-        , body = Http.jsonBody (edgeRequestEncoder request)
-        , expect = Http.expectJson toMsg edgeResponseDecoder
+        , body = Http.jsonBody (edgeDataRequestEncoder request)
+        , expect = Http.expectJson toMsg edgeDataResponseDecoder
         }
 
 
-type alias Edge =
+type alias EdgeData =
     { src_id : String
     , dst_id : String
     }
 
 
-buildEdgeRequest : List Edge -> EdgeRequest
-buildEdgeRequest edges =
-    EdgeRequest
-        (EdgeInnerRequest
-            (EdgeInnerRequestKeys (List.map buildEdgeRequestInnerValues edges))
+buildEdgeDataRequest : List EdgeData -> EdgeDataRequest
+buildEdgeDataRequest edges =
+    EdgeDataRequest
+        (EdgeDataInnerRequest
+            (EdgeDataInnerRequestKeys (List.map buildEdgeDataRequestInnerValues edges))
         )
 
 
-buildEdgeRequestInnerValues : Edge -> EdgeInnerRequestKey
-buildEdgeRequestInnerValues edge =
-    EdgeInnerRequestKey (DynamoValue edge.src_id) (DynamoValue edge.dst_id)
+buildEdgeDataRequestInnerValues : EdgeData -> EdgeDataInnerRequestKey
+buildEdgeDataRequestInnerValues edgeData =
+    EdgeDataInnerRequestKey (DynamoValue edgeData.src_id) (DynamoValue edgeData.dst_id)
 
 
-edgeRequestEncoder : EdgeRequest -> Encode.Value
-edgeRequestEncoder edgeRequest =
+edgeDataRequestEncoder : EdgeDataRequest -> Encode.Value
+edgeDataRequestEncoder edgeDataRequest =
     Encode.object
-        [ ( "RequestItems", edgeInnerRequestEncoder edgeRequest.request_items ) ]
+        [ ( "RequestItems", edgeDataInnerRequestEncoder edgeDataRequest.request_items ) ]
 
 
-edgeInnerRequestEncoder : EdgeInnerRequest -> Encode.Value
-edgeInnerRequestEncoder edgeInnerRequest =
+edgeDataInnerRequestEncoder : EdgeDataInnerRequest -> Encode.Value
+edgeDataInnerRequestEncoder edgeDataInnerRequest =
     Encode.object
-        [ ( "PoliEdge", edgeInnerRequestKeysEncoder edgeInnerRequest.poli_edge ) ]
+        [ ( "PoliEdge", edgeDataInnerRequestKeysEncoder edgeDataInnerRequest.poli_edge ) ]
 
 
-edgeInnerRequestKeysEncoder : EdgeInnerRequestKeys -> Encode.Value
-edgeInnerRequestKeysEncoder edgeInnerRequestKeys =
+edgeDataInnerRequestKeysEncoder : EdgeDataInnerRequestKeys -> Encode.Value
+edgeDataInnerRequestKeysEncoder edgeDataInnerRequestKeys =
     Encode.object
-        [ ( "Keys", Encode.list edgeInnerRequestKeyEncoder edgeInnerRequestKeys.keys ) ]
+        [ ( "Keys", Encode.list edgeDataInnerRequestKeyEncoder edgeDataInnerRequestKeys.keys ) ]
 
 
-edgeInnerRequestKeyEncoder : EdgeInnerRequestKey -> Encode.Value
-edgeInnerRequestKeyEncoder edgeInnerRequestKey =
+edgeDataInnerRequestKeyEncoder : EdgeDataInnerRequestKey -> Encode.Value
+edgeDataInnerRequestKeyEncoder edgeDataInnerRequestKey =
     Encode.object
-        [ ( "src_id", dynamoNumberValueEncoder edgeInnerRequestKey.src_id )
-        , ( "dst_id", dynamoNumberValueEncoder edgeInnerRequestKey.dst_id )
+        [ ( "src_id", dynamoNumberValueEncoder edgeDataInnerRequestKey.src_id )
+        , ( "dst_id", dynamoNumberValueEncoder edgeDataInnerRequestKey.dst_id )
         ]
 
 
-type alias EdgeResponse =
-    { responses : PoliEdgeTable }
+type alias EdgeDataResponse =
+    { responses : PoliEdgeDataTable }
 
 
-type alias PoliEdgeTable =
-    { items : List DynamoEdge }
+type alias PoliEdgeDataTable =
+    { items : List DynamoEdgeData }
 
 
-type alias DynamoEdge =
+type alias DynamoEdgeData =
     { src_id : DynamoValue
     , dst_id : DynamoValue
     , num_transactions : DynamoValue
@@ -877,19 +877,19 @@ type alias DynamoEdge =
     }
 
 
-edgeResponseDecoder : Decode.Decoder EdgeResponse
-edgeResponseDecoder =
-    Decode.map EdgeResponse (Decode.field "Responses" poliEdgeTableDecoder)
+edgeDataResponseDecoder : Decode.Decoder EdgeDataResponse
+edgeDataResponseDecoder =
+    Decode.map EdgeDataResponse (Decode.field "Responses" poliEdgeDataTableDecoder)
 
 
-poliEdgeTableDecoder : Decode.Decoder PoliEdgeTable
-poliEdgeTableDecoder =
-    Decode.map PoliEdgeTable (Decode.field "PoliEdge" (Decode.list edgeInnerResponseDecoder))
+poliEdgeDataTableDecoder : Decode.Decoder PoliEdgeDataTable
+poliEdgeDataTableDecoder =
+    Decode.map PoliEdgeDataTable (Decode.field "PoliEdge" (Decode.list edgeDataInnerResponseDecoder))
 
 
-edgeInnerResponseDecoder : Decode.Decoder DynamoEdge
-edgeInnerResponseDecoder =
-    Decode.map7 DynamoEdge
+edgeDataInnerResponseDecoder : Decode.Decoder DynamoEdgeData
+edgeDataInnerResponseDecoder =
+    Decode.map7 DynamoEdgeData
         (Decode.field "src_id" dynamoNumberValueDecoder)
         (Decode.field "dst_id" dynamoNumberValueDecoder)
         (Decode.field "num_transactions" dynamoNumberValueDecoder)
