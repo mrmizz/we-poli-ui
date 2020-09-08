@@ -428,7 +428,7 @@ updateWithVertexDataResponse model result =
                 | traversal_data_response = unpacked
                 , agg_traversal_data_response = aggregateVertices model unpacked
               }
-            , edgeDataPost (buildEdgeDataRequest model.traversal_response) EdgeDataPostReceived
+            , edgeDataPost (buildEdgeDataRequest model.direction_selected model.traversal_response) EdgeDataPostReceived
             )
 
         Err error ->
@@ -856,13 +856,17 @@ edgeDataPost request toMsg =
         }
 
 
-buildEdgeDataRequest : List Traversal -> EdgeDataRequest
-buildEdgeDataRequest traversals =
+buildEdgeDataRequest : Direction -> List Traversal -> EdgeDataRequest
+buildEdgeDataRequest direction traversals =
     let
         edges : List ( String, String )
         edges =
-            -- TODO: direction
-            List.concatMap (\trv -> List.map (\dst_id -> ( trv.src_id, dst_id )) trv.dst_ids) traversals
+            case direction of
+                In ->
+                    List.concatMap (\trv -> List.map (\dst_id -> ( dst_id, trv.src_id )) trv.dst_ids) traversals
+
+                Out ->
+                    List.concatMap (\trv -> List.map (\dst_id -> ( trv.src_id, dst_id )) trv.dst_ids) traversals
     in
     EdgeDataRequest
         (EdgeDataInnerRequest
