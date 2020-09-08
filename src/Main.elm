@@ -56,7 +56,7 @@ type alias Model =
     , traversal_response : List Traversal
     , traversal_data_response : List VertexData
     , agg_traversal_data_response : List VertexData
-    , edge_data_response: List EdgeData
+    , edge_data_response : List EdgeData
     }
 
 
@@ -65,9 +65,10 @@ type alias Traversal =
     , dst_ids : List String
     }
 
+
 type alias EdgeData =
-    { src_id: String
-    , dst_id: String
+    { src_id : String
+    , dst_id : String
     , num_transactions : String
     , total_spend : String
     , avg_spend : String
@@ -552,7 +553,7 @@ unpackDynamoTraversal dynamoTraversal =
         (List.map unpackDynamoValue dynamoTraversal.related_vertex_ids.list)
 
 
-updateWithEdgeDataResponse: Model -> Result Http.Error EdgeDataResponse -> (Model, Cmd Msg)
+updateWithEdgeDataResponse : Model -> Result Http.Error EdgeDataResponse -> ( Model, Cmd Msg )
 updateWithEdgeDataResponse model result =
     case result of
         Ok response ->
@@ -561,11 +562,13 @@ updateWithEdgeDataResponse model result =
         Err error ->
             ( { model | state = RequestFailure error }, Cmd.none )
 
-unpackEdgeDataResponse: EdgeDataResponse -> List EdgeData
+
+unpackEdgeDataResponse : EdgeDataResponse -> List EdgeData
 unpackEdgeDataResponse edgeDataResponse =
     List.map unpackDynamoEdgeData edgeDataResponse.responses.items
 
-unpackDynamoEdgeData: DynamoEdgeData -> EdgeData
+
+unpackDynamoEdgeData : DynamoEdgeData -> EdgeData
 unpackDynamoEdgeData dynamoEdgeData =
     EdgeData
         (unpackDynamoValue dynamoEdgeData.src_id)
@@ -852,14 +855,14 @@ edgeDataPost request toMsg =
         , expect = Http.expectJson toMsg edgeDataResponseDecoder
         }
 
+
 buildEdgeDataRequest : List Traversal -> EdgeDataRequest
 buildEdgeDataRequest traversals =
     let
-        edges: List (String, String)
+        edges : List ( String, String )
         edges =
             -- TODO: direction
-            List.concatMap (\trv -> (List.map (\dst_id -> (trv.src_id, dst_id)) trv.dst_ids)) traversals
-
+            List.concatMap (\trv -> List.map (\dst_id -> ( trv.src_id, dst_id )) trv.dst_ids) traversals
     in
     EdgeDataRequest
         (EdgeDataInnerRequest
@@ -867,7 +870,7 @@ buildEdgeDataRequest traversals =
         )
 
 
-buildEdgeDataRequestInnerValues : (String, String) -> EdgeDataInnerRequestKey
+buildEdgeDataRequestInnerValues : ( String, String ) -> EdgeDataInnerRequestKey
 buildEdgeDataRequestInnerValues tuple =
     EdgeDataInnerRequestKey (DynamoValue (Tuple.first tuple)) (DynamoValue (Tuple.second tuple))
 
