@@ -1521,10 +1521,6 @@ fromVerticesToTableWithDeleteVertexButton vertices =
     almostFromVerticesToTable vertices DeleteVertexSelection "delete"
 
 
-fromVerticesToTableWithSearchButton : List VertexData -> Element Msg
-fromVerticesToTableWithSearchButton vertices =
-    almostFromVerticesToTable vertices ChildTraversalRequestMade "Search"
-
 
 fromVerticesAndEdgesToTableWithSearchButton : List ( EdgeData, VertexData ) -> Element Msg
 fromVerticesAndEdgesToTableWithSearchButton verticesAndEdges =
