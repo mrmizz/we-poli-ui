@@ -1521,7 +1521,6 @@ fromVerticesToTableWithDeleteVertexButton vertices =
     almostFromVerticesToTable vertices DeleteVertexSelection "delete"
 
 
-
 fromVerticesAndEdgesToTableWithSearchButton : List ( EdgeData, VertexData ) -> Element Msg
 fromVerticesAndEdgesToTableWithSearchButton verticesAndEdges =
     let
