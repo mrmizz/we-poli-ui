@@ -253,10 +253,14 @@ updateWithDirectionOption : Model -> ( Model, Cmd Msg )
 updateWithDirectionOption model =
     case model.direction_selected of
         In ->
-            ( { model | direction_selected = Out, vertices_selected = [], vertex_name_search_response = [], vertex_name_search = "" }, Cmd.none )
+            ( { model | direction_selected = Out, vertices_selected = [], vertex_name_search_response = [], vertex_name_search = "" }
+            , Cmd.none
+            )
 
         Out ->
-            ( { model | direction_selected = In, vertices_selected = [], vertex_name_search_response = [], vertex_name_search = "" }, Cmd.none )
+            ( { model | direction_selected = In, vertices_selected = [], vertex_name_search_response = [], vertex_name_search = "" }
+            , Cmd.none
+            )
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -1508,7 +1512,8 @@ almostFromVerticesToTable vertices buttonMsg buttonName =
 
 fromVertexDataToRowWithButton : (VertexData -> Msg) -> String -> VertexData -> Element Msg
 fromVertexDataToRowWithButton buttonMsg buttonName vertex =
-    almostFromVertexDataToRow vertex [ Input.button [] { onPress = Just (buttonMsg vertex), label = buttonStyle (Element.text buttonName) } ]
+    almostFromVertexDataToRow vertex
+        [ Input.button [] { onPress = Just (buttonMsg vertex), label = buttonStyle (Element.text buttonName) } ]
 
 
 fromVerticesToTableWithSelectVertexButton : List VertexData -> Element Msg
