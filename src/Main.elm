@@ -35,13 +35,12 @@ main =
 
 graphDataURL : String
 graphDataURL =
-    "https://yf87qmn85l.execute-api.us-west-2.amazonaws.com/prod/poli/graph"
+    "https://yf87qmn85l.execute-api.us-west-2.amazonaws.com/dev/poli/graph"
 
 
 prefixURL : String
 prefixURL =
-    "https://yf87qmn85l.execute-api.us-west-2.amazonaws.com/prod/poli/prefix/"
-
+    "https://yf87qmn85l.execute-api.us-west-2.amazonaws.com/dev/poli/prefix/"
 
 
 -- Model
@@ -58,8 +57,31 @@ type alias Model =
     , traversal_data_response : List VertexData
     , agg_traversal_data_response : List VertexData
     , edge_data_response : List EdgeData
+    , page_count: Maybe PageCount
     }
 
+-- TODO: evaluate Edge Triplet request instead Traversal, Vertex, then Edge Requests
+type alias PageCount =
+    { traversals: TraversalsPageCount
+    , vertex_data: VertexDataPageCount
+    , edge_data: EdgeDataPageCount
+    }
+
+type alias TraversalsPageCount =
+    { made: List TraversalPage
+    , pending: List TraversalPage
+    }
+
+
+type alias VertexDataPageCount =
+    { made: List Traversal
+    , pending: List Traversal
+    }
+
+type alias EdgeDataPageCount =
+    { made: List (String, String)
+    , pending: List (String, String)
+    }
 
 type alias Traversal =
     { src_id : String
@@ -176,6 +198,7 @@ type State
     | Loading
     | VertexRequestsSuccess
     | RequestFailure Http.Error
+    | DataIntegrityFailure
 
 
 initialModel : Model
@@ -190,6 +213,7 @@ initialModel =
     , traversal_data_response = []
     , agg_traversal_data_response = []
     , edge_data_response = []
+    , page_count = Nothing
     }
 
 
@@ -217,6 +241,7 @@ type Msg
     | EdgeDataPostReceived (Result Http.Error EdgeDataResponse)
     | VertexNamePrefixGetReceived (Result Http.Error VertexNamePrefixResponse)
     | TraversalPostReceived (Result Http.Error TraversalResponse)
+    | PageCountPostReceived (Result Http.Error PageCountResponse)
 
 
 type Direction
@@ -267,19 +292,22 @@ update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         SearchInput prefix ->
-            updateWithVertexNamePrefixRequest model prefix VertexNamePrefixGetReceived
+            updateWithVertexNamePrefixRequest model prefix
 
         VertexNamePrefixGetReceived result ->
             updateWithVertexNamePrefixResponse model result
 
         TraversalRequestMade ->
-            updateWithTraversalRequest model
+            updateWithPageCountRequest model
+
+        ChildTraversalRequestMade vertexData ->
+            updateWithChildPageCountRequest model vertexData
+
+        PageCountPostReceived result ->
+            updateWithPageCountResponse model result
 
         TraversalPostReceived result ->
             updateWithTraversalResponse model result
-
-        ChildTraversalRequestMade vertexData ->
-            updateWithChildTraversalRequest model vertexData
 
         VertexDataPostReceived result ->
             updateWithVertexDataResponse model result
@@ -309,6 +337,7 @@ update msg model =
             updateWithEdgeDataResponse model result
 
 
+
 cleanVertexNameInput : String -> Model -> String
 cleanVertexNameInput input model =
     printBool (directionToIsCommittee model.direction_selected)
@@ -332,15 +361,15 @@ updateVertexDeleted vertex vertices =
             List.filter (notUID vertex.uid) vertices
 
 
-updateWithVertexNamePrefixRequest : Model -> String -> (Result Http.Error VertexNamePrefixResponse -> Msg) -> ( Model, Cmd Msg )
-updateWithVertexNamePrefixRequest model prefix toMsg =
+updateWithVertexNamePrefixRequest : Model -> String -> ( Model, Cmd Msg )
+updateWithVertexNamePrefixRequest model prefix =
     case String.length prefix >= 3 of
         False ->
             ( { model | vertex_name_search = prefix }, Cmd.none )
 
         True ->
             ( { model | vertex_name_search = prefix }
-            , vertexNamePrefixGet (cleanVertexNameInput prefix model) toMsg
+            , vertexNamePrefixGet (cleanVertexNameInput prefix model) VertexNamePrefixGetReceived
             )
 
 
@@ -371,14 +400,14 @@ unpackVertexNamePrefixResponse response =
             []
 
 
-unpackDynamoVertexDataInner : DynamoVertexDataInner -> List VertexData
+unpackDynamoVertexDataInner : DynamoVertexDataItems -> List VertexData
 unpackDynamoVertexDataInner dynamoVertexDataInner =
-    List.map unpackDynamoVertexDataInnerInner dynamoVertexDataInner.item
+    List.map unpackDynamoVertexDataInnerInner dynamoVertexDataInner.items
 
 
-unpackDynamoVertexDataInnerInner : DynamoVertexDataInnerInner -> VertexData
+unpackDynamoVertexDataInnerInner : DynamoVertexDataItem -> VertexData
 unpackDynamoVertexDataInnerInner dynamoVertexDataInnerInner =
-    unpackDynamoVertexData dynamoVertexDataInnerInner.items
+    unpackDynamoVertexData dynamoVertexDataInnerInner.item
 
 
 unpackDynamoVertexData : DynamoVertexData -> VertexData
@@ -402,22 +431,61 @@ unpackDynamoBool dynamoBool =
     dynamoBool.value
 
 
-updateWithTraversalRequest : Model -> ( Model, Cmd Msg )
-updateWithTraversalRequest model =
+updateWithPageCountRequest : Model -> ( Model, Cmd Msg )
+updateWithPageCountRequest model =
     ( { model | state = Loading }
-    , traversalPost
-        (buildTraversalRequest (List.map (\vertexData -> TraversalPage (getVertexId vertexData) "1") model.vertices_selected))
-        TraversalPostReceived
+    , pageCountPost (buildPageCountRequest (List.map getVertexId model.vertices_selected))
     )
 
-
-updateWithChildTraversalRequest : Model -> VertexData -> ( Model, Cmd Msg )
-updateWithChildTraversalRequest model vertexData =
+updateWithChildPageCountRequest : Model -> VertexData -> ( Model, Cmd Msg )
+updateWithChildPageCountRequest model vertexData =
     ( { model | state = Loading, vertices_selected = [ vertexData ], direction_selected = switchDirection model.direction_selected }
-    , traversalPost
-        (buildTraversalRequest [ TraversalPage (getVertexId vertexData) "1" ])
-        TraversalPostReceived
+    , pageCountPost (buildPageCountRequest [getVertexId vertexData])
     )
+
+
+updateWithPageCountResponse : Model -> Result Http.Error PageCountResponse -> ( Model, Cmd Msg )
+updateWithPageCountResponse model result =
+    case result of
+        Ok response ->
+            let
+                pageCount: PageCount
+                pageCount =
+                    unpackPageCountResponse response
+            in
+            case pageCount.traversals.pending of
+                head :: tail ->
+                     ( { model | page_count = Just { pageCount | traversals = TraversalsPageCount [head] tail } }
+                     , traversalPost
+                         (buildTraversalRequest [head] )
+                         TraversalPostReceived
+                     )
+                [] ->
+                     ( { model | page_count = Just pageCount, state = DataIntegrityFailure }, Cmd.none )
+
+        Err error ->
+            ( { model | state = RequestFailure error }, Cmd.none )
+
+unpackPageCountResponse : PageCountResponse -> PageCount
+unpackPageCountResponse pageCountResponse =
+    let
+        unpackDynamoPageCount : DynamoPageCount -> List TraversalPage
+        unpackDynamoPageCount dynamoPageCount =
+            case String.toInt (unpackDynamoValue dynamoPageCount.page_count) of
+                Just int ->
+                    (List.range 1 int)
+                        |> List.map String.fromInt
+                        |> List.map (\pageNum -> (TraversalPage (unpackDynamoValue dynamoPageCount.vertex_id) pageNum))
+
+                Nothing ->
+                    []
+
+    in
+    PageCount
+        (TraversalsPageCount [] (List.concatMap unpackDynamoPageCount pageCountResponse.responses.items))
+        (VertexDataPageCount [] [])
+        (EdgeDataPageCount [] [])
+
 
 
 updateWithVertexDataResponse : Model -> Result Http.Error VertexDataResponse -> ( Model, Cmd Msg )
@@ -572,19 +640,36 @@ updateWithTraversalResponse model result =
                 traversals : List Traversal
                 traversals =
                     unpackTraversalResponse response
+
+                incrementedTotalTraversals: List Traversal
+                incrementedTotalTraversals =
+                    model.traversal_response ++ traversals
+
             in
-            ( { model | traversal_response = traversals }
-            , vertexDataPost
-                -- TODO: paginate requests
-                (buildVertexDataRequest
-                    (List.concatMap (\trv -> trv.dst_ids) traversals
-                        |> Set.fromList
-                        |> Set.toList
-                        |> List.take 99
-                    )
-                )
-                VertexDataPostReceived
-            )
+            case model.page_count of
+                Just pageCount ->
+                    case pageCount.traversals.pending of
+                        head :: tail ->
+                            ( { model | traversal_response = incrementedTotalTraversals
+                                , page_count = Just { pageCount | traversals =  TraversalsPageCount (pageCount.traversals.made ++ [head]) tail }
+                             }
+                            , traversalPost
+                                 (buildTraversalRequest [head] )
+                                 TraversalPostReceived
+                            )
+
+                        [] ->
+                            ( { model | traversal_response = incrementedTotalTraversals
+                            , page_count = Just { pageCount | vertex_data = VertexDataPageCount traversals model.traversal_response }
+                             }
+                            , vertexDataPost
+                                (buildVertexDataRequest (List.concatMap (\trv -> trv.dst_ids) traversals))
+                                VertexDataPostReceived
+                            )
+
+                Nothing ->
+                     ( { model | state = DataIntegrityFailure}, Cmd.none )
+
 
         Err error ->
             ( { model | state = RequestFailure error }, Cmd.none )
@@ -640,7 +725,7 @@ type alias VertexNamePrefixResponse =
 type alias VertexNamePrefixInnerResponse =
     { prefix : DynamoValue
     , prefix_size : DynamoValue
-    , vertices : DynamoVertexDataInner
+    , vertices : DynamoVertexDataItems
     }
 
 
@@ -654,12 +739,12 @@ type alias DynamoVertexData =
     }
 
 
-type alias DynamoVertexDataInnerInner =
-    { items : DynamoVertexData }
+type alias DynamoVertexDataItems =
+    { items : List DynamoVertexDataItem }
 
 
-type alias DynamoVertexDataInner =
-    { item : List DynamoVertexDataInnerInner }
+type alias DynamoVertexDataItem =
+    { item : DynamoVertexData }
 
 
 vertexNamePrefixGet : String -> (Result Http.Error VertexNamePrefixResponse -> Msg) -> Cmd Msg
@@ -683,14 +768,120 @@ vertexNamePrefixInnerResponseDecoder =
         (Decode.field "vertices" dynamoVertexDataInnerDecoder)
 
 
-dynamoVertexDataInnerDecoder : Decode.Decoder DynamoVertexDataInner
+dynamoVertexDataInnerDecoder : Decode.Decoder DynamoVertexDataItems
 dynamoVertexDataInnerDecoder =
-    Decode.map DynamoVertexDataInner (Decode.field "L" (Decode.list dynamoVertexDataInnerInnerDecoder))
+    Decode.map DynamoVertexDataItems (Decode.field "L" (Decode.list dynamoVertexDataInnerInnerDecoder))
 
 
-dynamoVertexDataInnerInnerDecoder : Decode.Decoder DynamoVertexDataInnerInner
+dynamoVertexDataInnerInnerDecoder : Decode.Decoder DynamoVertexDataItem
 dynamoVertexDataInnerInnerDecoder =
-    Decode.map DynamoVertexDataInnerInner (Decode.field "M" vertexDataInnerResponseDecoder)
+    Decode.map DynamoVertexDataItem (Decode.field "M" vertexDataInnerResponseDecoder)
+
+
+
+
+
+
+
+
+type alias PageCountRequest =
+    { request_items : PageCountInnerRequest }
+
+
+type alias PageCountInnerRequest =
+    { poli_traversals_page_count : PageCountInnerRequestKeys }
+
+
+type alias PageCountInnerRequestKeys =
+    { keys : List PageCountInnerRequestKey }
+
+
+type alias PageCountInnerRequestKey =
+    { vertex_id : DynamoValue }
+
+
+pageCountPost : PageCountRequest -> Cmd Msg
+pageCountPost request =
+    Http.post
+        { url = graphDataURL
+        , body = Http.jsonBody (pageCountRequestEncoder request)
+        , expect = Http.expectJson PageCountPostReceived pageCountResponseDecoder
+        }
+
+
+
+buildPageCountRequest : List String -> PageCountRequest
+buildPageCountRequest vertexIds =
+    PageCountRequest
+        (PageCountInnerRequest
+            (PageCountInnerRequestKeys (List.map (\vertexId -> PageCountInnerRequestKey (DynamoValue vertexId)) vertexIds))
+        )
+
+
+pageCountRequestEncoder : PageCountRequest -> Encode.Value
+pageCountRequestEncoder pageCountRequest =
+    Encode.object
+        [ ( "RequestItems", pageCountInnerRequestEncoder pageCountRequest.request_items ) ]
+
+
+pageCountInnerRequestEncoder : PageCountInnerRequest -> Encode.Value
+pageCountInnerRequestEncoder pageCountInnerRequest =
+    Encode.object
+        [ ( "PoliTraversalsPageCount", pageCountInnerRequestKeysEncoder pageCountInnerRequest.poli_traversals_page_count ) ]
+
+
+pageCountInnerRequestKeysEncoder : PageCountInnerRequestKeys -> Encode.Value
+pageCountInnerRequestKeysEncoder pageCountInnerRequestKeys =
+    Encode.object
+        [ ( "Keys", Encode.list pageCountInnerRequestKeyEncoder pageCountInnerRequestKeys.keys ) ]
+
+
+pageCountInnerRequestKeyEncoder : PageCountInnerRequestKey -> Encode.Value
+pageCountInnerRequestKeyEncoder pageCountInnerRequestKey =
+    Encode.object [ ( "vertex_id", dynamoNumberValueEncoder pageCountInnerRequestKey.vertex_id ) ]
+
+
+type alias PageCountResponse =
+    { responses : PoliTraversalsPageCountTable }
+
+
+type alias PoliTraversalsPageCountTable =
+    { items : List DynamoPageCount }
+
+
+type alias DynamoPageCount =
+    { vertex_id : DynamoValue
+    , page_count : DynamoValue
+    }
+
+
+pageCountResponseDecoder : Decode.Decoder PageCountResponse
+pageCountResponseDecoder =
+    Decode.map PageCountResponse (Decode.field "Responses" poliTraversalsPageCountTableDecoder)
+
+
+poliTraversalsPageCountTableDecoder : Decode.Decoder PoliTraversalsPageCountTable
+poliTraversalsPageCountTableDecoder =
+    Decode.map PoliTraversalsPageCountTable
+        (Decode.field "PoliTraversalsPageCount" (Decode.list pageCountInnerResponseDecoder))
+
+
+pageCountInnerResponseDecoder : Decode.Decoder DynamoPageCount
+pageCountInnerResponseDecoder =
+    Decode.map2 DynamoPageCount
+        (Decode.field "vertex_id" dynamoNumberValueDecoder)
+        (Decode.field "page_count" dynamoNumberValueDecoder)
+
+
+
+
+
+
+
+
+
+
+
 
 
 type alias VertexDataRequest =
@@ -1076,6 +1267,9 @@ elementView model =
 
         RequestFailure error ->
             viewRequestFailure error
+
+        DataIntegrityFailure ->
+            Element.text "Data Integrity Failure"
 
 
 viewSearchConfirmed : Model -> Element Msg
