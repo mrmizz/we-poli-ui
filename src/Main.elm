@@ -1707,11 +1707,8 @@ almostFromVertexDataToRow : VertexData -> List (Element Msg) -> Element Msg
 almostFromVertexDataToRow vertex moreElements =
     Element.row [ Element.spacing 10 ]
         (moreElements
-            ++ [ uidColumn vertex
-               , isCommitteeColumn vertex
-               , nameColumn vertex
-               , citiesColumn vertex
-               , statesColumn vertex
+            ++ [ isCommitteeAndStateColumn vertex
+               , nameAndCitiesColumn vertex
                ]
         )
 
@@ -1723,14 +1720,6 @@ columnStyle =
     , Border.innerGlow (Element.rgb255 20 50 100) 5
     , Element.padding 5
     ]
-
-
-uidColumn : VertexData -> Element Msg
-uidColumn vertex =
-    Element.column columnStyle
-        [ Element.text "uid:"
-        , Element.text vertex.uid
-        ]
 
 
 isCommitteeColumn : VertexData -> Element Msg
@@ -1772,12 +1761,26 @@ statesColumn vertex =
         ]
 
 
+isCommitteeAndStateColumn : VertexData -> Element Msg
+isCommitteeAndStateColumn vertex =
+    Element.column []
+        [ isCommitteeColumn vertex
+        , statesColumn vertex
+        ]
+
+
+nameAndCitiesColumn : VertexData -> Element Msg
+nameAndCitiesColumn vertex =
+    Element.column []
+        [ nameColumn vertex
+        , citiesColumn vertex
+        ]
+
+
 edgeColumn : EdgeData -> Element Msg
 edgeColumn edge =
     Element.column columnStyle
-        [ Element.text ("src_id: " ++ edge.src_id)
-        , Element.text ("dst_id: " ++ edge.dst_id)
-        , Element.text ("transactions count: " ++ edge.num_transactions)
+        [ Element.text ("transactions count: " ++ edge.num_transactions)
         , Element.text ("total spend: " ++ edge.total_spend)
         , Element.text ("avg spend: " ++ edge.avg_spend)
         , Element.text ("max spend: " ++ edge.max_spend)
