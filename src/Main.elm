@@ -1555,7 +1555,6 @@ dropdownStyle : List (Element.Attribute Msg)
 dropdownStyle =
     [ Element.width (Element.fillPortion 10)
     , Element.height Element.fill
-    , Element.scrollbarX
     , Border.glow (Element.rgb255 210 210 210) 1.5
     , Background.color (Element.rgb255 119 136 153)
     ]
