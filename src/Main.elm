@@ -286,12 +286,22 @@ updateWithDirectionOption : Model -> ( Model, Cmd Msg )
 updateWithDirectionOption model =
     case model.direction_selected of
         In ->
-            ( { model | direction_selected = Out, vertices_selected = [], vertex_name_search_response = [], vertex_name_search = "" }
+            ( { model
+                | direction_selected = Out
+                , vertices_selected = []
+                , vertex_name_search_response = []
+                , vertex_name_search = ""
+              }
             , Cmd.none
             )
 
         Out ->
-            ( { model | direction_selected = In, vertices_selected = [], vertex_name_search_response = [], vertex_name_search = "" }
+            ( { model
+                | direction_selected = In
+                , vertices_selected = []
+                , vertex_name_search_response = []
+                , vertex_name_search = ""
+              }
             , Cmd.none
             )
 
@@ -447,7 +457,11 @@ updateWithPageCountRequest model =
 
 updateWithChildPageCountRequest : Model -> VertexData -> ( Model, Cmd Msg )
 updateWithChildPageCountRequest model vertexData =
-    ( { model | state = Loading, vertices_selected = [ vertexData ], direction_selected = switchDirection model.direction_selected }
+    ( { model
+        | state = Loading
+        , vertices_selected = [ vertexData ]
+        , direction_selected = switchDirection model.direction_selected
+      }
     , pageCountPost (buildPageCountRequest [ getVertexId vertexData ])
     )
 
@@ -659,7 +673,11 @@ updateWithTraversalResponse model result =
                         head :: tail ->
                             ( { model
                                 | traversal_response = incrementedTotalTraversals
-                                , page_count = Just { pageCount | traversals = TraversalsPageCount (pageCount.traversals.made ++ [ head ]) tail }
+                                , page_count =
+                                    Just
+                                        { pageCount
+                                            | traversals = TraversalsPageCount (pageCount.traversals.made ++ [ head ]) tail
+                                        }
                               }
                             , traversalPost
                                 (buildTraversalRequest [ head ])
@@ -669,7 +687,11 @@ updateWithTraversalResponse model result =
                         [] ->
                             ( { model
                                 | traversal_response = incrementedTotalTraversals
-                                , page_count = Just { pageCount | vertex_data = VertexDataPageCount traversals model.traversal_response }
+                                , page_count =
+                                    Just
+                                        { pageCount
+                                            | vertex_data = VertexDataPageCount traversals model.traversal_response
+                                        }
                               }
                             , vertexDataPost
                                 (buildVertexDataRequest (List.concatMap (\trv -> trv.dst_ids) traversals))
