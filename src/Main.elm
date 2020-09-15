@@ -330,6 +330,9 @@ update msg model =
         VertexDataPostReceived result ->
             updateWithVertexDataResponse model result
 
+        EdgeDataPostReceived result ->
+            updateWithEdgeDataResponse model result
+
         ClearSearch ->
             ( initialModel, Cmd.none )
 
@@ -350,9 +353,6 @@ update msg model =
 
         DeleteVertexSelection vertex ->
             ( { model | vertices_selected = updateVertexDeleted vertex model.vertices_selected }, Cmd.none )
-
-        EdgeDataPostReceived result ->
-            updateWithEdgeDataResponse model result
 
 
 cleanVertexNameInput : String -> Model -> String
@@ -762,7 +762,42 @@ updateWithEdgeDataResponse : Model -> Result Http.Error EdgeDataResponse -> ( Mo
 updateWithEdgeDataResponse model result =
     case result of
         Ok response ->
-            ( { model | state = VertexRequestsSuccess, edge_data_response = unpackEdgeDataResponse response }, Cmd.none )
+            let
+                edges : List EdgeData
+                edges =
+                    unpackEdgeDataResponse response
+
+                incrementedTotalEdges : List EdgeData
+                incrementedTotalEdges =
+                    model.edge_data_response ++ edges
+            in
+            case model.page_count of
+                Just pageCount ->
+                    case pageCount.edge_data.pending of
+                        head :: tail ->
+                            ( { model
+                                | edge_data_response = incrementedTotalEdges
+                                , page_count =
+                                    Just
+                                        { pageCount
+                                            | edge_data = EdgeDataPageCount (pageCount.edge_data.made ++ [ head ]) tail
+                                        }
+                              }
+                            , edgeDataPost
+                                (buildEdgeDataRequest model.direction_selected [ head ])
+                                EdgeDataPostReceived
+                            )
+
+                        [] ->
+                            ( { model
+                                | edge_data_response = incrementedTotalEdges
+                                , state = VertexRequestsSuccess
+                              }
+                            , Cmd.none
+                            )
+
+                Nothing ->
+                    ( { model | state = DataIntegrityFailure }, Cmd.none )
 
         Err error ->
             ( { model | state = RequestFailure error }, Cmd.none )
@@ -1163,8 +1198,7 @@ buildEdgeDataRequest direction traversals =
     in
     EdgeDataRequest
         (EdgeDataInnerRequest
-            -- TODO: paginate requests
-            (EdgeDataInnerRequestKeys (List.map buildEdgeDataRequestInnerValues (List.take 99 edges)))
+            (EdgeDataInnerRequestKeys (List.map buildEdgeDataRequestInnerValues edges))
         )
 
 
