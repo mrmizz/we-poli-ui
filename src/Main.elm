@@ -86,8 +86,8 @@ type alias VertexDataPageCount =
 
 
 type alias EdgeDataPageCount =
-    { made : List ( String, String )
-    , pending : List ( String, String )
+    { made : List Traversal
+    , pending : List Traversal
     }
 
 
@@ -460,6 +460,11 @@ updateWithChildPageCountRequest model vertexData =
     ( { model
         | state = Loading
         , vertices_selected = [ vertexData ]
+        , traversal_response = []
+        , traversal_data_response = []
+        , agg_traversal_data_response = []
+        , edge_data_response = []
+        , page_count = Nothing
         , direction_selected = switchDirection model.direction_selected
       }
     , pageCountPost (buildPageCountRequest [ getVertexId vertexData ])
@@ -508,26 +513,6 @@ unpackPageCountResponse pageCountResponse =
         (TraversalsPageCount [] (List.concatMap unpackDynamoPageCount pageCountResponse.responses.items))
         (VertexDataPageCount [] [])
         (EdgeDataPageCount [] [])
-
-
-updateWithVertexDataResponse : Model -> Result Http.Error VertexDataResponse -> ( Model, Cmd Msg )
-updateWithVertexDataResponse model result =
-    case result of
-        Ok response ->
-            let
-                unpacked : List VertexData
-                unpacked =
-                    unpackVertexDataResponse response
-            in
-            ( { model
-                | traversal_data_response = unpacked
-                , agg_traversal_data_response = aggregateVertices model unpacked
-              }
-            , edgeDataPost (buildEdgeDataRequest model.direction_selected model.traversal_response) EdgeDataPostReceived
-            )
-
-        Err error ->
-            ( { model | state = RequestFailure error }, Cmd.none )
 
 
 aggregateVertices : Model -> List VertexData -> List VertexData
@@ -697,6 +682,62 @@ updateWithTraversalResponse model result =
                                 (buildVertexDataRequest (List.concatMap (\trv -> trv.dst_ids) traversals))
                                 VertexDataPostReceived
                             )
+
+                Nothing ->
+                    ( { model | state = DataIntegrityFailure }, Cmd.none )
+
+        Err error ->
+            ( { model | state = RequestFailure error }, Cmd.none )
+
+
+updateWithVertexDataResponse : Model -> Result Http.Error VertexDataResponse -> ( Model, Cmd Msg )
+updateWithVertexDataResponse model result =
+    case result of
+        Ok response ->
+            let
+                vertices : List VertexData
+                vertices =
+                    unpackVertexDataResponse response
+
+                incrementedTotalVertices : List VertexData
+                incrementedTotalVertices =
+                    model.traversal_data_response ++ vertices
+            in
+            case model.page_count of
+                Just pageCount ->
+                    case pageCount.vertex_data.pending of
+                        head :: tail ->
+                            ( { model
+                                | traversal_data_response = incrementedTotalVertices
+                                , page_count =
+                                    Just
+                                        { pageCount
+                                            | vertex_data = VertexDataPageCount (pageCount.vertex_data.made ++ [ head ]) tail
+                                        }
+                              }
+                            , vertexDataPost
+                                (buildVertexDataRequest head.dst_ids)
+                                VertexDataPostReceived
+                            )
+
+                        [] ->
+                            case model.traversal_response of
+                                head :: tail ->
+                                    ( { model
+                                        | traversal_data_response = incrementedTotalVertices
+                                        , page_count =
+                                            Just
+                                                { pageCount
+                                                    | edge_data = EdgeDataPageCount [ head ] tail
+                                                }
+                                      }
+                                    , edgeDataPost
+                                        (buildEdgeDataRequest model.direction_selected [ head ])
+                                        EdgeDataPostReceived
+                                    )
+
+                                [] ->
+                                    ( { model | state = DataIntegrityFailure }, Cmd.none )
 
                 Nothing ->
                     ( { model | state = DataIntegrityFailure }, Cmd.none )
