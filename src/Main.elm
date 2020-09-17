@@ -518,7 +518,7 @@ unpackPageCountResponse pageCountResponse =
 
 
 
--- TODO: groupBy src_id
+-- TODO: tests or view intersectiong
 
 
 aggregateZipped : Model -> List ( EdgeData, VertexData )
@@ -533,18 +533,18 @@ aggregateZipped model =
                     let
                         headSet : Set String
                         headSet =
-                            Set.fromList head.dst_ids
+                            Set.singleton head.src_id
 
                         tailSets : List (Set String)
                         tailSets =
-                            List.map (\trv -> Set.fromList trv.dst_ids) tail
+                            List.map (\trv -> Set.singleton trv.src_id) tail
 
                         intersection : Set String
                         intersection =
                             List.foldl Set.intersect headSet tailSets
                     in
                     List.filter
-                        (\edgeAndVertex -> Set.member (getVertexId (Tuple.second edgeAndVertex)) intersection)
+                        (\edgeAndVertex -> Set.member (getSrcId (Tuple.first edgeAndVertex)) intersection)
                         model.zipped
 
                 [] ->
@@ -553,6 +553,9 @@ aggregateZipped model =
         Or ->
             model.zipped
 
+getSrcId: EdgeData -> String
+getSrcId edge =
+    edge.src_id
 
 
 -- TODO: edgeData analytics
