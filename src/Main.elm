@@ -56,8 +56,9 @@ type alias Model =
     , direction_selected : Direction
     , traversal_response : List Traversal
     , traversal_data_response : List VertexData
-    , agg_traversal_data_response : List VertexData
     , edge_data_response : List EdgeData
+    , zipped : List ( EdgeData, VertexData )
+    , agg_zipped : List ( EdgeData, VertexData ) -- TODO: renamed to agg_zipped
     , page_count : Maybe PageCount
     }
 
@@ -219,8 +220,9 @@ initialModel =
     , direction_selected = Out
     , traversal_response = []
     , traversal_data_response = []
-    , agg_traversal_data_response = []
+    , agg_zipped = []
     , edge_data_response = []
+    , zipped = []
     , page_count = Nothing
     }
 
@@ -462,7 +464,7 @@ updateWithChildPageCountRequest model vertexData =
         , vertices_selected = [ vertexData ]
         , traversal_response = []
         , traversal_data_response = []
-        , agg_traversal_data_response = []
+        , agg_zipped = []
         , edge_data_response = []
         , page_count = Nothing
         , direction_selected = switchDirection model.direction_selected
@@ -515,13 +517,17 @@ unpackPageCountResponse pageCountResponse =
         (EdgeDataPageCount [] [])
 
 
-aggregateVertices : Model -> List VertexData -> List VertexData
-aggregateVertices model vertices =
+
+-- TODO: groupBy src_id
+
+
+aggregateZipped : Model -> List ( EdgeData, VertexData )
+aggregateZipped model =
     case model.aggregation_selected of
         And ->
             case model.traversal_response of
                 _ :: [] ->
-                    vertices
+                    model.zipped
 
                 head :: tail ->
                     let
@@ -537,13 +543,15 @@ aggregateVertices model vertices =
                         intersection =
                             List.foldl Set.intersect headSet tailSets
                     in
-                    List.filter (\vertex -> Set.member (getVertexId vertex) intersection) vertices
+                    List.filter
+                        (\edgeAndVertex -> Set.member (getVertexId (Tuple.second edgeAndVertex)) intersection)
+                        model.zipped
 
                 [] ->
-                    vertices
+                    model.zipped
 
         Or ->
-            vertices
+            model.zipped
 
 
 
@@ -622,21 +630,12 @@ unpackVertexDataResponse vertexDataResponse =
 
 updateWithAggOption : Model -> ( Model, Cmd Msg )
 updateWithAggOption model =
-    let
-        semiUpdate : Model
-        semiUpdate =
-            case model.aggregation_selected of
-                And ->
-                    { model | aggregation_selected = Or }
+    case model.aggregation_selected of
+        And ->
+            ( { model | aggregation_selected = Or }, Cmd.none )
 
-                Or ->
-                    { model | aggregation_selected = And }
-
-        agg : List VertexData
-        agg =
-            aggregateVertices semiUpdate semiUpdate.traversal_data_response
-    in
-    ( { semiUpdate | agg_traversal_data_response = agg }, Cmd.none )
+        Or ->
+            ( { model | aggregation_selected = And }, Cmd.none )
 
 
 updateWithTraversalResponse : Model -> Result Http.Error TraversalResponse -> ( Model, Cmd Msg )
@@ -770,14 +769,17 @@ updateWithEdgeDataResponse model result =
                 incrementedTotalEdges : List EdgeData
                 incrementedTotalEdges =
                     model.edge_data_response ++ edges
+
+                semi : Model
+                semi =
+                    { model | edge_data_response = incrementedTotalEdges }
             in
             case model.page_count of
                 Just pageCount ->
                     case pageCount.edge_data.pending of
                         head :: tail ->
-                            ( { model
-                                | edge_data_response = incrementedTotalEdges
-                                , page_count =
+                            ( { semi
+                                | page_count =
                                     Just
                                         { pageCount
                                             | edge_data = EdgeDataPageCount (pageCount.edge_data.made ++ [ head ]) tail
@@ -789,9 +791,8 @@ updateWithEdgeDataResponse model result =
                             )
 
                         [] ->
-                            ( { model
-                                | edge_data_response = incrementedTotalEdges
-                                , state = VertexRequestsSuccess
+                            ( { semi
+                                | state = VertexRequestsSuccess
                               }
                             , Cmd.none
                             )
@@ -1350,7 +1351,7 @@ elementView model =
             viewLoading
 
         VertexRequestsSuccess ->
-            viewRequestSuccess model.direction_selected model
+            viewRequestSuccess model.direction_selected { model | zipped = zipVerticesAndEdges model }
 
         RequestFailure error ->
             viewRequestFailure error
@@ -1677,7 +1678,7 @@ viewDirectedResponseWithText model textToDisplay =
             ]
         , Element.column []
             [ Element.text textToDisplay
-            , fromVerticesAndEdgesToTableWithSearchButton (zipVerticesAndEdges model)
+            , fromVerticesAndEdgesToTableWithSearchButton (aggregateZipped model)
             ]
         ]
 
