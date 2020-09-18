@@ -18,6 +18,7 @@ import Models.EdgeData exposing (EdgeData)
 import Models.PageCount exposing (..)
 import Models.Traversal exposing (Traversal, TraversalPage)
 import Models.VertexData exposing (VertexData)
+import Models.Zipped exposing (Zipped)
 import Set exposing (Set)
 
 
@@ -63,8 +64,7 @@ type alias Model =
     , traversal_response : List Traversal
     , traversal_data_response : List VertexData
     , edge_data_response : List EdgeData
-    , zipped : List ( EdgeData, VertexData )
-    , agg_zipped : List ( EdgeData, VertexData ) -- TODO: renamed to agg_zipped
+    , zipped : List Zipped
     , page_count : Maybe PageCount
     }
 
@@ -174,7 +174,6 @@ initialModel =
     , direction_selected = Out
     , traversal_response = []
     , traversal_data_response = []
-    , agg_zipped = []
     , edge_data_response = []
     , zipped = []
     , page_count = Nothing
@@ -408,7 +407,6 @@ updateWithChildPageCountRequest model vertexData =
         , vertices_selected = [ vertexData ]
         , traversal_response = []
         , traversal_data_response = []
-        , agg_zipped = []
         , edge_data_response = []
         , page_count = Nothing
         , direction_selected = switchDirection model.direction_selected
@@ -465,7 +463,7 @@ unpackPageCountResponse pageCountResponse =
 -- TODO: tests or view intersectiong
 
 
-aggregateZipped : Model -> List ( EdgeData, VertexData )
+aggregateZipped : Model -> List Zipped
 aggregateZipped model =
     case model.aggregation_selected of
         And ->
@@ -514,7 +512,7 @@ type alias VertexDataWithEdgeIds =
     }
 
 
-zipVerticesAndEdges : Model -> List ( EdgeData, VertexData )
+zipVerticesAndEdges : Model -> List Zipped
 zipVerticesAndEdges model =
     let
         zipClause : Traversal -> VertexData -> Maybe VertexDataWithEdgeIds
@@ -1753,10 +1751,10 @@ fromVerticesToTableWithDeleteVertexButton vertices =
     almostFromVerticesToTable vertices DeleteVertexSelection "delete"
 
 
-fromVerticesAndEdgesToTableWithSearchButton : List ( EdgeData, VertexData ) -> Element Msg
+fromVerticesAndEdgesToTableWithSearchButton : List Zipped -> Element Msg
 fromVerticesAndEdgesToTableWithSearchButton verticesAndEdges =
     let
-        row : ( EdgeData, VertexData ) -> Element Msg
+        row : Zipped -> Element Msg
         row tuple =
             almostFromVertexDataToRow
                 (Tuple.second tuple)
