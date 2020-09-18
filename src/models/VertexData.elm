@@ -1,5 +1,6 @@
 module Models.VertexData exposing (VertexData)
 
+
 type alias VertexData =
     { uid : String
     , name : String

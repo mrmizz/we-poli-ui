@@ -497,9 +497,11 @@ aggregateZipped model =
         Or ->
             model.zipped
 
-getSrcId: EdgeData -> String
+
+getSrcId : EdgeData -> String
 getSrcId edge =
     edge.src_id
+
 
 
 -- TODO: edgeData analytics

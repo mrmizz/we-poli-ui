@@ -1,4 +1,4 @@
-module Models.PageCount exposing (PageCount, TraversalsPageCount, VertexDataPageCount, EdgeDataPageCount)
+module Models.PageCount exposing (EdgeDataPageCount, PageCount, TraversalsPageCount, VertexDataPageCount)
 
 import Models.Traversal exposing (Traversal, TraversalPage)
 

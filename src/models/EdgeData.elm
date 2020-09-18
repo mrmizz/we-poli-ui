@@ -1,5 +1,6 @@
 module Models.EdgeData exposing (EdgeData)
 
+
 type alias EdgeData =
     { src_id : String
     , dst_id : String
