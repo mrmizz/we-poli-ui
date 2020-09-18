@@ -12,6 +12,12 @@ import Http
 import Json.Decode as Decode
 import Json.Encode as Encode
 import List
+import Models.Aggregation exposing (Aggregation(..))
+import Models.Direction exposing (Direction(..))
+import Models.EdgeData exposing (EdgeData)
+import Models.PageCount exposing (..)
+import Models.Traversal exposing (Traversal, TraversalPage)
+import Models.VertexData exposing (VertexData)
 import Set exposing (Set)
 
 
@@ -65,58 +71,6 @@ type alias Model =
 
 
 -- TODO: evaluate Edge Triplet request instead Traversal, Vertex, then Edge Requests
-
-
-type alias PageCount =
-    { traversals : TraversalsPageCount
-    , vertex_data : VertexDataPageCount
-    , edge_data : EdgeDataPageCount
-    }
-
-
-type alias TraversalsPageCount =
-    { made : List TraversalPage
-    , pending : List TraversalPage
-    }
-
-
-type alias VertexDataPageCount =
-    { made : List Traversal
-    , pending : List Traversal
-    }
-
-
-type alias EdgeDataPageCount =
-    { made : List Traversal
-    , pending : List Traversal
-    }
-
-
-type alias Traversal =
-    { src_id : String
-    , dst_ids : List String
-    }
-
-
-type alias EdgeData =
-    { src_id : String
-    , dst_id : String
-    , num_transactions : String
-    , total_spend : String
-    , avg_spend : String
-    , max_spend : String
-    , min_spend : String
-    }
-
-
-type alias VertexData =
-    { uid : String
-    , name : String
-    , is_committee : Bool
-    , cities : List String
-    , streets : List String
-    , states : List String
-    }
 
 
 type alias VertexPresence =
@@ -252,16 +206,6 @@ type Msg
     | VertexNamePrefixGetReceived (Result Http.Error VertexNamePrefixResponse)
     | TraversalPostReceived (Result Http.Error TraversalResponse)
     | PageCountPostReceived (Result Http.Error PageCountResponse)
-
-
-type Direction
-    = In
-    | Out
-
-
-type Aggregation
-    = And
-    | Or
 
 
 printAgg : Aggregation -> String
@@ -1081,12 +1025,6 @@ traversalPost request toMsg =
         , body = Http.jsonBody (traversalRequestEncoder request)
         , expect = Http.expectJson toMsg traversalResponseDecoder
         }
-
-
-type alias TraversalPage =
-    { vertex_id : String
-    , page_number : String
-    }
 
 
 buildTraversalRequest : List TraversalPage -> TraversalRequest
