@@ -459,52 +459,6 @@ unpackPageCountResponse pageCountResponse =
         (EdgeDataPageCount [] [])
 
 
-
--- TODO: tests or view intersectiong
-
-
-aggregateZipped : Model -> List Zipped
-aggregateZipped model =
-    case model.aggregation_selected of
-        And ->
-            case model.traversal_response of
-                _ :: [] ->
-                    model.zipped
-
-                head :: tail ->
-                    let
-                        headSet : Set String
-                        headSet =
-                            Set.singleton head.src_id
-
-                        tailSets : List (Set String)
-                        tailSets =
-                            List.map (\trv -> Set.singleton trv.src_id) tail
-
-                        intersection : Set String
-                        intersection =
-                            List.foldl Set.intersect headSet tailSets
-                    in
-                    List.filter
-                        (\edgeAndVertex -> Set.member (getSrcId (Tuple.first edgeAndVertex)) intersection)
-                        model.zipped
-
-                [] ->
-                    model.zipped
-
-        Or ->
-            model.zipped
-
-
-getSrcId : EdgeData -> String
-getSrcId edge =
-    edge.src_id
-
-
-
--- TODO: edgeData analytics
-
-
 type alias VertexDataWithEdgeIds =
     { src_id : String
     , dst_id : String
@@ -1619,7 +1573,8 @@ viewDirectedResponseWithText model textToDisplay =
             ]
         , Element.column []
             [ Element.text textToDisplay
-            , fromVerticesAndEdgesToTableWithSearchButton (aggregateZipped model)
+            , fromVerticesAndEdgesToTableWithSearchButton
+                (aggregateZipped model.aggregation_selected model.traversal_response model.zipped)
             ]
         ]
 
