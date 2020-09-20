@@ -1,4 +1,5 @@
 module Models.Zipped exposing (Zipped, aggregateZipped)
+
 import Models.Aggregation exposing (Aggregation(..))
 import Models.EdgeData exposing (EdgeData)
 import Models.Traversal exposing (Traversal)
