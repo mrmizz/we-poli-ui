@@ -18,7 +18,7 @@ import Models.EdgeData exposing (EdgeData)
 import Models.PageCount exposing (..)
 import Models.Traversal exposing (Traversal, TraversalPage)
 import Models.VertexData exposing (VertexData)
-import Models.Zipped exposing (Zipped)
+import Models.Zipped exposing (Zipped, aggregateZipped)
 import Set exposing (Set)
 
 

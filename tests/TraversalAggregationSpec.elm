@@ -81,6 +81,8 @@ suite =
                         actual
                         [ ( edge2, vendor2 )
                         , ( edge3, vendor3 )
+                        , ( edge4, vendor2 )
+                        , ( edge5, vendor3 )
                         ]
             , test "with two or more traversals" <|
                 \_ ->
@@ -167,12 +169,12 @@ edge1 =
 
 edge2 : EdgeData
 edge2 =
-    { edge1 | dst_id = "2v" }
+    { edge1 | dst_id = "2V" }
 
 
 edge3 : EdgeData
 edge3 =
-    { edge1 | dst_id = "3v" }
+    { edge1 | dst_id = "3V" }
 
 
 edge4 : EdgeData
@@ -189,12 +191,12 @@ edge4 =
 
 edge5 : EdgeData
 edge5 =
-    { edge2 | dst_id = "3v" }
+    { edge2 | dst_id = "3V" }
 
 
 edge6 : EdgeData
 edge6 =
-    { edge2 | dst_id = "4v" }
+    { edge2 | dst_id = "4V" }
 
 
 edge7 : EdgeData
@@ -211,12 +213,12 @@ edge7 =
 
 edge8 : EdgeData
 edge8 =
-    { edge3 | dst_id = "5v" }
+    { edge3 | dst_id = "5V" }
 
 
 edge9 : EdgeData
 edge9 =
-    { edge3 | dst_id = "6v" }
+    { edge3 | dst_id = "6V" }
 
 
 vendor1 : VertexData

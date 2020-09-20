@@ -23,18 +23,18 @@ aggregateZipped agg traversals zipped =
                     let
                         headSet : Set String
                         headSet =
-                            Set.singleton head.src_id
+                            Set.fromList head.dst_ids
 
                         tailSets : List (Set String)
                         tailSets =
-                            List.map (\trv -> Set.singleton trv.src_id) tail
+                            List.map (\trv -> Set.fromList trv.dst_ids) tail
 
                         intersection : Set String
                         intersection =
                             List.foldl Set.intersect headSet tailSets
                     in
                     List.filter
-                        (\edgeAndVertex -> Set.member ((\e -> e.src_id) (Tuple.first edgeAndVertex)) intersection)
+                        (\edgeAndVertex -> Set.member ((\v -> v.uid) (Tuple.second edgeAndVertex)) intersection)
                         zipped
 
                 [] ->
