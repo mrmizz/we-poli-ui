@@ -26,7 +26,6 @@ suite =
                     Expect.equal
                         actual
                         zipped1
-
             , test "with two traversals" <|
                 \_ ->
                     let
@@ -68,7 +67,6 @@ suite =
                     Expect.equal
                         actual
                         zipped1
-
             , test "with two traversals" <|
                 \_ ->
                     let
@@ -81,8 +79,8 @@ suite =
                     in
                     Expect.equal
                         actual
-                        [ (edge2, vendor2)
-                        , (edge3, vendor3)
+                        [ ( edge2, vendor2 )
+                        , ( edge3, vendor3 )
                         ]
             , test "with two or more traversals" <|
                 \_ ->
@@ -100,14 +98,16 @@ suite =
             ]
         ]
 
-zipped1: List Zipped
+
+zipped1 : List Zipped
 zipped1 =
     [ ( edge1, vendor1 )
     , ( edge2, vendor2 )
     , ( edge3, vendor3 )
     ]
 
-zipped2: List Zipped
+
+zipped2 : List Zipped
 zipped2 =
     [ ( edge1, vendor1 )
     , ( edge2, vendor2 )
@@ -117,7 +117,8 @@ zipped2 =
     , ( edge6, vendor4 )
     ]
 
-zipped3: List Zipped
+
+zipped3 : List Zipped
 zipped3 =
     [ ( edge1, vendor1 )
     , ( edge2, vendor2 )
@@ -125,9 +126,9 @@ zipped3 =
     , ( edge4, vendor2 )
     , ( edge5, vendor3 )
     , ( edge6, vendor4 )
-    , ( edge7, vendor4)
-    , ( edge8, vendor5)
-    , ( edge9, vendor6)
+    , ( edge7, vendor4 )
+    , ( edge8, vendor5 )
+    , ( edge9, vendor6 )
     ]
 
 
@@ -173,6 +174,7 @@ edge3 : EdgeData
 edge3 =
     { edge1 | dst_id = "3v" }
 
+
 edge4 : EdgeData
 edge4 =
     EdgeData
@@ -189,9 +191,11 @@ edge5 : EdgeData
 edge5 =
     { edge2 | dst_id = "3v" }
 
+
 edge6 : EdgeData
 edge6 =
     { edge2 | dst_id = "4v" }
+
 
 edge7 : EdgeData
 edge7 =
@@ -204,15 +208,15 @@ edge7 =
         "$70"
         "$70"
 
+
 edge8 : EdgeData
 edge8 =
     { edge3 | dst_id = "5v" }
 
+
 edge9 : EdgeData
 edge9 =
     { edge3 | dst_id = "6v" }
-
-
 
 
 vendor1 : VertexData
