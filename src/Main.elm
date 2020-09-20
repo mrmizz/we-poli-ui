@@ -1579,10 +1579,6 @@ viewDirectedResponseWithText model textToDisplay =
         ]
 
 
-
--- TODO: more fields
-
-
 fromVerticesToTable : List VertexData -> Element Msg
 fromVerticesToTable vertices =
     Element.column tableStyle
@@ -1704,6 +1700,10 @@ fromVerticesToTableWithSelectVertexButton vertices =
 fromVerticesToTableWithDeleteVertexButton : List VertexData -> Element Msg
 fromVerticesToTableWithDeleteVertexButton vertices =
     almostFromVerticesToTable vertices DeleteVertexSelection "delete"
+
+
+
+-- TODO: view src, dst ids
 
 
 fromVerticesAndEdgesToTableWithSearchButton : List Zipped -> Element Msg
