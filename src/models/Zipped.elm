@@ -12,10 +12,6 @@ type alias Zipped =
     ( EdgeData, VertexData )
 
 
-
---TODO: groupBy src_id traversals
-
-
 aggregateZipped : Aggregation -> List Traversal -> List Zipped -> List Zipped
 aggregateZipped agg traversals zipped =
     case agg of
