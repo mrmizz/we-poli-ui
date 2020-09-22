@@ -1,16 +1,16 @@
-module TraversalAggregationSpec exposing (suite)
+module TraversalAggregationSpec exposing (suite1, suite2)
 
 import Expect exposing (Expectation)
 import Models.Aggregation exposing (Aggregation(..))
 import Models.EdgeData exposing (EdgeData)
 import Models.Traversal exposing (Traversal)
 import Models.VertexData exposing (VertexData)
-import Models.Zipped exposing (Zipped, aggregateZipped)
+import Models.Zipped exposing (Zipped, aggregateZipped, groupBySrcId)
 import Test exposing (..)
 
 
-suite : Test
-suite =
+suite1 : Test
+suite1 =
     describe "Traversal Aggregations"
         [ describe "should aggregate with OR logic"
             [ test "with one traversal" <|
@@ -52,6 +52,19 @@ suite =
                     Expect.equal
                         actual
                         zipped3
+            , test "with two or more traversals from the same src_id" <|
+                \_ ->
+                    let
+                        actual : List Zipped
+                        actual =
+                            aggregateZipped
+                                Or
+                                [ traversal3, traversal4 ]
+                                zipped4
+                    in
+                    Expect.equal
+                        actual
+                        zipped4
             ]
         , describe "should aggregate with AND logic"
             [ test "with one traversal" <|
@@ -97,7 +110,36 @@ suite =
                     Expect.equal
                         actual
                         []
+            , test "with two or more traversals from the same src_id" <|
+                \_ ->
+                    let
+                        actual : List Zipped
+                        actual =
+                            aggregateZipped
+                                And
+                                [ traversal3, traversal4 ]
+                                zipped4
+                    in
+                    Expect.equal
+                        actual
+                        zipped4
             ]
+        ]
+
+
+suite2 : Test
+suite2 =
+    describe "Traversal groupBy src_id"
+        [ test "with multiple traversals from the same src_id" <|
+            \_ ->
+                let
+                    actual : List Traversal
+                    actual =
+                        groupBySrcId [ traversal3, traversal4 ]
+                in
+                Expect.equal
+                    actual
+                    [ Traversal "3C" [ "4V", "5V", "6V", "7V", "8V" ] ]
         ]
 
 
@@ -134,6 +176,16 @@ zipped3 =
     ]
 
 
+zipped4 : List Zipped
+zipped4 =
+    [ ( edge7, vendor4 )
+    , ( edge8, vendor5 )
+    , ( edge9, vendor6 )
+    , ( edge10, vendor7 )
+    , ( edge11, vendor8 )
+    ]
+
+
 traversal1 : Traversal
 traversal1 =
     Traversal
@@ -153,6 +205,13 @@ traversal3 =
     Traversal
         "3C"
         [ "4V", "5V", "6V" ]
+
+
+traversal4 : Traversal
+traversal4 =
+    Traversal
+        "3C"
+        [ "7V", "8V" ]
 
 
 edge1 : EdgeData
@@ -221,6 +280,16 @@ edge9 =
     { edge3 | dst_id = "6V" }
 
 
+edge10 : EdgeData
+edge10 =
+    { edge3 | dst_id = "7V" }
+
+
+edge11 : EdgeData
+edge11 =
+    { edge3 | dst_id = "8V" }
+
+
 vendor1 : VertexData
 vendor1 =
     VertexData
@@ -234,54 +303,34 @@ vendor1 =
 
 vendor2 : VertexData
 vendor2 =
-    VertexData
-        "2V"
-        "Vendor2"
-        True
-        [ "Santa Barbara" ]
-        [ "San Andres" ]
-        [ "CA" ]
+    { vendor1 | uid = "2V" }
 
 
 vendor3 : VertexData
 vendor3 =
-    VertexData
-        "3V"
-        "Vendor3"
-        True
-        [ "Santa Barbara" ]
-        [ "W. Haley" ]
-        [ "CA" ]
+    { vendor1 | uid = "3V" }
 
 
 vendor4 : VertexData
 vendor4 =
-    VertexData
-        "4V"
-        "Vendor4"
-        True
-        [ "Santa Barbara" ]
-        [ "E. Haley" ]
-        [ "CA" ]
+    { vendor1 | uid = "4V" }
 
 
 vendor5 : VertexData
 vendor5 =
-    VertexData
-        "5V"
-        "Vendor5"
-        True
-        [ "Santa Barbara" ]
-        [ "Garden" ]
-        [ "CA" ]
+    { vendor1 | uid = "5V" }
 
 
 vendor6 : VertexData
 vendor6 =
-    VertexData
-        "6V"
-        "Vendor6"
-        True
-        [ "Santa Barbara" ]
-        [ "De La Guerra" ]
-        [ "CA" ]
+    { vendor1 | uid = "6V" }
+
+
+vendor7 : VertexData
+vendor7 =
+    { vendor1 | uid = "7V" }
+
+
+vendor8 : VertexData
+vendor8 =
+    { vendor1 | uid = "8V" }
