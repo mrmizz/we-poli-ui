@@ -2,6 +2,7 @@ module Models.Zipped exposing (Zipped, aggregateZipped, groupBySrcId)
 
 import Dict exposing (Dict)
 import Models.Aggregation exposing (Aggregation(..))
+import Models.Direction exposing (Direction(..))
 import Models.EdgeData exposing (EdgeData)
 import Models.Traversal exposing (Traversal)
 import Models.VertexData exposing (VertexData)
@@ -10,6 +11,71 @@ import Set exposing (Set)
 
 type alias Zipped =
     ( EdgeData, VertexData )
+
+
+type alias VertexDataWithEdgeIds =
+    { src_id : String
+    , dst_id : String
+    , vertex : VertexData
+    }
+
+
+zipVerticesAndEdges : Direction -> List Traversal -> List VertexData -> List EdgeData -> List Zipped
+zipVerticesAndEdges direction traversals vertices edges =
+    let
+        zipClause : Traversal -> VertexData -> Maybe VertexDataWithEdgeIds
+        zipClause traversal vertex =
+            case List.member ((\v -> v.uid) vertex) traversal.dst_ids of
+                True ->
+                    case direction of
+                        In ->
+                            Just (VertexDataWithEdgeIds vertex.uid traversal.src_id vertex)
+
+                        Out ->
+                            Just (VertexDataWithEdgeIds traversal.src_id vertex.uid vertex)
+
+                False ->
+                    Nothing
+
+        verticesWithEdgeIds : List VertexDataWithEdgeIds
+        verticesWithEdgeIds =
+            List.concatMap
+                (\traversal ->
+                    List.filterMap
+                        (\vertexData -> zipClause traversal vertexData)
+                        vertices
+                )
+                traversals
+
+        genericSortClause : ( String, String ) -> ( String, String ) -> Order
+        genericSortClause left right =
+            case Basics.compare (Tuple.first left) (Tuple.first right) of
+                Basics.LT ->
+                    Basics.LT
+
+                Basics.EQ ->
+                    Basics.compare (Tuple.second left) (Tuple.second right)
+
+                Basics.GT ->
+                    Basics.GT
+
+        vertexSortClause : VertexDataWithEdgeIds -> VertexDataWithEdgeIds -> Order
+        vertexSortClause left right =
+            genericSortClause ( left.src_id, left.dst_id ) ( right.src_id, right.dst_id )
+
+        edgeSortClause : EdgeData -> EdgeData -> Order
+        edgeSortClause left right =
+            genericSortClause ( left.src_id, left.dst_id ) ( right.src_id, right.dst_id )
+
+        sortedVertices : List VertexData
+        sortedVertices =
+            List.map (\ve -> ve.vertex) (List.sortWith vertexSortClause verticesWithEdgeIds)
+
+        sortedEdges : List EdgeData
+        sortedEdges =
+            List.sortWith edgeSortClause edges
+    in
+    List.map2 Tuple.pair sortedEdges sortedVertices
 
 
 aggregateZipped : Aggregation -> List Traversal -> List Zipped -> List Zipped

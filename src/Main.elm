@@ -467,71 +467,6 @@ unpackPageCountResponse pageCountResponse =
         (EdgeDataPageCount [] [])
 
 
-type alias VertexDataWithEdgeIds =
-    { src_id : String
-    , dst_id : String
-    , vertex : VertexData
-    }
-
-
-zipVerticesAndEdges : Model -> List Zipped
-zipVerticesAndEdges model =
-    let
-        zipClause : Traversal -> VertexData -> Maybe VertexDataWithEdgeIds
-        zipClause traversal vertex =
-            case List.member (getVertexId vertex) traversal.dst_ids of
-                True ->
-                    case model.direction_selected of
-                        In ->
-                            Just (VertexDataWithEdgeIds vertex.uid traversal.src_id vertex)
-
-                        Out ->
-                            Just (VertexDataWithEdgeIds traversal.src_id vertex.uid vertex)
-
-                False ->
-                    Nothing
-
-        verticesWithEdgeIds : List VertexDataWithEdgeIds
-        verticesWithEdgeIds =
-            List.concatMap
-                (\traversal ->
-                    List.filterMap
-                        (\vertexData -> zipClause traversal vertexData)
-                        model.traversal_data_response
-                )
-                model.traversal_response
-
-        genericSortClause : ( String, String ) -> ( String, String ) -> Order
-        genericSortClause left right =
-            case Basics.compare (Tuple.first left) (Tuple.first right) of
-                Basics.LT ->
-                    Basics.LT
-
-                Basics.EQ ->
-                    Basics.compare (Tuple.second left) (Tuple.second right)
-
-                Basics.GT ->
-                    Basics.GT
-
-        vertexSortClause : VertexDataWithEdgeIds -> VertexDataWithEdgeIds -> Order
-        vertexSortClause left right =
-            genericSortClause ( left.src_id, left.dst_id ) ( right.src_id, right.dst_id )
-
-        edgeSortClause : EdgeData -> EdgeData -> Order
-        edgeSortClause left right =
-            genericSortClause ( left.src_id, left.dst_id ) ( right.src_id, right.dst_id )
-
-        sortedVertices : List VertexData
-        sortedVertices =
-            List.map (\ve -> ve.vertex) (List.sortWith vertexSortClause verticesWithEdgeIds)
-
-        sortedEdges : List EdgeData
-        sortedEdges =
-            List.sortWith edgeSortClause model.edge_data_response
-    in
-    List.map2 Tuple.pair sortedEdges sortedVertices
-
-
 unpackVertexDataResponse : VertexDataResponse -> List VertexData
 unpackVertexDataResponse vertexDataResponse =
     List.map unpackDynamoVertexData vertexDataResponse.responses.items
@@ -1255,7 +1190,16 @@ elementView model =
             viewLoading
 
         VertexRequestsSuccess ->
-            viewRequestSuccess model.direction_selected { model | zipped = zipVerticesAndEdges model }
+            viewRequestSuccess
+                model.direction_selected
+                { model
+                    | zipped =
+                        zipVerticesAndEdges
+                            model.direction_selected
+                            model.traversal_response
+                            model.traversal_data_response
+                            model.edge_data_response
+                }
 
         RequestFailure error ->
             viewRequestFailure error
