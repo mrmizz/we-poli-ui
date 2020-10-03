@@ -1726,10 +1726,6 @@ fromVerticesToTableWithDeleteVertexButton vertices =
     almostFromVerticesToTable vertices DeleteVertexSelection "delete"
 
 
-
--- TODO: view src, dst ids
-
-
 fromVerticesAndEdgesToTableWithSearchButton : List Zipped -> Element Msg
 fromVerticesAndEdgesToTableWithSearchButton verticesAndEdges =
     let
