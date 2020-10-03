@@ -395,7 +395,14 @@ unpackDynamoBool dynamoBool =
 
 updateWithPageCountRequest : Model -> ( Model, Cmd Msg )
 updateWithPageCountRequest model =
-    ( { model | state = Loading }
+    ( { model
+        | state = Loading
+        , traversal_response = []
+        , traversal_data_response = []
+        , edge_data_response = []
+        , zipped = []
+        , page_count = Nothing
+      }
     , pageCountPost (buildPageCountRequest (List.map getVertexId model.vertices_selected))
     )
 
@@ -408,6 +415,7 @@ updateWithChildPageCountRequest model vertexData =
         , traversal_response = []
         , traversal_data_response = []
         , edge_data_response = []
+        , zipped = []
         , page_count = Nothing
         , direction_selected = switchDirection model.direction_selected
       }
