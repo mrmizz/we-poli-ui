@@ -14,7 +14,7 @@ import Json.Encode as Encode
 import List
 import Models.Aggregation exposing (Aggregation(..))
 import Models.Direction exposing (Direction(..))
-import Models.EdgeData exposing (EdgeData)
+import Models.EdgeData as EdgeData exposing (EdgeData)
 import Models.PageCount exposing (..)
 import Models.Traversal exposing (Traversal, TraversalPage)
 import Models.VertexData exposing (VertexData)
@@ -702,6 +702,7 @@ updateWithEdgeDataResponse model result =
                         [] ->
                             ( { semi
                                 | state = VertexRequestsSuccess
+                                , edge_data_response = List.map EdgeData.format semi.edge_data_response
                               }
                             , Cmd.none
                             )
