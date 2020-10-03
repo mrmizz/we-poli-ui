@@ -1,6 +1,5 @@
 module Main exposing (main)
 
-import Basics as Basics
 import Browser
 import Element exposing (Element)
 import Element.Background as Background
@@ -18,7 +17,7 @@ import Models.EdgeData as EdgeData exposing (EdgeData)
 import Models.PageCount exposing (..)
 import Models.Traversal exposing (Traversal, TraversalPage)
 import Models.VertexData exposing (VertexData)
-import Models.Zipped exposing (Zipped, aggregateZipped)
+import Models.Zipped as Zipped exposing (Zipped, aggregateZipped)
 import Set exposing (Set)
 
 
@@ -1194,7 +1193,7 @@ elementView model =
                 model.direction_selected
                 { model
                     | zipped =
-                        zipVerticesAndEdges
+                        Zipped.zipVerticesAndEdges
                             model.direction_selected
                             model.traversal_response
                             model.traversal_data_response

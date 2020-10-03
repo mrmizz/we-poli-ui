@@ -1,4 +1,4 @@
-module Models.Zipped exposing (Zipped, aggregateZipped, groupBySrcId)
+module Models.Zipped exposing (Zipped, aggregateZipped, groupBySrcId, zipVerticesAndEdges)
 
 import Dict exposing (Dict)
 import Models.Aggregation exposing (Aggregation(..))
