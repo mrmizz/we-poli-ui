@@ -140,6 +140,36 @@ suite2 =
                 Expect.equal
                     actual
                     [ Traversal "3C" [ "4V", "5V", "6V", "7V", "8V" ] ]
+        , test "with multiple traversals from distinct src_id" <|
+            \_ ->
+                let
+                    actual : List Traversal
+                    actual =
+                        groupBySrcId [ traversal2, traversal3 ]
+                in
+                Expect.equal
+                    actual
+                    [ traversal2, traversal3 ]
+        , test "with a single traversal" <|
+            \_ ->
+                let
+                    actual : List Traversal
+                    actual =
+                        groupBySrcId [ traversal1 ]
+                in
+                Expect.equal
+                    actual
+                    [ traversal1 ]
+        , test "with empty traversal" <|
+            \_ ->
+                let
+                    actual : List Traversal
+                    actual =
+                        groupBySrcId []
+                in
+                Expect.equal
+                    actual
+                    []
         ]
 
 
