@@ -19,7 +19,7 @@ type alias VertexDataWithEdgeIds =
     , vertex : VertexData
     }
 
-
+-- TODO: Ensure De-dupe of Vertices before Zip
 zipVerticesAndEdges : Direction -> List Traversal -> List VertexData -> List EdgeData -> List Zipped
 zipVerticesAndEdges direction traversals vertices edges =
     let
