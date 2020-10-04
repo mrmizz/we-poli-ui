@@ -1,4 +1,4 @@
-module TraversalAggregationSpec exposing (suite1, suite2)
+module Models.Zipped.TraversalAggregationSpec exposing (suite1, suite2)
 
 import Expect exposing (Expectation)
 import Models.Aggregation exposing (Aggregation(..))
