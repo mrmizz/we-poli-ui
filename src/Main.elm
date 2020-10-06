@@ -78,11 +78,6 @@ type alias VertexPresence =
     }
 
 
-getVertexId : VertexData -> String
-getVertexId vertexData =
-    vertexData.uid
-
-
 notUID : String -> VertexData -> Bool
 notUID uid vertex =
     vertex.uid /= uid
@@ -402,7 +397,7 @@ updateWithPageCountRequest model =
         , zipped = []
         , page_count = Nothing
       }
-    , pageCountPost (buildPageCountRequest (List.map getVertexId model.vertices_selected))
+    , pageCountPost (buildPageCountRequest (List.map (\v -> v.uid) model.vertices_selected))
     )
 
 
@@ -418,7 +413,7 @@ updateWithChildPageCountRequest model vertexData =
         , page_count = Nothing
         , direction_selected = switchDirection model.direction_selected
       }
-    , pageCountPost (buildPageCountRequest [ getVertexId vertexData ])
+    , pageCountPost (buildPageCountRequest [ (\v -> v.uid) vertexData ])
     )
 
 
