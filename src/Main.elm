@@ -11,12 +11,12 @@ import Http
 import Json.Decode as Decode
 import Json.Encode as Encode
 import List
-import Models.Aggregation exposing (Aggregation(..))
-import Models.Direction exposing (Direction(..))
+import Models.Aggregation exposing (Aggregation(..), printAgg)
+import Models.Direction exposing (Direction(..), directionToIsCommittee, switchDirection)
 import Models.EdgeData as EdgeData exposing (EdgeData)
 import Models.PageCount exposing (..)
 import Models.Traversal exposing (Traversal, TraversalPage)
-import Models.VertexData exposing (VertexData)
+import Models.VertexData exposing (VertexData, distinctVertices, filterVerticesByDirection, notUID)
 import Models.Zipped as Zipped exposing (Zipped, aggregateZipped)
 import Set exposing (Set)
 
@@ -70,73 +70,6 @@ type alias Model =
 
 
 -- TODO: evaluate Edge Triplet request instead Traversal, Vertex, then Edge Requests
-
-
-type alias VertexPresence =
-    { set : Set String
-    , vertices : List VertexData
-    }
-
-
-notUID : String -> VertexData -> Bool
-notUID uid vertex =
-    vertex.uid /= uid
-
-
-distinctVertices : List VertexData -> VertexPresence
-distinctVertices vertices =
-    List.foldl updateVertexPresence (VertexPresence Set.empty []) vertices
-
-
-filterVerticesByDirection : Direction -> List VertexData -> List VertexData
-filterVerticesByDirection direction vertices =
-    case List.filter (sameDirection direction) vertices of
-        [] ->
-            []
-
-        head :: [] ->
-            case sameDirection direction head of
-                True ->
-                    [ head ]
-
-                False ->
-                    []
-
-        list ->
-            list
-
-
-sameDirection : Direction -> VertexData -> Bool
-sameDirection direction vertexData =
-    vertexData.is_committee == directionToIsCommittee direction
-
-
-directionToIsCommittee : Direction -> Bool
-directionToIsCommittee direction =
-    case direction of
-        In ->
-            False
-
-        Out ->
-            True
-
-
-getVertices : VertexPresence -> List VertexData
-getVertices vertexPresence =
-    vertexPresence.vertices
-
-
-updateVertexPresence : VertexData -> VertexPresence -> VertexPresence
-updateVertexPresence vertexData vertexPresence =
-    case Set.member vertexData.uid vertexPresence.set of
-        True ->
-            vertexPresence
-
-        False ->
-            { vertexPresence
-                | set = Set.insert vertexData.uid vertexPresence.set
-                , vertices = List.singleton vertexData ++ vertexPresence.vertices
-            }
 
 
 printBool : Bool -> String
@@ -201,50 +134,6 @@ type Msg
     | PageCountPostReceived (Result Http.Error PageCountResponse)
 
 
-printAgg : Aggregation -> String
-printAgg agg =
-    case agg of
-        And ->
-            "And"
-
-        Or ->
-            "Or"
-
-
-switchDirection : Direction -> Direction
-switchDirection direction =
-    case direction of
-        In ->
-            Out
-
-        Out ->
-            In
-
-
-updateWithDirectionOption : Model -> ( Model, Cmd Msg )
-updateWithDirectionOption model =
-    case model.direction_selected of
-        In ->
-            ( { model
-                | direction_selected = Out
-                , vertices_selected = []
-                , vertex_name_search_response = []
-                , vertex_name_search = ""
-              }
-            , Cmd.none
-            )
-
-        Out ->
-            ( { model
-                | direction_selected = In
-                , vertices_selected = []
-                , vertex_name_search_response = []
-                , vertex_name_search = ""
-              }
-            , Cmd.none
-            )
-
-
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
@@ -294,6 +183,30 @@ update msg model =
             ( { model | vertices_selected = updateVertexDeleted vertex model.vertices_selected }, Cmd.none )
 
 
+updateWithDirectionOption : Model -> ( Model, Cmd Msg )
+updateWithDirectionOption model =
+    case model.direction_selected of
+        In ->
+            ( { model
+                | direction_selected = Out
+                , vertices_selected = []
+                , vertex_name_search_response = []
+                , vertex_name_search = ""
+              }
+            , Cmd.none
+            )
+
+        Out ->
+            ( { model
+                | direction_selected = In
+                , vertices_selected = []
+                , vertex_name_search_response = []
+                , vertex_name_search = ""
+              }
+            , Cmd.none
+            )
+
+
 cleanVertexNameInput : String -> Model -> String
 cleanVertexNameInput input model =
     printBool (directionToIsCommittee model.direction_selected)
@@ -304,7 +217,7 @@ cleanVertexNameInput input model =
 
 updateVertexSelected : VertexData -> List VertexData -> List VertexData
 updateVertexSelected vertex vertices =
-    getVertices (distinctVertices (List.singleton vertex ++ vertices))
+    (\gp -> gp.vertices) (distinctVertices (List.singleton vertex ++ vertices))
 
 
 updateVertexDeleted : VertexData -> List VertexData -> List VertexData
