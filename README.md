@@ -1,1 +1,1 @@
-https://we-tap.in
+http://we-tap.in
