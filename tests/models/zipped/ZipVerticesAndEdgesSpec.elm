@@ -70,4 +70,34 @@ suite1 =
                         actual
                         zipped2
             ]
+        , describe "should handle multiple traversals from a distinct src id"
+            [ test "that is pre-sorted" <|
+                \_ ->
+                    let
+                        actual : List Zipped
+                        actual =
+                            zipVerticesAndEdges
+                                Out
+                                [ traversal3, traversal4 ]
+                                [ vendor4, vendor5, vendor6, vendor7, vendor8 ]
+                                [ edge7, edge8, edge9, edge10, edge11 ]
+                    in
+                    Expect.equal
+                        actual
+                        zipped4
+            , test "that is not pre-sorted" <|
+                \_ ->
+                    let
+                        actual : List Zipped
+                        actual =
+                            zipVerticesAndEdges
+                                Out
+                                [ traversal4, traversal3 ]
+                                [ vendor4, vendor6, vendor5, vendor8, vendor7 ]
+                                [ edge9, edge8, edge7, edge10, edge11 ]
+                    in
+                    Expect.equal
+                        actual
+                        zipped4
+            ]
         ]
