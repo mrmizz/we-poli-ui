@@ -1613,6 +1613,7 @@ buttonStyle button =
         ]
         button
 
+
 type SortBy
     = Count
     | TotalSpend
@@ -1621,7 +1622,7 @@ type SortBy
     | MinSpend
 
 
-onChange: SortBy -> Msg
+onChange : SortBy -> Msg
 onChange sortBy =
     case sortBy of
         Count ->
@@ -1639,11 +1640,13 @@ onChange sortBy =
         MinSpend ->
             SortByOptionSelected "Minimum Spend"
 
-sortByOptions: List (Input.Option SortBy Msg)
-sortByOptions =
-    [Input.option Count (Element.text "Count")]
 
-sortByRadio: Element Msg
+sortByOptions : List (Input.Option SortBy Msg)
+sortByOptions =
+    [ Input.option Count (Element.text "Count") ]
+
+
+sortByRadio : Element Msg
 sortByRadio =
     Input.radio
         []
@@ -1652,5 +1655,3 @@ sortByRadio =
         , selected = Just Count
         , label = Input.labelLeft [] (Element.text "label")
         }
-
-
