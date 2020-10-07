@@ -545,6 +545,9 @@ updateWithEdgeDataResponse model result =
                             ( { semi
                                 | state = VertexRequestsSuccess
                                 , edge_data_response = List.map EdgeData.format semi.edge_data_response
+                                , traversal_data_response =
+                                    (\vp -> vp.vertices)
+                                        (distinctVertices semi.traversal_data_response)
                               }
                             , Cmd.none
                             )
