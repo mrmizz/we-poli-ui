@@ -11,7 +11,7 @@ import Http
 import Json.Decode as Decode
 import Json.Encode as Encode
 import List
-import Models.Aggregation exposing (Aggregation(..), printAgg)
+import Models.Aggregation as Aggregation exposing (Aggregation(..))
 import Models.Direction exposing (Direction(..), directionToIsCommittee, switchDirection)
 import Models.EdgeData as EdgeData exposing (EdgeData)
 import Models.PageCount exposing (..)
@@ -1258,7 +1258,7 @@ viewAggParam agg =
 
 viewAggButton : Aggregation -> Element Msg
 viewAggButton agg =
-    Input.button [] { onPress = Just AggOptionSelected, label = buttonStyle (Element.text (printAgg agg)) }
+    Input.button [] { onPress = Just AggOptionSelected, label = buttonStyle (Element.text (Aggregation.print agg)) }
 
 
 almostDropdownHeadAndBody : Element Msg -> List (Element Msg) -> Element Msg

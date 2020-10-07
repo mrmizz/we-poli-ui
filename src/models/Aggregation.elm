@@ -1,4 +1,4 @@
-module Models.Aggregation exposing (Aggregation(..), printAgg)
+module Models.Aggregation exposing (Aggregation(..), print)
 
 
 type Aggregation
@@ -6,12 +6,8 @@ type Aggregation
     | Or
 
 
-
--- TODO: rename to print ?
-
-
-printAgg : Aggregation -> String
-printAgg agg =
+print : Aggregation -> String
+print agg =
     case agg of
         And ->
             "And"
