@@ -132,6 +132,7 @@ type Msg
     | VertexNamePrefixGetReceived (Result Http.Error VertexNamePrefixResponse)
     | TraversalPostReceived (Result Http.Error TraversalResponse)
     | PageCountPostReceived (Result Http.Error PageCountResponse)
+    | SortByOptionSelected String
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -181,6 +182,9 @@ update msg model =
 
         DeleteVertexSelection vertex ->
             ( { model | vertices_selected = updateVertexDeleted vertex model.vertices_selected }, Cmd.none )
+
+        SortByOptionSelected _ ->
+            ( model, Cmd.none )
 
 
 updateWithDirectionOption : Model -> ( Model, Cmd Msg )
@@ -1208,6 +1212,7 @@ viewRequestSuccess direction model =
         , editSearchButton
         , clearSearchButton
         , viewAggParam model.aggregation_selected
+        , sortByRadio
         , viewDirectedResponse model direction
         ]
 
@@ -1607,3 +1612,45 @@ buttonStyle button =
         , Border.glow (Element.rgb255 210 210 210) 1.5
         ]
         button
+
+type SortBy
+    = Count
+    | TotalSpend
+    | AvgSpend
+    | MaxSpend
+    | MinSpend
+
+
+onChange: SortBy -> Msg
+onChange sortBy =
+    case sortBy of
+        Count ->
+            SortByOptionSelected "Count"
+
+        TotalSpend ->
+            SortByOptionSelected "Total Spend"
+
+        AvgSpend ->
+            SortByOptionSelected "Average Spend"
+
+        MaxSpend ->
+            SortByOptionSelected "Max Spend"
+
+        MinSpend ->
+            SortByOptionSelected "Minimum Spend"
+
+sortByOptions: List (Input.Option SortBy Msg)
+sortByOptions =
+    [Input.option Count (Element.text "Count")]
+
+sortByRadio: Element Msg
+sortByRadio =
+    Input.radio
+        []
+        { onChange = onChange
+        , options = sortByOptions
+        , selected = Just Count
+        , label = Input.labelLeft [] (Element.text "label")
+        }
+
+
