@@ -3,7 +3,7 @@ module Models.Zipped.TraversalAggregationSpec exposing (suite1, suite2)
 import Expect exposing (Expectation)
 import Models.Aggregation exposing (Aggregation(..))
 import Models.Traversal exposing (Traversal)
-import Models.Zipped exposing (Zipped, aggregateZipped, groupBySrcId)
+import Models.Zipped exposing (Zipped, aggregate, groupBySrcId)
 import Models.Zipped.Fixtures exposing (..)
 import Test exposing (..)
 
@@ -17,7 +17,7 @@ suite1 =
                     let
                         actual : List Zipped
                         actual =
-                            aggregateZipped
+                            aggregate
                                 Or
                                 [ traversal1 ]
                                 zipped1
@@ -30,7 +30,7 @@ suite1 =
                     let
                         actual : List Zipped
                         actual =
-                            aggregateZipped
+                            aggregate
                                 Or
                                 [ traversal1, traversal2 ]
                                 zipped2
@@ -43,7 +43,7 @@ suite1 =
                     let
                         actual : List Zipped
                         actual =
-                            aggregateZipped
+                            aggregate
                                 Or
                                 [ traversal1, traversal2, traversal3 ]
                                 zipped3
@@ -56,7 +56,7 @@ suite1 =
                     let
                         actual : List Zipped
                         actual =
-                            aggregateZipped
+                            aggregate
                                 Or
                                 [ traversal3, traversal4 ]
                                 zipped4
@@ -71,7 +71,7 @@ suite1 =
                     let
                         actual : List Zipped
                         actual =
-                            aggregateZipped
+                            aggregate
                                 And
                                 [ traversal1 ]
                                 zipped1
@@ -84,7 +84,7 @@ suite1 =
                     let
                         actual : List Zipped
                         actual =
-                            aggregateZipped
+                            aggregate
                                 And
                                 [ traversal1, traversal2 ]
                                 zipped2
@@ -101,7 +101,7 @@ suite1 =
                     let
                         actual : List Zipped
                         actual =
-                            aggregateZipped
+                            aggregate
                                 And
                                 [ traversal1, traversal2, traversal3 ]
                                 zipped3
@@ -114,7 +114,7 @@ suite1 =
                     let
                         actual : List Zipped
                         actual =
-                            aggregateZipped
+                            aggregate
                                 And
                                 [ traversal3, traversal4 ]
                                 zipped4

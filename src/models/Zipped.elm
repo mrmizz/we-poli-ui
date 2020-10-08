@@ -1,9 +1,10 @@
-module Models.Zipped exposing (Zipped, aggregate, groupBySrcId, zipVerticesAndEdges)
+module Models.Zipped exposing (Zipped, aggregate, groupBySrcId, sortBy, zipVerticesAndEdges)
 
 import Dict exposing (Dict)
 import Models.Aggregation exposing (Aggregation(..))
 import Models.Direction exposing (Direction(..))
 import Models.EdgeData exposing (EdgeData)
+import Models.SortBy exposing (SortBy(..))
 import Models.Traversal exposing (Traversal)
 import Models.VertexData exposing (VertexData)
 import Set exposing (Set)
@@ -18,6 +19,34 @@ type alias VertexDataWithEdgeIds =
     , dst_id : String
     , vertex : VertexData
     }
+
+
+sortBy : SortBy -> List Zipped -> List Zipped
+sortBy option zipped =
+    let
+        genericSortClause : (EdgeData -> String) -> Zipped -> Zipped -> Order
+        genericSortClause f left right =
+            Basics.compare (f (Tuple.first left)) (f (Tuple.first right))
+
+        genericSort : (EdgeData -> String) -> List Zipped
+        genericSort f =
+            List.sortWith (genericSortClause f) zipped
+    in
+    case option of
+        Count ->
+            genericSort (\edge -> edge.num_transactions)
+
+        TotalSpend ->
+            genericSort (\edge -> edge.total_spend)
+
+        AvgSpend ->
+            genericSort (\edge -> edge.avg_spend)
+
+        MaxSpend ->
+            genericSort (\edge -> edge.max_spend)
+
+        MinSpend ->
+            genericSort (\edge -> edge.min_spend)
 
 
 zipVerticesAndEdges : Direction -> List Traversal -> List VertexData -> List EdgeData -> List Zipped

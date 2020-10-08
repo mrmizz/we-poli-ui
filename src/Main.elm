@@ -15,6 +15,7 @@ import Models.Aggregation as Aggregation exposing (Aggregation(..))
 import Models.Direction as Direction exposing (Direction(..))
 import Models.EdgeData as EdgeData exposing (EdgeData)
 import Models.PageCount exposing (..)
+import Models.SortBy exposing (SortBy(..))
 import Models.Traversal exposing (Traversal, TraversalPage)
 import Models.VertexData as VertexData exposing (VertexData)
 import Models.Zipped as Zipped exposing (Zipped)
@@ -186,7 +187,12 @@ update msg model =
             ( { model | vertices_selected = updateVertexDeleted vertex model.vertices_selected }, Cmd.none )
 
         SortByOptionSelected sortBy ->
-            ( { model | sort_by_selected = sortBy }, Cmd.none )
+            ( { model
+                | sort_by_selected = sortBy
+                , zipped = Zipped.sortBy sortBy model.zipped
+              }
+            , Cmd.none
+            )
 
 
 updateWithDirectionOption : Model -> ( Model, Cmd Msg )
@@ -1614,14 +1620,6 @@ buttonStyle button =
         , Border.glow (Element.rgb255 210 210 210) 1.5
         ]
         button
-
-
-type SortBy
-    = Count
-    | TotalSpend
-    | AvgSpend
-    | MaxSpend
-    | MinSpend
 
 
 sortByOptions : List (Input.Option SortBy Msg)
