@@ -1,4 +1,4 @@
-module Models.Direction exposing (Direction(..), directionToIsCommittee, switchDirection)
+module Models.Direction exposing (Direction(..), switch, toIsCommittee)
 
 
 type Direction
@@ -6,8 +6,8 @@ type Direction
     | Out
 
 
-directionToIsCommittee : Direction -> Bool
-directionToIsCommittee direction =
+toIsCommittee : Direction -> Bool
+toIsCommittee direction =
     case direction of
         In ->
             False
@@ -16,8 +16,8 @@ directionToIsCommittee direction =
             True
 
 
-switchDirection : Direction -> Direction
-switchDirection direction =
+switch : Direction -> Direction
+switch direction =
     case direction of
         In ->
             Out

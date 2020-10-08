@@ -12,12 +12,12 @@ import Json.Decode as Decode
 import Json.Encode as Encode
 import List
 import Models.Aggregation as Aggregation exposing (Aggregation(..))
-import Models.Direction exposing (Direction(..), directionToIsCommittee, switchDirection)
+import Models.Direction as Direction exposing (Direction(..))
 import Models.EdgeData as EdgeData exposing (EdgeData)
 import Models.PageCount exposing (..)
 import Models.Traversal exposing (Traversal, TraversalPage)
-import Models.VertexData exposing (VertexData, distinctVertices, filterVerticesByDirection, notUID)
-import Models.Zipped as Zipped exposing (Zipped, aggregateZipped)
+import Models.VertexData as VertexData exposing (VertexData)
+import Models.Zipped as Zipped exposing (Zipped)
 import Set exposing (Set)
 
 
@@ -213,7 +213,7 @@ updateWithDirectionOption model =
 
 cleanVertexNameInput : String -> Model -> String
 cleanVertexNameInput input model =
-    printBool (directionToIsCommittee model.direction_selected)
+    printBool (Direction.toIsCommittee model.direction_selected)
         |> String.append "_"
         |> String.append (String.replace " " "" input)
         |> String.toLower
@@ -221,7 +221,7 @@ cleanVertexNameInput input model =
 
 updateVertexSelected : VertexData -> List VertexData -> List VertexData
 updateVertexSelected vertex vertices =
-    (\gp -> gp.vertices) (distinctVertices (List.singleton vertex ++ vertices))
+    (\gp -> gp.vertices) (VertexData.distinct (List.singleton vertex ++ vertices))
 
 
 updateVertexDeleted : VertexData -> List VertexData -> List VertexData
@@ -231,7 +231,7 @@ updateVertexDeleted vertex vertices =
             []
 
         _ ->
-            List.filter (notUID vertex.uid) vertices
+            List.filter (VertexData.notUID vertex.uid) vertices
 
 
 updateWithVertexNamePrefixRequest : Model -> String -> ( Model, Cmd Msg )
@@ -255,7 +255,7 @@ updateWithVertexNamePrefixResponse model result =
                     ( { model | vertex_name_search_response = [] }, Cmd.none )
 
                 vertices ->
-                    ( { model | vertex_name_search_response = filterVerticesByDirection model.direction_selected vertices }
+                    ( { model | vertex_name_search_response = VertexData.filterByDirection model.direction_selected vertices }
                     , Cmd.none
                     )
 
@@ -328,7 +328,7 @@ updateWithChildPageCountRequest model vertexData =
         , edge_data_response = []
         , zipped = []
         , page_count = Nothing
-        , direction_selected = switchDirection model.direction_selected
+        , direction_selected = Direction.switch model.direction_selected
       }
     , pageCountPost (buildPageCountRequest [ (\v -> v.uid) vertexData ])
     )
@@ -551,7 +551,7 @@ updateWithEdgeDataResponse model result =
                                 , edge_data_response = List.map EdgeData.format semi.edge_data_response
                                 , traversal_data_response =
                                     (\vp -> vp.vertices)
-                                        (distinctVertices semi.traversal_data_response)
+                                        (VertexData.distinct semi.traversal_data_response)
                               }
                             , Cmd.none
                             )
@@ -1442,7 +1442,7 @@ viewDirectedResponseWithText model textToDisplay =
         , Element.column []
             [ Element.text textToDisplay
             , fromVerticesAndEdgesToTableWithSearchButton
-                (aggregateZipped model.aggregation_selected model.traversal_response model.zipped)
+                (Zipped.aggregate model.aggregation_selected model.traversal_response model.zipped)
             ]
         ]
 

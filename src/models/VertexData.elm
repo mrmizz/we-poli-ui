@@ -1,6 +1,6 @@
-module Models.VertexData exposing (VertexData, distinctVertices, filterVerticesByDirection, notUID)
+module Models.VertexData exposing (VertexData, distinct, filterByDirection, notUID)
 
-import Models.Direction exposing (Direction, directionToIsCommittee)
+import Models.Direction as Direction exposing (Direction)
 import Set exposing (Set)
 
 
@@ -25,8 +25,8 @@ notUID uid vertex =
     vertex.uid /= uid
 
 
-distinctVertices : List VertexData -> VertexPresence
-distinctVertices vertices =
+distinct : List VertexData -> VertexPresence
+distinct vertices =
     List.foldl bumpVertexPresence (VertexPresence Set.empty []) vertices
 
 
@@ -43,8 +43,8 @@ bumpVertexPresence vertexData vertexPresence =
             }
 
 
-filterVerticesByDirection : Direction -> List VertexData -> List VertexData
-filterVerticesByDirection direction vertices =
+filterByDirection : Direction -> List VertexData -> List VertexData
+filterByDirection direction vertices =
     case List.filter (sameDirection direction) vertices of
         [] ->
             []
@@ -63,4 +63,4 @@ filterVerticesByDirection direction vertices =
 
 sameDirection : Direction -> VertexData -> Bool
 sameDirection direction vertexData =
-    vertexData.is_committee == directionToIsCommittee direction
+    vertexData.is_committee == Direction.toIsCommittee direction

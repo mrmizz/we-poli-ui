@@ -1,4 +1,4 @@
-module Models.Zipped exposing (Zipped, aggregateZipped, groupBySrcId, zipVerticesAndEdges)
+module Models.Zipped exposing (Zipped, aggregate, groupBySrcId, zipVerticesAndEdges)
 
 import Dict exposing (Dict)
 import Models.Aggregation exposing (Aggregation(..))
@@ -78,8 +78,8 @@ zipVerticesAndEdges direction traversals vertices edges =
     List.map2 Tuple.pair sortedEdges sortedVertices
 
 
-aggregateZipped : Aggregation -> List Traversal -> List Zipped -> List Zipped
-aggregateZipped agg traversals zipped =
+aggregate : Aggregation -> List Traversal -> List Zipped -> List Zipped
+aggregate agg traversals zipped =
     case agg of
         And ->
             case groupBySrcId traversals of
