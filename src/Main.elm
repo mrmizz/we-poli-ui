@@ -60,7 +60,7 @@ type alias Model =
     , vertices_selected : List VertexData
     , aggregation_selected : Aggregation
     , direction_selected : Direction
-    , sort_by_selected: SortBy
+    , sort_by_selected : SortBy
     , traversal_response : List Traversal
     , traversal_data_response : List VertexData
     , edge_data_response : List EdgeData
@@ -1638,7 +1638,7 @@ sortByRadio : Model -> Element Msg
 sortByRadio model =
     Input.radio
         []
-        { onChange = (\sb -> SortByOptionSelected sb)
+        { onChange = \sb -> SortByOptionSelected sb
         , options = sortByOptions
         , selected = Just model.sort_by_selected
         , label = Input.labelLeft [] (Element.text "Sort By: ")
