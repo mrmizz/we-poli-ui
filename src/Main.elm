@@ -60,6 +60,7 @@ type alias Model =
     , vertices_selected : List VertexData
     , aggregation_selected : Aggregation
     , direction_selected : Direction
+    , sort_by_selected: SortBy
     , traversal_response : List Traversal
     , traversal_data_response : List VertexData
     , edge_data_response : List EdgeData
@@ -99,6 +100,7 @@ initialModel =
     , aggregation_selected = Or
     , vertices_selected = []
     , direction_selected = Out
+    , sort_by_selected = Count
     , traversal_response = []
     , traversal_data_response = []
     , edge_data_response = []
@@ -132,7 +134,7 @@ type Msg
     | VertexNamePrefixGetReceived (Result Http.Error VertexNamePrefixResponse)
     | TraversalPostReceived (Result Http.Error TraversalResponse)
     | PageCountPostReceived (Result Http.Error PageCountResponse)
-    | SortByOptionSelected String
+    | SortByOptionSelected SortBy
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -183,8 +185,8 @@ update msg model =
         DeleteVertexSelection vertex ->
             ( { model | vertices_selected = updateVertexDeleted vertex model.vertices_selected }, Cmd.none )
 
-        SortByOptionSelected _ ->
-            ( model, Cmd.none )
+        SortByOptionSelected sortBy ->
+            ( { model | sort_by_selected = sortBy }, Cmd.none )
 
 
 updateWithDirectionOption : Model -> ( Model, Cmd Msg )
@@ -1212,7 +1214,7 @@ viewRequestSuccess direction model =
         , editSearchButton
         , clearSearchButton
         , viewAggParam model.aggregation_selected
-        , sortByRadio
+        , sortByRadio model
         , viewDirectedResponse model direction
         ]
 
@@ -1622,36 +1624,22 @@ type SortBy
     | MinSpend
 
 
-onChange : SortBy -> Msg
-onChange sortBy =
-    case sortBy of
-        Count ->
-            SortByOptionSelected "Count"
-
-        TotalSpend ->
-            SortByOptionSelected "Total Spend"
-
-        AvgSpend ->
-            SortByOptionSelected "Average Spend"
-
-        MaxSpend ->
-            SortByOptionSelected "Max Spend"
-
-        MinSpend ->
-            SortByOptionSelected "Minimum Spend"
-
-
 sortByOptions : List (Input.Option SortBy Msg)
 sortByOptions =
-    [ Input.option Count (Element.text "Count") ]
+    [ Input.option Count (Element.text "Transactions Count")
+    , Input.option TotalSpend (Element.text "Total Spend")
+    , Input.option AvgSpend (Element.text "Average Spend")
+    , Input.option MaxSpend (Element.text "Max Spend")
+    , Input.option MinSpend (Element.text "Min Spend")
+    ]
 
 
-sortByRadio : Element Msg
-sortByRadio =
+sortByRadio : Model -> Element Msg
+sortByRadio model =
     Input.radio
         []
-        { onChange = onChange
+        { onChange = (\sb -> SortByOptionSelected sb)
         , options = sortByOptions
-        , selected = Just Count
-        , label = Input.labelLeft [] (Element.text "label")
+        , selected = Just model.sort_by_selected
+        , label = Input.labelLeft [] (Element.text "Sort By: ")
         }
