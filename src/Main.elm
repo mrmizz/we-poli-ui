@@ -1450,7 +1450,12 @@ viewDirectedResponseWithText model textToDisplay =
         , Element.column []
             [ Element.text textToDisplay
             , fromVerticesAndEdgesToTableWithSearchButton
-                (Zipped.aggregate model.aggregation_selected model.traversal_response model.zipped)
+                (Zipped.aggregate
+                    model.aggregation_selected
+                    model.traversal_response
+                    model.zipped
+                    |> Zipped.sortBy model.sort_by_selected
+                )
             ]
         ]
 
