@@ -24,8 +24,8 @@ type alias VertexDataWithEdgeIds =
 sortBy : SortBy -> List Zipped -> List Zipped
 sortBy option zipped =
     let
-        genericSortClause : (EdgeData -> String) -> Zipped -> Zipped -> Order
-        genericSortClause f left right =
+        genericSortClauseDESC : (EdgeData -> String) -> Zipped -> Zipped -> Order
+        genericSortClauseDESC f left right =
             let
                 leftVal : String
                 leftVal =
@@ -53,9 +53,34 @@ sortBy option zipped =
                 GT ->
                     LT
 
+        genericSortClauseASC : (EdgeData -> String) -> Zipped -> Zipped -> Order
+        genericSortClauseASC f left right =
+            let
+                leftVal : String
+                leftVal =
+                    f (Tuple.first left)
+
+                rightVal : String
+                rightVal =
+                    f (Tuple.first right)
+            in
+            case Basics.compare (String.length leftVal) (String.length rightVal) of
+                EQ ->
+                    Basics.compare leftVal rightVal
+
+                val ->
+                    val
+
+        partitioned : (EdgeData -> String) -> ( List Zipped, List Zipped )
+        partitioned f =
+            List.partition (\z -> String.contains "-" ((\zi -> f (Tuple.first zi)) z)) zipped
+
         genericSort : (EdgeData -> String) -> List Zipped
         genericSort f =
-            List.sortWith (genericSortClause f) zipped
+            case partitioned f of
+                ( left, right ) ->
+                    List.sortWith (genericSortClauseDESC f) right
+                        ++ List.sortWith (genericSortClauseASC f) left
     in
     case option of
         Count ->
