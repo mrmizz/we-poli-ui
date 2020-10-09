@@ -71,16 +71,25 @@ sortBy option zipped =
                 val ->
                     val
 
+        isNegativeValue : String -> Bool
+        isNegativeValue str =
+            case String.toList str |> List.take 2 |> List.reverse |> List.head of
+                Just char ->
+                    Char.isDigit char
+
+                Nothing ->
+                    False
+
         partitioned : (EdgeData -> String) -> ( List Zipped, List Zipped )
         partitioned f =
-            List.partition (\z -> String.contains "-" ((\zi -> f (Tuple.first zi)) z)) zipped
+            List.partition (\z -> isNegativeValue (f (Tuple.first z))) zipped
 
         genericSort : (EdgeData -> String) -> List Zipped
         genericSort f =
             case partitioned f of
                 ( left, right ) ->
-                    List.sortWith (genericSortClauseDESC f) right
-                        ++ List.sortWith (genericSortClauseASC f) left
+                    List.sortWith (genericSortClauseDESC f) left
+                        ++ List.sortWith (genericSortClauseASC f) right
     in
     case option of
         Count ->
