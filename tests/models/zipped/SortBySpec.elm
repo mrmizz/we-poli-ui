@@ -109,7 +109,7 @@ edgeA1 =
     EdgeData
         "1C"
         "1V"
-        "10"
+        "13"
         "$100"
         "$10"
         "$10"
@@ -118,72 +118,72 @@ edgeA1 =
 
 edgeA2 : EdgeData
 edgeA2 =
-    { edgeA1 | num_transactions = "20" }
+    { edgeA1 | num_transactions = "129" }
 
 
 edgeA3 : EdgeData
 edgeA3 =
-    { edgeA1 | num_transactions = "30" }
+    { edgeA1 | num_transactions = "130" }
 
 
 edgeB1 : EdgeData
 edgeB1 =
-    { edgeA1 | total_spend = "$1" }
+    { edgeA1 | total_spend = "$13" }
 
 
 edgeB2 : EdgeData
 edgeB2 =
-    { edgeA1 | total_spend = "$2" }
+    { edgeA1 | total_spend = "$129" }
 
 
 edgeB3 : EdgeData
 edgeB3 =
-    { edgeA1 | total_spend = "$3" }
+    { edgeA1 | total_spend = "$130" }
 
 
 edgeC1 : EdgeData
 edgeC1 =
-    { edgeA1 | avg_spend = "$1" }
+    { edgeA1 | avg_spend = "$13" }
 
 
 edgeC2 : EdgeData
 edgeC2 =
-    { edgeA1 | avg_spend = "$2" }
+    { edgeA1 | avg_spend = "$129" }
 
 
 edgeC3 : EdgeData
 edgeC3 =
-    { edgeA1 | avg_spend = "$3" }
+    { edgeA1 | avg_spend = "$130" }
 
 
 edgeD1 : EdgeData
 edgeD1 =
-    { edgeA1 | max_spend = "$1" }
+    { edgeA1 | max_spend = "$13" }
 
 
 edgeD2 : EdgeData
 edgeD2 =
-    { edgeA1 | max_spend = "$2" }
+    { edgeA1 | max_spend = "$129" }
 
 
 edgeD3 : EdgeData
 edgeD3 =
-    { edgeA1 | max_spend = "$3" }
+    { edgeA1 | max_spend = "$130" }
 
 
 edgeE1 : EdgeData
 edgeE1 =
-    { edgeA1 | min_spend = "$1" }
+    { edgeA1 | min_spend = "$13" }
 
 
 edgeE2 : EdgeData
 edgeE2 =
-    { edgeA1 | min_spend = "$2" }
+    { edgeA1 | min_spend = "$129" }
 
 
 edgeE3 : EdgeData
 edgeE3 =
-    { edgeA1 | min_spend = "$3" }
+    { edgeA1 | min_spend = "$130" }
 
 
 vendor1 : VertexData
