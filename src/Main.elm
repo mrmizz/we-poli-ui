@@ -1633,7 +1633,7 @@ sortByOptions =
     , Input.option TotalSpend (Element.text "Total Spend")
     , Input.option AvgSpend (Element.text "Average Spend")
     , Input.option MaxSpend (Element.text "Max Spend")
-    , Input.option MinSpend (Element.text "Min Spend")
+    -- , Input.option MinSpend (Element.text "Min Spend") TODO: bug with negative values
     ]
 
 
