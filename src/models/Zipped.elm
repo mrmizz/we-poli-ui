@@ -26,7 +26,15 @@ sortBy option zipped =
     let
         genericSortClause : (EdgeData -> String) -> Zipped -> Zipped -> Order
         genericSortClause f left right =
-            Basics.compare (f (Tuple.first left)) (f (Tuple.first right))
+            case Basics.compare (f (Tuple.first left)) (f (Tuple.first right)) of
+                LT ->
+                    GT
+
+                EQ ->
+                    EQ
+
+                GT ->
+                    LT
 
         genericSort : (EdgeData -> String) -> List Zipped
         genericSort f =
