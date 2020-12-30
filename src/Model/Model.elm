@@ -1,11 +1,11 @@
 module Model.Model exposing (Model)
 
-import Model.State exposing (State)
 import Model.Aggregation exposing (Aggregation)
 import Model.Direction exposing (Direction)
 import Model.EdgeData exposing (EdgeData)
 import Model.PageCount exposing (PageCount)
 import Model.SortBy exposing (SortBy)
+import Model.State exposing (State)
 import Model.Traversal exposing (Traversal)
 import Model.VertexData exposing (VertexData)
 import Model.Zipped exposing (Zipped)

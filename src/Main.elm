@@ -6,21 +6,26 @@ import Element.Background as Background
 import Element.Border as Border
 import Element.Font as Font
 import Element.Input as Input
+import HTTP.Edge exposing (DynamoEdgeData, EdgeDataResponse, buildEdgeDataRequest, edgeDataPost)
+import HTTP.Generic exposing (DynamoBool, DynamoValue, DynamoVertexData, DynamoVertexDataItem, DynamoVertexDataItems)
+import HTTP.NamePrefix exposing (VertexNamePrefixResponse, vertexNamePrefixGet)
+import HTTP.PageCount exposing (DynamoPageCount, PageCountResponse, buildPageCountRequest, pageCountPost)
+import HTTP.Traversal exposing (DynamoTraversal, TraversalResponse, buildTraversalRequest, traversalPost)
+import HTTP.Vertex exposing (VertexDataResponse, buildVertexDataRequest, vertexDataPost)
 import Html exposing (Html)
 import Http
-import Json.Decode as Decode
-import Json.Encode as Encode
 import List
-import Model.Model exposing (Model)
-import Model.State exposing (State(..))
 import Model.Aggregation as Aggregation exposing (Aggregation(..))
 import Model.Direction as Direction exposing (Direction(..))
 import Model.EdgeData as EdgeData exposing (EdgeData)
+import Model.Model exposing (Model)
 import Model.PageCount exposing (..)
 import Model.SortBy exposing (SortBy(..))
+import Model.State exposing (State(..))
 import Model.Traversal exposing (Traversal, TraversalPage)
 import Model.VertexData as VertexData exposing (VertexData)
 import Model.Zipped as Zipped exposing (Zipped)
+import Msg.Msg exposing (Msg(..))
 import Set exposing (Set)
 
 
@@ -36,20 +41,6 @@ main =
         , update = update
         , subscriptions = \_ -> Sub.none
         }
-
-
-
-{- BACKEND URLs -}
-
-
-graphDataURL : String
-graphDataURL =
-    "https://yf87qmn85l.execute-api.us-west-2.amazonaws.com/dev/poli/graph"
-
-
-prefixURL : String
-prefixURL =
-    "https://yf87qmn85l.execute-api.us-west-2.amazonaws.com/dev/poli/prefix/"
 
 
 
@@ -90,25 +81,6 @@ init _ =
 
 
 -- UPDATE
-
-
-type Msg
-    = ClearSearch
-    | EditSearch
-    | ConfirmSearch
-    | SearchInput String
-    | AggOptionSelected
-    | DirectionOptionSelected
-    | VertexSelected VertexData
-    | DeleteVertexSelection VertexData
-    | TraversalRequestMade
-    | ChildTraversalRequestMade VertexData
-    | VertexDataPostReceived (Result Http.Error VertexDataResponse)
-    | EdgeDataPostReceived (Result Http.Error EdgeDataResponse)
-    | VertexNamePrefixGetReceived (Result Http.Error VertexNamePrefixResponse)
-    | TraversalPostReceived (Result Http.Error TraversalResponse)
-    | PageCountPostReceived (Result Http.Error PageCountResponse)
-    | SortByOptionSelected SortBy
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -295,7 +267,7 @@ updateWithPageCountRequest model =
         , zipped = []
         , page_count = Nothing
       }
-    , pageCountPost (buildPageCountRequest (List.map (\v -> v.uid) model.vertices_selected))
+    , pageCountPost PageCountPostReceived (buildPageCountRequest (List.map (\v -> v.uid) model.vertices_selected))
     )
 
 
@@ -311,7 +283,7 @@ updateWithChildPageCountRequest model vertexData =
         , page_count = Nothing
         , direction_selected = Direction.switch model.direction_selected
       }
-    , pageCountPost (buildPageCountRequest [ (\v -> v.uid) vertexData ])
+    , pageCountPost PageCountPostReceived (buildPageCountRequest [ (\v -> v.uid) vertexData ])
     )
 
 
@@ -559,508 +531,6 @@ unpackDynamoEdgeData dynamoEdgeData =
         (unpackDynamoValue dynamoEdgeData.avg_spend)
         (unpackDynamoValue dynamoEdgeData.max_spend)
         (unpackDynamoValue dynamoEdgeData.min_spend)
-
-
-
--- HTTP
-
-
-type alias VertexNamePrefixResponse =
-    { items : List VertexNamePrefixInnerResponse }
-
-
-type alias VertexNamePrefixInnerResponse =
-    { prefix : DynamoValue
-    , prefix_size : DynamoValue
-    , vertices : DynamoVertexDataItems
-    }
-
-
-type alias DynamoVertexData =
-    { name : DynamoValue
-    , uid : DynamoValue
-    , is_committee : DynamoBool
-    , cities : DynamoArrayValue
-    , streets : DynamoArrayValue
-    , states : DynamoArrayValue
-    }
-
-
-type alias DynamoVertexDataItems =
-    { items : List DynamoVertexDataItem }
-
-
-type alias DynamoVertexDataItem =
-    { item : DynamoVertexData }
-
-
-vertexNamePrefixGet : String -> (Result Http.Error VertexNamePrefixResponse -> Msg) -> Cmd Msg
-vertexNamePrefixGet prefix toMsg =
-    Http.get
-        { url = prefixURL ++ prefix
-        , expect = Http.expectJson toMsg vertexNamePrefixResponseDecoder
-        }
-
-
-vertexNamePrefixResponseDecoder : Decode.Decoder VertexNamePrefixResponse
-vertexNamePrefixResponseDecoder =
-    Decode.map VertexNamePrefixResponse (Decode.field "Items" (Decode.list vertexNamePrefixInnerResponseDecoder))
-
-
-vertexNamePrefixInnerResponseDecoder : Decode.Decoder VertexNamePrefixInnerResponse
-vertexNamePrefixInnerResponseDecoder =
-    Decode.map3 VertexNamePrefixInnerResponse
-        (Decode.field "prefix" dynamoStringValueDecoder)
-        (Decode.field "prefix_size" dynamoNumberValueDecoder)
-        (Decode.field "vertices" dynamoVertexDataInnerDecoder)
-
-
-dynamoVertexDataInnerDecoder : Decode.Decoder DynamoVertexDataItems
-dynamoVertexDataInnerDecoder =
-    Decode.map DynamoVertexDataItems (Decode.field "L" (Decode.list dynamoVertexDataInnerInnerDecoder))
-
-
-dynamoVertexDataInnerInnerDecoder : Decode.Decoder DynamoVertexDataItem
-dynamoVertexDataInnerInnerDecoder =
-    Decode.map DynamoVertexDataItem (Decode.field "M" vertexDataInnerResponseDecoder)
-
-
-type alias PageCountRequest =
-    { request_items : PageCountInnerRequest }
-
-
-type alias PageCountInnerRequest =
-    { poli_traversals_page_count : PageCountInnerRequestKeys }
-
-
-type alias PageCountInnerRequestKeys =
-    { keys : List PageCountInnerRequestKey }
-
-
-type alias PageCountInnerRequestKey =
-    { vertex_id : DynamoValue }
-
-
-pageCountPost : PageCountRequest -> Cmd Msg
-pageCountPost request =
-    Http.post
-        { url = graphDataURL
-        , body = Http.jsonBody (pageCountRequestEncoder request)
-        , expect = Http.expectJson PageCountPostReceived pageCountResponseDecoder
-        }
-
-
-buildPageCountRequest : List String -> PageCountRequest
-buildPageCountRequest vertexIds =
-    PageCountRequest
-        (PageCountInnerRequest
-            (PageCountInnerRequestKeys (List.map (\vertexId -> PageCountInnerRequestKey (DynamoValue vertexId)) vertexIds))
-        )
-
-
-pageCountRequestEncoder : PageCountRequest -> Encode.Value
-pageCountRequestEncoder pageCountRequest =
-    Encode.object
-        [ ( "RequestItems", pageCountInnerRequestEncoder pageCountRequest.request_items ) ]
-
-
-pageCountInnerRequestEncoder : PageCountInnerRequest -> Encode.Value
-pageCountInnerRequestEncoder pageCountInnerRequest =
-    Encode.object
-        [ ( "PoliTraversalsPageCount", pageCountInnerRequestKeysEncoder pageCountInnerRequest.poli_traversals_page_count ) ]
-
-
-pageCountInnerRequestKeysEncoder : PageCountInnerRequestKeys -> Encode.Value
-pageCountInnerRequestKeysEncoder pageCountInnerRequestKeys =
-    Encode.object
-        [ ( "Keys", Encode.list pageCountInnerRequestKeyEncoder pageCountInnerRequestKeys.keys ) ]
-
-
-pageCountInnerRequestKeyEncoder : PageCountInnerRequestKey -> Encode.Value
-pageCountInnerRequestKeyEncoder pageCountInnerRequestKey =
-    Encode.object [ ( "vertex_id", dynamoNumberValueEncoder pageCountInnerRequestKey.vertex_id ) ]
-
-
-type alias PageCountResponse =
-    { responses : PoliTraversalsPageCountTable }
-
-
-type alias PoliTraversalsPageCountTable =
-    { items : List DynamoPageCount }
-
-
-type alias DynamoPageCount =
-    { vertex_id : DynamoValue
-    , page_count : DynamoValue
-    }
-
-
-pageCountResponseDecoder : Decode.Decoder PageCountResponse
-pageCountResponseDecoder =
-    Decode.map PageCountResponse (Decode.field "Responses" poliTraversalsPageCountTableDecoder)
-
-
-poliTraversalsPageCountTableDecoder : Decode.Decoder PoliTraversalsPageCountTable
-poliTraversalsPageCountTableDecoder =
-    Decode.map PoliTraversalsPageCountTable
-        (Decode.field "PoliTraversalsPageCount" (Decode.list pageCountInnerResponseDecoder))
-
-
-pageCountInnerResponseDecoder : Decode.Decoder DynamoPageCount
-pageCountInnerResponseDecoder =
-    Decode.map2 DynamoPageCount
-        (Decode.field "vertex_id" dynamoNumberValueDecoder)
-        (Decode.field "page_count" dynamoNumberValueDecoder)
-
-
-type alias VertexDataRequest =
-    { request_items : VertexDataInnerRequest }
-
-
-type alias VertexDataInnerRequest =
-    { poli_vertex : VertexDataInnerRequestKeys }
-
-
-type alias VertexDataInnerRequestKeys =
-    { keys : List VertexDataInnerRequestKey }
-
-
-type alias VertexDataInnerRequestKey =
-    { uid : DynamoValue }
-
-
-vertexDataPost : VertexDataRequest -> (Result Http.Error VertexDataResponse -> Msg) -> Cmd Msg
-vertexDataPost request toMsg =
-    Http.post
-        { url = graphDataURL
-        , body = Http.jsonBody (vertexDataRequestEncoder request)
-        , expect = Http.expectJson toMsg vertexDataResponseDecoder
-        }
-
-
-buildVertexDataRequest : List String -> VertexDataRequest
-buildVertexDataRequest uids =
-    VertexDataRequest
-        (VertexDataInnerRequest
-            (VertexDataInnerRequestKeys (List.map buildVertexDataRequestInnerValues uids))
-        )
-
-
-buildVertexDataRequestInnerValues : String -> VertexDataInnerRequestKey
-buildVertexDataRequestInnerValues uid =
-    VertexDataInnerRequestKey (DynamoValue uid)
-
-
-vertexDataRequestEncoder : VertexDataRequest -> Encode.Value
-vertexDataRequestEncoder vertexDataRequest =
-    Encode.object
-        [ ( "RequestItems", vertexDataInnerRequestEncoder vertexDataRequest.request_items ) ]
-
-
-vertexDataInnerRequestEncoder : VertexDataInnerRequest -> Encode.Value
-vertexDataInnerRequestEncoder vertexDataInnerRequest =
-    Encode.object
-        [ ( "PoliVertex", vertexDataInnerRequestKeysEncoder vertexDataInnerRequest.poli_vertex ) ]
-
-
-vertexDataInnerRequestKeysEncoder : VertexDataInnerRequestKeys -> Encode.Value
-vertexDataInnerRequestKeysEncoder vertexDataInnerRequestKey =
-    Encode.object
-        [ ( "Keys", Encode.list vertexDataInnerRequestKeyEncoder vertexDataInnerRequestKey.keys ) ]
-
-
-vertexDataInnerRequestKeyEncoder : VertexDataInnerRequestKey -> Encode.Value
-vertexDataInnerRequestKeyEncoder vertexDataInnerRequestUID =
-    Encode.object
-        [ ( "uid", dynamoNumberValueEncoder vertexDataInnerRequestUID.uid ) ]
-
-
-type alias VertexDataResponse =
-    { responses : PoliVertexTable }
-
-
-type alias PoliVertexTable =
-    { items : List DynamoVertexData }
-
-
-vertexDataResponseDecoder : Decode.Decoder VertexDataResponse
-vertexDataResponseDecoder =
-    Decode.map VertexDataResponse (Decode.field "Responses" poliVertexTable)
-
-
-poliVertexTable : Decode.Decoder PoliVertexTable
-poliVertexTable =
-    Decode.map PoliVertexTable (Decode.field "PoliVertex" (Decode.list vertexDataInnerResponseDecoder))
-
-
-type alias TraversalRequest =
-    { request_items : TraversalInnerRequest }
-
-
-type alias TraversalInnerRequest =
-    { poli_traversals_page : TraversalInnerRequestKeys }
-
-
-type alias TraversalInnerRequestKeys =
-    { keys : List TraversalInnerRequestKey }
-
-
-type alias TraversalInnerRequestKey =
-    { vertex_id : DynamoValue
-    , page_num : DynamoValue
-    }
-
-
-traversalPost : TraversalRequest -> (Result Http.Error TraversalResponse -> Msg) -> Cmd Msg
-traversalPost request toMsg =
-    Http.post
-        { url = graphDataURL
-        , body = Http.jsonBody (traversalRequestEncoder request)
-        , expect = Http.expectJson toMsg traversalResponseDecoder
-        }
-
-
-buildTraversalRequest : List TraversalPage -> TraversalRequest
-buildTraversalRequest traversalPages =
-    TraversalRequest
-        (TraversalInnerRequest
-            (TraversalInnerRequestKeys (List.map buildTraversalRequestInnerValues traversalPages))
-        )
-
-
-buildTraversalRequestInnerValues : TraversalPage -> TraversalInnerRequestKey
-buildTraversalRequestInnerValues traversalPage =
-    TraversalInnerRequestKey (DynamoValue traversalPage.vertex_id) (DynamoValue traversalPage.page_number)
-
-
-traversalRequestEncoder : TraversalRequest -> Encode.Value
-traversalRequestEncoder traversalRequest =
-    Encode.object
-        [ ( "RequestItems", traversalInnerRequestEncoder traversalRequest.request_items ) ]
-
-
-traversalInnerRequestEncoder : TraversalInnerRequest -> Encode.Value
-traversalInnerRequestEncoder traversalInnerRequest =
-    Encode.object
-        [ ( "PoliTraversalsPage", traversalInnerRequestKeysEncoder traversalInnerRequest.poli_traversals_page ) ]
-
-
-traversalInnerRequestKeysEncoder : TraversalInnerRequestKeys -> Encode.Value
-traversalInnerRequestKeysEncoder traversalInnerRequestKeys =
-    Encode.object
-        [ ( "Keys", Encode.list traversalInnerRequestKeyEncoder traversalInnerRequestKeys.keys ) ]
-
-
-traversalInnerRequestKeyEncoder : TraversalInnerRequestKey -> Encode.Value
-traversalInnerRequestKeyEncoder traversalInnerRequestKey =
-    Encode.object
-        [ ( "vertex_id", dynamoNumberValueEncoder traversalInnerRequestKey.vertex_id )
-        , ( "page_num", dynamoNumberValueEncoder traversalInnerRequestKey.page_num )
-        ]
-
-
-type alias TraversalResponse =
-    { responses : PoliTraversalsPageTable }
-
-
-type alias PoliTraversalsPageTable =
-    { items : List DynamoTraversal }
-
-
-type alias DynamoTraversal =
-    { vertex_id : DynamoValue
-    , page_num : DynamoValue
-    , related_vertex_ids : DynamoArrayValue
-    }
-
-
-traversalResponseDecoder : Decode.Decoder TraversalResponse
-traversalResponseDecoder =
-    Decode.map TraversalResponse (Decode.field "Responses" poliTraversalsPageTable)
-
-
-poliTraversalsPageTable : Decode.Decoder PoliTraversalsPageTable
-poliTraversalsPageTable =
-    Decode.map PoliTraversalsPageTable (Decode.field "PoliTraversalsPage" (Decode.list traversalInnerResponseDecoder))
-
-
-traversalInnerResponseDecoder : Decode.Decoder DynamoTraversal
-traversalInnerResponseDecoder =
-    Decode.map3 DynamoTraversal
-        (Decode.field "vertex_id" dynamoNumberValueDecoder)
-        (Decode.field "page_num" dynamoNumberValueDecoder)
-        (Decode.field "related_vertex_ids" dynamoArrayNumberValueDecoder)
-
-
-type alias EdgeDataRequest =
-    { request_items : EdgeDataInnerRequest }
-
-
-type alias EdgeDataInnerRequest =
-    { poli_edge : EdgeDataInnerRequestKeys }
-
-
-type alias EdgeDataInnerRequestKeys =
-    { keys : List EdgeDataInnerRequestKey }
-
-
-type alias EdgeDataInnerRequestKey =
-    { src_id : DynamoValue
-    , dst_id : DynamoValue
-    }
-
-
-edgeDataPost : EdgeDataRequest -> (Result Http.Error EdgeDataResponse -> Msg) -> Cmd Msg
-edgeDataPost request toMsg =
-    Http.post
-        { url = graphDataURL
-        , body = Http.jsonBody (edgeDataRequestEncoder request)
-        , expect = Http.expectJson toMsg edgeDataResponseDecoder
-        }
-
-
-buildEdgeDataRequest : Direction -> List Traversal -> EdgeDataRequest
-buildEdgeDataRequest direction traversals =
-    let
-        edges : List ( String, String )
-        edges =
-            case direction of
-                In ->
-                    List.concatMap (\trv -> List.map (\dst_id -> ( dst_id, trv.src_id )) trv.dst_ids) traversals
-
-                Out ->
-                    List.concatMap (\trv -> List.map (\dst_id -> ( trv.src_id, dst_id )) trv.dst_ids) traversals
-    in
-    EdgeDataRequest
-        (EdgeDataInnerRequest
-            (EdgeDataInnerRequestKeys (List.map buildEdgeDataRequestInnerValues edges))
-        )
-
-
-buildEdgeDataRequestInnerValues : ( String, String ) -> EdgeDataInnerRequestKey
-buildEdgeDataRequestInnerValues tuple =
-    EdgeDataInnerRequestKey (DynamoValue (Tuple.first tuple)) (DynamoValue (Tuple.second tuple))
-
-
-edgeDataRequestEncoder : EdgeDataRequest -> Encode.Value
-edgeDataRequestEncoder edgeDataRequest =
-    Encode.object
-        [ ( "RequestItems", edgeDataInnerRequestEncoder edgeDataRequest.request_items ) ]
-
-
-edgeDataInnerRequestEncoder : EdgeDataInnerRequest -> Encode.Value
-edgeDataInnerRequestEncoder edgeDataInnerRequest =
-    Encode.object
-        [ ( "PoliEdge", edgeDataInnerRequestKeysEncoder edgeDataInnerRequest.poli_edge ) ]
-
-
-edgeDataInnerRequestKeysEncoder : EdgeDataInnerRequestKeys -> Encode.Value
-edgeDataInnerRequestKeysEncoder edgeDataInnerRequestKeys =
-    Encode.object
-        [ ( "Keys", Encode.list edgeDataInnerRequestKeyEncoder edgeDataInnerRequestKeys.keys ) ]
-
-
-edgeDataInnerRequestKeyEncoder : EdgeDataInnerRequestKey -> Encode.Value
-edgeDataInnerRequestKeyEncoder edgeDataInnerRequestKey =
-    Encode.object
-        [ ( "src_id", dynamoNumberValueEncoder edgeDataInnerRequestKey.src_id )
-        , ( "dst_id", dynamoNumberValueEncoder edgeDataInnerRequestKey.dst_id )
-        ]
-
-
-type alias EdgeDataResponse =
-    { responses : PoliEdgeDataTable }
-
-
-type alias PoliEdgeDataTable =
-    { items : List DynamoEdgeData }
-
-
-type alias DynamoEdgeData =
-    { src_id : DynamoValue
-    , dst_id : DynamoValue
-    , num_transactions : DynamoValue
-    , total_spend : DynamoValue
-    , avg_spend : DynamoValue
-    , max_spend : DynamoValue
-    , min_spend : DynamoValue
-    }
-
-
-edgeDataResponseDecoder : Decode.Decoder EdgeDataResponse
-edgeDataResponseDecoder =
-    Decode.map EdgeDataResponse (Decode.field "Responses" poliEdgeDataTableDecoder)
-
-
-poliEdgeDataTableDecoder : Decode.Decoder PoliEdgeDataTable
-poliEdgeDataTableDecoder =
-    Decode.map PoliEdgeDataTable (Decode.field "PoliEdge" (Decode.list edgeDataInnerResponseDecoder))
-
-
-edgeDataInnerResponseDecoder : Decode.Decoder DynamoEdgeData
-edgeDataInnerResponseDecoder =
-    Decode.map7 DynamoEdgeData
-        (Decode.field "src_id" dynamoNumberValueDecoder)
-        (Decode.field "dst_id" dynamoNumberValueDecoder)
-        (Decode.field "num_transactions" dynamoNumberValueDecoder)
-        (Decode.field "total_spend" dynamoNumberValueDecoder)
-        (Decode.field "avg_spend" dynamoNumberValueDecoder)
-        (Decode.field "max_spend" dynamoNumberValueDecoder)
-        (Decode.field "min_spend" dynamoNumberValueDecoder)
-
-
-type alias DynamoArrayValue =
-    { list : List DynamoValue }
-
-
-type alias DynamoValue =
-    { value : String }
-
-
-type alias DynamoBool =
-    { value : Bool }
-
-
-dynamoArrayStringValueDecoder : Decode.Decoder DynamoArrayValue
-dynamoArrayStringValueDecoder =
-    Decode.map DynamoArrayValue (Decode.field "L" (Decode.list dynamoStringValueDecoder))
-
-
-dynamoArrayNumberValueDecoder : Decode.Decoder DynamoArrayValue
-dynamoArrayNumberValueDecoder =
-    Decode.map DynamoArrayValue (Decode.field "L" (Decode.list dynamoNumberValueDecoder))
-
-
-dynamoNumberValueDecoder : Decode.Decoder DynamoValue
-dynamoNumberValueDecoder =
-    Decode.map DynamoValue (Decode.field "N" Decode.string)
-
-
-dynamoNumberValueEncoder : DynamoValue -> Encode.Value
-dynamoNumberValueEncoder dynamoValue =
-    Encode.object
-        [ ( "N", Encode.string dynamoValue.value ) ]
-
-
-dynamoStringValueDecoder : Decode.Decoder DynamoValue
-dynamoStringValueDecoder =
-    Decode.map DynamoValue (Decode.field "S" Decode.string)
-
-
-dynamoBoolDecoder : Decode.Decoder DynamoBool
-dynamoBoolDecoder =
-    Decode.map DynamoBool (Decode.field "BOOL" Decode.bool)
-
-
-vertexDataInnerResponseDecoder : Decode.Decoder DynamoVertexData
-vertexDataInnerResponseDecoder =
-    Decode.map6 DynamoVertexData
-        (Decode.field "name" dynamoStringValueDecoder)
-        (Decode.field "uid" dynamoNumberValueDecoder)
-        (Decode.field "is_committee" dynamoBoolDecoder)
-        (Decode.field "cities" dynamoArrayStringValueDecoder)
-        (Decode.field "streets" dynamoArrayStringValueDecoder)
-        (Decode.field "states" dynamoArrayStringValueDecoder)
 
 
 
