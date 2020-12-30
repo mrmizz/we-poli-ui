@@ -1,9 +1,9 @@
-module Models.Zipped.ZipVerticesAndEdgesSpec exposing (suite1)
+module Model.Zipped.ZipVerticesAndEdgesSpec exposing (suite1)
 
 import Expect
-import Models.Direction exposing (Direction(..))
-import Models.Zipped exposing (Zipped, zipVerticesAndEdges)
-import Models.Zipped.Fixtures exposing (..)
+import Model.Direction exposing (Direction(..))
+import Model.Zipped exposing (Zipped, zipVerticesAndEdges)
+import Model.Zipped.Fixtures exposing (..)
 import Test exposing (Test, describe, test)
 
 

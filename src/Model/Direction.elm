@@ -1,4 +1,4 @@
-module Models.Direction exposing (Direction(..), switch, toIsCommittee)
+module Model.Direction exposing (Direction(..), switch, toIsCommittee)
 
 
 type Direction

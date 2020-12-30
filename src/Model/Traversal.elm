@@ -1,4 +1,4 @@
-module Models.Traversal exposing (Traversal, TraversalPage)
+module Model.Traversal exposing (Traversal, TraversalPage)
 
 
 type alias Traversal =

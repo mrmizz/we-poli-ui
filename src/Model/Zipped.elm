@@ -1,12 +1,12 @@
-module Models.Zipped exposing (Zipped, aggregate, groupBySrcId, sortBy, zipVerticesAndEdges)
+module Model.Zipped exposing (Zipped, aggregate, groupBySrcId, sortBy, zipVerticesAndEdges)
 
 import Dict exposing (Dict)
-import Models.Aggregation exposing (Aggregation(..))
-import Models.Direction exposing (Direction(..))
-import Models.EdgeData exposing (EdgeData)
-import Models.SortBy exposing (SortBy(..))
-import Models.Traversal exposing (Traversal)
-import Models.VertexData exposing (VertexData)
+import Model.Aggregation exposing (Aggregation(..))
+import Model.Direction exposing (Direction(..))
+import Model.EdgeData exposing (EdgeData)
+import Model.SortBy exposing (SortBy(..))
+import Model.Traversal exposing (Traversal)
+import Model.VertexData exposing (VertexData)
 import Set exposing (Set)
 
 

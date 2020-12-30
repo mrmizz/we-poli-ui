@@ -1,6 +1,6 @@
-module Models.VertexData exposing (VertexData, distinct, filterByDirection, notUID)
+module Model.VertexData exposing (VertexData, distinct, filterByDirection, notUID)
 
-import Models.Direction as Direction exposing (Direction)
+import Model.Direction as Direction exposing (Direction)
 import Set exposing (Set)
 
 

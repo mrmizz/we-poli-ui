@@ -1,6 +1,6 @@
-module Models.PageCount exposing (EdgeDataPageCount, PageCount, TraversalsPageCount, VertexDataPageCount)
+module Model.PageCount exposing (EdgeDataPageCount, PageCount, TraversalsPageCount, VertexDataPageCount)
 
-import Models.Traversal exposing (Traversal, TraversalPage)
+import Model.Traversal exposing (Traversal, TraversalPage)
 
 
 type alias PageCount =

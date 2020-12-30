@@ -1,4 +1,4 @@
-module Models.Aggregation exposing (Aggregation(..), print)
+module Model.Aggregation exposing (Aggregation(..), print)
 
 
 type Aggregation

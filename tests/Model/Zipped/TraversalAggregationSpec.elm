@@ -1,10 +1,10 @@
-module Models.Zipped.TraversalAggregationSpec exposing (suite1, suite2)
+module Model.Zipped.TraversalAggregationSpec exposing (suite1, suite2)
 
 import Expect exposing (Expectation)
-import Models.Aggregation exposing (Aggregation(..))
-import Models.Traversal exposing (Traversal)
-import Models.Zipped exposing (Zipped, aggregate, groupBySrcId)
-import Models.Zipped.Fixtures exposing (..)
+import Model.Aggregation exposing (Aggregation(..))
+import Model.Traversal exposing (Traversal)
+import Model.Zipped exposing (Zipped, aggregate, groupBySrcId)
+import Model.Zipped.Fixtures exposing (..)
 import Test exposing (..)
 
 

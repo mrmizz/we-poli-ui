@@ -1,4 +1,4 @@
-module Models.EdgeData exposing (EdgeData, format)
+module Model.EdgeData exposing (EdgeData, format)
 
 import FormatNumber
 import FormatNumber.Locales as Locales

@@ -1,4 +1,4 @@
-module Models.SortBy exposing (SortBy(..))
+module Model.SortBy exposing (SortBy(..))
 
 
 type SortBy

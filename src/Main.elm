@@ -11,14 +11,16 @@ import Http
 import Json.Decode as Decode
 import Json.Encode as Encode
 import List
-import Models.Aggregation as Aggregation exposing (Aggregation(..))
-import Models.Direction as Direction exposing (Direction(..))
-import Models.EdgeData as EdgeData exposing (EdgeData)
-import Models.PageCount exposing (..)
-import Models.SortBy exposing (SortBy(..))
-import Models.Traversal exposing (Traversal, TraversalPage)
-import Models.VertexData as VertexData exposing (VertexData)
-import Models.Zipped as Zipped exposing (Zipped)
+import Model.Model exposing (Model)
+import Model.State exposing (State(..))
+import Model.Aggregation as Aggregation exposing (Aggregation(..))
+import Model.Direction as Direction exposing (Direction(..))
+import Model.EdgeData as EdgeData exposing (EdgeData)
+import Model.PageCount exposing (..)
+import Model.SortBy exposing (SortBy(..))
+import Model.Traversal exposing (Traversal, TraversalPage)
+import Model.VertexData as VertexData exposing (VertexData)
+import Model.Zipped as Zipped exposing (Zipped)
 import Set exposing (Set)
 
 
@@ -51,26 +53,6 @@ prefixURL =
 
 
 
--- Model
-
-
-type alias Model =
-    { state : State
-    , vertex_name_search : String
-    , vertex_name_search_response : List VertexData
-    , vertices_selected : List VertexData
-    , aggregation_selected : Aggregation
-    , direction_selected : Direction
-    , sort_by_selected : SortBy
-    , traversal_response : List Traversal
-    , traversal_data_response : List VertexData
-    , edge_data_response : List EdgeData
-    , zipped : List Zipped
-    , page_count : Maybe PageCount
-    }
-
-
-
 -- TODO: evaluate Edge Triplet request instead Traversal, Vertex, then Edge Requests
 
 
@@ -82,15 +64,6 @@ printBool bool =
 
         False ->
             "false"
-
-
-type State
-    = BuildingRequest
-    | SearchConfirmed
-    | Loading
-    | VertexRequestsSuccess
-    | RequestFailure Http.Error
-    | DataIntegrityFailure
 
 
 initialModel : Model

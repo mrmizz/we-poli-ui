@@ -1,10 +1,10 @@
-module Models.Zipped.SortBySpec exposing (suite1)
+module Model.Zipped.SortBySpec exposing (suite1)
 
 import Expect
-import Models.EdgeData exposing (EdgeData)
-import Models.SortBy exposing (SortBy(..))
-import Models.VertexData exposing (VertexData)
-import Models.Zipped as Zipped exposing (Zipped)
+import Model.EdgeData exposing (EdgeData)
+import Model.SortBy exposing (SortBy(..))
+import Model.VertexData exposing (VertexData)
+import Model.Zipped as Zipped exposing (Zipped)
 import Test exposing (Test, describe, test)
 
 

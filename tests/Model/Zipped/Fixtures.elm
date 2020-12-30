@@ -1,9 +1,9 @@
-module Models.Zipped.Fixtures exposing (..)
+module Model.Zipped.Fixtures exposing (..)
 
-import Models.EdgeData exposing (EdgeData)
-import Models.Traversal exposing (Traversal)
-import Models.VertexData exposing (VertexData)
-import Models.Zipped exposing (Zipped)
+import Model.EdgeData exposing (EdgeData)
+import Model.Traversal exposing (Traversal)
+import Model.VertexData exposing (VertexData)
+import Model.Zipped exposing (Zipped)
 
 
 zipped1 : List Zipped
