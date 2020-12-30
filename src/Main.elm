@@ -18,7 +18,7 @@ import List
 import Model.Aggregation as Aggregation exposing (Aggregation(..))
 import Model.Direction as Direction exposing (Direction(..))
 import Model.EdgeData as EdgeData exposing (EdgeData)
-import Model.Model exposing (Model)
+import Model.Model as Model exposing (Model, initialModel)
 import Model.PageCount exposing (..)
 import Model.SortBy exposing (SortBy(..))
 import Model.State exposing (State(..))
@@ -37,7 +37,7 @@ import Util.Util exposing (printBool)
 main : Program () Model Msg
 main =
     Browser.element
-        { init = init
+        { init = Model.init
         , view = view
         , update = update
         , subscriptions = \_ -> Sub.none
@@ -46,31 +46,6 @@ main =
 
 
 -- TODO: evaluate Edge Triplet request instead Traversal, Vertex, then Edge Requests
-
-
-initialModel : Model
-initialModel =
-    { state = BuildingRequest
-    , vertex_name_search = ""
-    , vertex_name_search_response = []
-    , aggregation_selected = Or
-    , vertices_selected = []
-    , direction_selected = Out
-    , sort_by_selected = Count
-    , traversal_response = []
-    , traversal_data_response = []
-    , edge_data_response = []
-    , zipped = []
-    , page_count = Nothing
-    }
-
-
-init : () -> ( Model, Cmd Msg )
-init _ =
-    ( initialModel, Cmd.none )
-
-
-
 -- UPDATE
 
 
