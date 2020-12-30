@@ -27,6 +27,7 @@ import Model.VertexData as VertexData exposing (VertexData)
 import Model.Zipped as Zipped exposing (Zipped)
 import Msg.Msg exposing (Msg(..))
 import Set exposing (Set)
+import Util.Util exposing (printBool)
 
 
 
@@ -45,16 +46,6 @@ main =
 
 
 -- TODO: evaluate Edge Triplet request instead Traversal, Vertex, then Edge Requests
-
-
-printBool : Bool -> String
-printBool bool =
-    case bool of
-        True ->
-            "true"
-
-        False ->
-            "false"
 
 
 initialModel : Model
