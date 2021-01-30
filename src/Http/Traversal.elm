@@ -1,7 +1,7 @@
-module HTTP.Traversal exposing (DynamoTraversal, TraversalResponse, buildTraversalRequest, traversalPost)
+module Http.Traversal exposing (DynamoTraversal, TraversalResponse, buildTraversalRequest, traversalPost)
 
-import HTTP.Generic exposing (DynamoArrayValue, DynamoValue, dynamoArrayNumberValueDecoder, dynamoNumberValueDecoder, dynamoNumberValueEncoder)
-import HTTP.URL exposing (graphDataURL)
+import Http.Generic exposing (DynamoArrayValue, DynamoValue, dynamoArrayNumberValueDecoder, dynamoNumberValueDecoder, dynamoNumberValueEncoder)
+import Http.Url exposing (graphDataURL)
 import Http
 import Json.Decode as Decode
 import Json.Encode as Encode

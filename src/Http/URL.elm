@@ -1,4 +1,4 @@
-module HTTP.URL exposing (graphDataURL, prefixURL)
+module Http.Url exposing (graphDataURL, prefixURL)
 
 
 graphDataURL : String

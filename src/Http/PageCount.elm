@@ -1,7 +1,7 @@
-module HTTP.PageCount exposing (DynamoPageCount, PageCountResponse, buildPageCountRequest, pageCountPost)
+module Http.PageCount exposing (DynamoPageCount, PageCountResponse, buildPageCountRequest, pageCountPost)
 
-import HTTP.Generic exposing (DynamoValue, dynamoNumberValueDecoder, dynamoNumberValueEncoder)
-import HTTP.URL exposing (graphDataURL)
+import Http.Generic exposing (DynamoValue, dynamoNumberValueDecoder, dynamoNumberValueEncoder)
+import Http.Url exposing (graphDataURL)
 import Http
 import Json.Decode as Decode
 import Json.Encode as Encode
