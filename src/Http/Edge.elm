@@ -1,8 +1,8 @@
 module Http.Edge exposing (DynamoEdgeData, EdgeDataResponse, buildEdgeDataRequest, edgeDataPost)
 
+import Http
 import Http.Generic exposing (DynamoValue, dynamoNumberValueDecoder, dynamoNumberValueEncoder)
 import Http.Url exposing (graphDataURL)
-import Http
 import Json.Decode as Decode
 import Json.Encode as Encode
 import Model.Direction exposing (Direction(..))

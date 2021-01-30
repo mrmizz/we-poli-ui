@@ -1,8 +1,8 @@
 module Http.Vertex exposing (VertexDataResponse, buildVertexDataRequest, vertexDataPost)
 
+import Http
 import Http.Generic exposing (DynamoValue, DynamoVertexData, dynamoNumberValueEncoder, vertexDataInnerResponseDecoder)
 import Http.Url exposing (graphDataURL)
-import Http
 import Json.Decode as Decode
 import Json.Encode as Encode
 

@@ -1,11 +1,11 @@
 module Msg.Msg exposing (Msg(..))
 
+import Http
 import Http.Edge exposing (EdgeDataResponse)
 import Http.NamePrefix exposing (VertexNamePrefixResponse)
 import Http.PageCount exposing (PageCountResponse)
 import Http.Traversal exposing (TraversalResponse)
 import Http.Vertex exposing (VertexDataResponse)
-import Http
 import Model.SortBy exposing (SortBy)
 import Model.VertexData exposing (VertexData)
 

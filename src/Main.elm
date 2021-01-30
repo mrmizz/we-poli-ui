@@ -6,14 +6,14 @@ import Element.Background as Background
 import Element.Border as Border
 import Element.Font as Font
 import Element.Input as Input
+import Html exposing (Html)
+import Http
 import Http.Edge exposing (DynamoEdgeData, EdgeDataResponse, buildEdgeDataRequest, edgeDataPost)
 import Http.Generic exposing (DynamoBool, DynamoValue, DynamoVertexData, DynamoVertexDataItem, DynamoVertexDataItems)
 import Http.NamePrefix exposing (VertexNamePrefixResponse, vertexNamePrefixGet)
 import Http.PageCount exposing (DynamoPageCount, PageCountResponse, buildPageCountRequest, pageCountPost)
 import Http.Traversal exposing (DynamoTraversal, TraversalResponse, buildTraversalRequest, traversalPost)
 import Http.Vertex exposing (VertexDataResponse, buildVertexDataRequest, vertexDataPost)
-import Html exposing (Html)
-import Http
 import List
 import Model.Aggregation as Aggregation exposing (Aggregation(..))
 import Model.Direction as Direction exposing (Direction(..))

@@ -1,8 +1,8 @@
 module Http.NamePrefix exposing (VertexNamePrefixResponse, vertexNamePrefixGet)
 
+import Http
 import Http.Generic exposing (DynamoValue, DynamoVertexDataItem, DynamoVertexDataItems, dynamoNumberValueDecoder, dynamoStringValueDecoder, vertexDataInnerResponseDecoder)
 import Http.Url exposing (prefixURL)
-import Http
 import Json.Decode as Decode
 
 
