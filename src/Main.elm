@@ -28,6 +28,7 @@ import Model.Zipped as Zipped exposing (Zipped)
 import Msg.Msg exposing (Msg(..))
 import Set exposing (Set)
 import Util.Util exposing (printBool)
+import View.Loading
 
 
 
@@ -531,7 +532,7 @@ elementView model =
             viewSearchConfirmed model
 
         Loading ->
-            viewLoading
+            View.Loading.view
 
         VertexRequestsSuccess ->
             viewRequestSuccess
@@ -621,11 +622,6 @@ viewBuildingRequestWithNoInputButMaybeSomeConfirmed model =
 
         _ ->
             buildBuildingRequestView model [ Element.column [] [ confirmSearchButton ], viewVerticesSelected model ]
-
-
-viewLoading : Element Msg
-viewLoading =
-    Element.el [] (Element.text "Loading . . .")
 
 
 viewRequestSuccess : Direction -> Model -> Element Msg
