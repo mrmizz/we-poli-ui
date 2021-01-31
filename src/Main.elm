@@ -465,12 +465,25 @@ updateWithEdgeDataResponse model result =
                             )
 
                         [] ->
+                            let
+                                edgeDataResponse : List EdgeData
+                                edgeDataResponse =
+                                    List.map EdgeData.format semi.edge_data_response
+
+                                traversalDataResponse : List VertexData
+                                traversalDataResponse =
+                                    (\vp -> vp.vertices) (VertexData.distinct semi.traversal_data_response)
+                            in
                             ( { semi
                                 | state = VertexRequestsSuccess
-                                , edge_data_response = List.map EdgeData.format semi.edge_data_response
-                                , traversal_data_response =
-                                    (\vp -> vp.vertices)
-                                        (VertexData.distinct semi.traversal_data_response)
+                                , edge_data_response = edgeDataResponse
+                                , traversal_data_response = traversalDataResponse
+                                , zipped =
+                                    Zipped.zipVerticesAndEdges
+                                        model.direction_selected
+                                        model.traversal_response
+                                        traversalDataResponse
+                                        edgeDataResponse
                               }
                             , Cmd.none
                             )
@@ -523,14 +536,7 @@ elementView model =
         VertexRequestsSuccess ->
             viewRequestSuccess
                 model.direction_selected
-                { model
-                    | zipped =
-                        Zipped.zipVerticesAndEdges
-                            model.direction_selected
-                            model.traversal_response
-                            model.traversal_data_response
-                            model.edge_data_response
-                }
+                model
 
         RequestFailure error ->
             viewRequestFailure error
