@@ -1,8 +1,11 @@
 module View.Loading exposing (view)
 
-import Element exposing (Element)
+import Html exposing (Html)
 import Msg.Msg exposing (Msg)
 
-view : Element Msg
+
+view : Html Msg
 view =
-    Element.el [] (Element.text "Loading . . .")
+    Html.div
+        []
+        []

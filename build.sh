@@ -1,12 +1,12 @@
 #!/bin/sh
 set -e
 
-js="../dist/elm.js"
-min="../assets/elm.min.js"
+js="dist/elm.js"
+min="assets/elm.min.js"
 
 
 # build the elm app (using optimized flag)
-elm make --optimize --output=$js ../src/Main.elm
+elm make --optimize --output=$js src/Main.elm
 
 # check to make sure uglifyjs is installed
 if ! command -v uglifyjs &> /dev/null
