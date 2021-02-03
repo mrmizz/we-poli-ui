@@ -25,7 +25,6 @@ main =
 
 
 
--- TODO: evaluate Edge Triplet request instead Traversal, Vertex, then Edge Requests
 -- UPDATE
 
 
