@@ -11,8 +11,17 @@ view =
         [ class "footer has-background-white-ter"
         ]
         [ Html.div
-            [ class "content has-text-centered"
+            [ class "content has-text-centered is-family-secondary"
             ]
-            [ Html.text "Campaign Cash"
+            [ Html.h1
+                [ class "title is-3"
+                ]
+                [ Html.text "Campaign Cash"
+                ]
+            , Html.h2
+                [ class "subtitle is-6"
+                ]
+                [ Html.text "Providing Transparency, Now"
+                ]
             ]
         ]
