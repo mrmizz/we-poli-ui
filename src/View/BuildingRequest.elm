@@ -16,10 +16,26 @@ body =
     Html.div
         [ class "container has-text-centered"
         ]
-        [ Html.input
-            [ class "input is-input is-large"
-            , type_ "text"
-            , placeholder "Search for a Committee..."
+        [ Html.div
+            [ class "field"
             ]
-            []
+            [ Html.div
+                [ class "control has-icons-left"
+                ]
+                [ Html.input
+                    [ class "input is-input is-large"
+                    , type_ "text"
+                    , placeholder "Search for a Committee..."
+                    ]
+                    []
+                , Html.span
+                    [ class "icon is-left"
+                    ]
+                    [ Html.i
+                        [ class "fab fa-searchengin"
+                        ]
+                        []
+                    ]
+                ]
+            ]
         ]
