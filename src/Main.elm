@@ -42,7 +42,7 @@ view : Model -> Html Msg
 view model =
     case model.state of
         BuildingRequest ->
-            View.BuildingRequest.view
+            View.BuildingRequest.view model
 
         SearchConfirmed ->
             Html.div [] []

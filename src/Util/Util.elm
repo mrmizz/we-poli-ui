@@ -1,4 +1,4 @@
-module Util.Util exposing (printBool)
+module Util.Util exposing (printBool, printList)
 
 
 printBool : Bool -> String
@@ -9,3 +9,12 @@ printBool bool =
 
         False ->
             "false"
+
+
+printList : List String -> String
+printList list =
+    let
+        reduce left right =
+            left ++ " " ++ right
+    in
+    List.foldl reduce "" list
