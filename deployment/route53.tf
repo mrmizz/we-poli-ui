@@ -1,36 +1,62 @@
-resource "aws_route53_zone" "main" {
-  name = var.domain_name
+resource "aws_route53_zone" "dot-com" {
+  name = var.domain_name_dot_com
 }
 
-resource "aws_route53_record" "main" {
-  zone_id = aws_route53_zone.main.zone_id
-  name = aws_route53_zone.main.name
+resource "aws_route53_zone" "dot-org" {
+  name = var.domain_name_dot_org
+}
+
+resource "aws_route53_record" "main-dot-com" {
+  zone_id = aws_route53_zone.dot-com.zone_id
+  name = aws_route53_zone.dot-com.name
   type = "A"
   alias {
     evaluate_target_health = false
     name = "s3-website-${var.aws_region}.amazonaws.com" //aws_cloudfront_distribution.client_distribution.domain_name
-    zone_id = aws_s3_bucket.domain.hosted_zone_id //aws_cloudfront_distribution.client_distribution.hosted_zone_id
+    zone_id = aws_s3_bucket.domain-dot-com.hosted_zone_id //aws_cloudfront_distribution.client_distribution.hosted_zone_id
   }
 }
 
-resource "aws_route53_record" "www" {
-  zone_id = aws_route53_zone.main.zone_id
-  name = "www.${var.domain_name}"
+resource "aws_route53_record" "main-dot-org" {
+  zone_id = aws_route53_zone.dot-org.zone_id
+  name = aws_route53_zone.dot-org.name
   type = "A"
   alias {
     evaluate_target_health = false
     name = "s3-website-${var.aws_region}.amazonaws.com" //aws_cloudfront_distribution.client_distribution.domain_name
-    zone_id = aws_s3_bucket.sub-domain-www.hosted_zone_id //aws_cloudfront_distribution.client_distribution.hosted_zone_id
+    zone_id = aws_s3_bucket.domain-dot-org.hosted_zone_id //aws_cloudfront_distribution.client_distribution.hosted_zone_id
   }
 }
 
-resource "aws_route53_record" "dev" {
-  zone_id = aws_route53_zone.main.zone_id
-  name = "dev.${var.domain_name}"
+resource "aws_route53_record" "www-dot-com" {
+  zone_id = aws_route53_zone.dot-com.zone_id
+  name = "www.${aws_route53_zone.dot-com.name}"
+  type = "A"
+  alias {
+    evaluate_target_health = false
+    name = "s3-website-${var.aws_region}.amazonaws.com" //aws_cloudfront_distribution.client_distribution.domain_name
+    zone_id = aws_s3_bucket.sub-domain-www-dot-com.hosted_zone_id //aws_cloudfront_distribution.client_distribution.hosted_zone_id
+  }
+}
+
+resource "aws_route53_record" "www-dot-org" {
+  zone_id = aws_route53_zone.dot-org.zone_id
+  name = "www.${aws_route53_zone.dot-org.name}"
+  type = "A"
+  alias {
+    evaluate_target_health = false
+    name = "s3-website-${var.aws_region}.amazonaws.com" //aws_cloudfront_distribution.client_distribution.domain_name
+    zone_id = aws_s3_bucket.sub-domain-www-dot-org.hosted_zone_id //aws_cloudfront_distribution.client_distribution.hosted_zone_id
+  }
+}
+
+resource "aws_route53_record" "dev-dot-org" {
+  zone_id = aws_route53_zone.dot-org.zone_id
+  name = "dev.${aws_route53_zone.dot-org.name}"
   type = "A"
   alias {
     evaluate_target_health = false
     name = "s3-website-${var.aws_region}.amazonaws.com"
-    zone_id = aws_s3_bucket.sub-domain-dev.hosted_zone_id
+    zone_id = aws_s3_bucket.sub-domain-dev-dot-org.hosted_zone_id
   }
 }
