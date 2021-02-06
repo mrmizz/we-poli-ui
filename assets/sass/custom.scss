@@ -1,6 +1,6 @@
 // custom imports
-@import url('https://fonts.googleapis.com/css?family=Open+Sans');
-@import url('https://fonts.googleapis.com/css?family=Caveat');
+@import url('https://fonts.googleapis.com/css?family=Play');
+@import url('https://fonts.googleapis.com/css?family=Faster+One');
 
 // https://stackoverflow.com/a/58290951/11098871
 // for viewport scrolling
@@ -26,8 +26,8 @@ body {
 }
 
 // custom variables
-$family-primary: "Open Sans", BlinkMacSystemFont, -apple-system, "Helvetica", "Arial", sans-serif;
-$family-secondary: "Caveat", BlinkMacSystemFont, -apple-system, "Helvetica", "Arial", sans-serif;
+$family-primary: "Play", BlinkMacSystemFont, -apple-system, "Helvetica", "Arial", sans-serif;
+$family-secondary: "Faster One", BlinkMacSystemFont, -apple-system, "Helvetica", "Arial", sans-serif;
 // navbar
 $navbar-item-img-max-height: 4.00rem;
 $navbar-height: 4.00rem;

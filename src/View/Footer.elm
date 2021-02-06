@@ -16,12 +16,7 @@ view =
             [ Html.h1
                 [ class "title is-3"
                 ]
-                [ Html.text "Campaign Cash"
-                ]
-            , Html.h2
-                [ class "subtitle is-6"
-                ]
-                [ Html.text "Providing Transparency, Now"
+                [ Html.text "Providing transparency, now"
                 ]
             ]
         ]
