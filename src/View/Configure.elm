@@ -3,12 +3,13 @@ module View.Configure exposing (view)
 import Html exposing (Html)
 import Html.Attributes exposing (checked, class, type_)
 import Html.Events exposing (onClick)
+import Model.Aggregation exposing (Aggregation(..))
 import Model.Direction exposing (Direction(..))
 import Msg.Msg exposing (Msg(..))
 
 
-view : Bool -> Direction -> Html Msg
-view bool directionArg =
+view : Bool -> Direction -> Aggregation -> Html Msg
+view bool directionArg aggregationArg =
     let
         isActive =
             case bool of
@@ -43,6 +44,7 @@ view bool directionArg =
                         [ class "message-body"
                         ]
                         [ direction directionArg
+                        , aggregation aggregationArg
                         ]
                     ]
                 ]
@@ -98,6 +100,54 @@ direction directionArg =
                     ]
                     []
                 , Html.text " Vendors"
+                ]
+            ]
+        ]
+
+
+aggregation : Aggregation -> Html Msg
+aggregation aggregationArg =
+    let
+        flags =
+            case aggregationArg of
+                And ->
+                    ( True, False )
+
+                Or ->
+                    ( False, True )
+    in
+    Html.div
+        [ class "box"
+        ]
+        [ Html.h2
+            [ class "title is-5 mb-2"
+            ]
+            [ Html.text "Aggregate with"
+            ]
+        , Html.div
+            [ class "control"
+            ]
+            [ Html.label
+                [ class "radio"
+                ]
+                [ Html.input
+                    [ type_ "radio"
+                    , checked (Tuple.first flags)
+                    , onClick AggOptionSelected
+                    ]
+                    []
+                , Html.text " And"
+                ]
+            , Html.label
+                [ class "radio"
+                ]
+                [ Html.input
+                    [ type_ "radio"
+                    , checked (Tuple.second flags)
+                    , onClick AggOptionSelected
+                    ]
+                    []
+                , Html.text " Or"
                 ]
             ]
         ]

@@ -14,12 +14,12 @@ import Task
 
 type Msg
     = NoOp
-    | ClickedAbout
-    | ClickedTool
+    | ClickedAbout -- TODO: href
+    | ClickedTool -- TODO: href
     | ConfigureSearch
     | ClearSearch
-    | EditSearch
-    | ConfirmSearch
+    | EditSearch -- TODO: drop
+    | ConfirmSearch -- TODO: drop
     | SearchInput String
     | AggOptionSelected
     | DirectionOptionSelected

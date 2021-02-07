@@ -75,7 +75,7 @@ body model isModalActive =
     Html.div
         [ class "container"
         ]
-        [ View.Configure.view isModalActive model.direction_selected
+        [ View.Configure.view isModalActive model.direction_selected model.aggregation_selected
         , buttons
         , Html.div
             [ class "field"
