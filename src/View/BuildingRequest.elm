@@ -161,6 +161,7 @@ search : Html Msg
 search =
     Html.button
         [ class "button"
+        , onClick TraversalRequestMade
         ]
         [ Html.text "Search"
         ]

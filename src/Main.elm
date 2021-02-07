@@ -10,6 +10,7 @@ import View.About
 import View.BuildingRequest
 import View.Loading
 import View.RequestFailure
+import View.VertexRequestSuccess
 
 
 
@@ -54,8 +55,8 @@ view model =
         Loading ->
             View.Loading.view
 
-        VertexRequestsSuccess ->
-            Html.div [] []
+        VertexRequestsSuccess isModalActive ->
+            View.VertexRequestSuccess.view model isModalActive
 
         RequestFailure error ->
             View.RequestFailure.view error

@@ -15,7 +15,7 @@ import Model.PageCount exposing (EdgeDataPageCount, PageCount, TraversalsPageCou
 import Model.State exposing (State(..))
 import Model.Traversal exposing (Traversal, TraversalPage)
 import Model.VertexData as VertexData exposing (VertexData)
-import Model.Zipped as Zipped
+import Model.Zipped as Zipped exposing (Zipped)
 import Msg.Msg exposing (Msg(..), resetViewport)
 import Util.Util exposing (printBool)
 
@@ -34,11 +34,24 @@ update msg model =
 
         ConfigureSearch ->
             case model.state of
-                BuildingRequest True ->
-                    ( { model | state = BuildingRequest False }, Cmd.none )
+                BuildingRequest bool ->
+                    case bool of
+                        True ->
+                            ( { model | state = BuildingRequest False }, Cmd.none )
+
+                        False ->
+                            ( { model | state = BuildingRequest True }, Cmd.none )
+
+                VertexRequestsSuccess bool ->
+                    case bool of
+                        True ->
+                            ( { model | state = VertexRequestsSuccess False }, Cmd.none )
+
+                        False ->
+                            ( { model | state = VertexRequestsSuccess True }, Cmd.none )
 
                 _ ->
-                    ( { model | state = BuildingRequest True }, Cmd.none )
+                    ( { model | state = BuildingRequest False }, Cmd.none )
 
         SearchInput prefix ->
             updateWithVertexNamePrefixRequest model prefix
@@ -461,17 +474,20 @@ updateWithEdgeDataResponse model result =
                                 traversalDataResponse : List VertexData
                                 traversalDataResponse =
                                     (\vp -> vp.vertices) (VertexData.distinct semi.traversal_data_response)
-                            in
-                            ( { semi
-                                | state = VertexRequestsSuccess
-                                , edge_data_response = edgeDataResponse
-                                , traversal_data_response = traversalDataResponse
-                                , zipped =
+
+                                zipped : List Zipped
+                                zipped =
                                     Zipped.zipVerticesAndEdges
                                         model.direction_selected
                                         model.traversal_response
                                         traversalDataResponse
                                         edgeDataResponse
+                            in
+                            ( { semi
+                                | state = VertexRequestsSuccess False
+                                , edge_data_response = edgeDataResponse
+                                , traversal_data_response = traversalDataResponse
+                                , zipped = Zipped.sortBy model.sort_by_selected zipped
                               }
                             , Cmd.none
                             )

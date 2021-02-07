@@ -8,6 +8,6 @@ type State
     | BuildingRequest Bool
     | SearchConfirmed
     | Loading
-    | VertexRequestsSuccess
+    | VertexRequestsSuccess Bool
     | RequestFailure Http.Error
     | DataIntegrityFailure
