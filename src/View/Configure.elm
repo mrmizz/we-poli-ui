@@ -58,14 +58,13 @@ view bool directionArg =
 direction : Direction -> Html Msg
 direction directionArg =
     let
-        -- TODO
         flags =
             case directionArg of
                 In ->
-                    ( True, False )
+                    ( False, True )
 
                 Out ->
-                    ( False, True )
+                    ( True, False )
     in
     Html.div
         [ class "box"
@@ -76,22 +75,29 @@ direction directionArg =
             [ Html.text "Search For"
             ]
         , Html.div
-            [ class "field"
+            [ class "control"
             ]
-            [ Html.div
-                [ class "control"
+            [ Html.label
+                [ class "radio"
                 ]
-                [ Html.label
-                    [ class "radio" --TODO Margin
+                [ Html.input
+                    [ type_ "radio"
+                    , checked (Tuple.first flags)
+                    , onClick DirectionOptionSelected
                     ]
-                    [ Html.input
-                        [ type_ "radio"
-                        , checked True
-                        , onClick DirectionOptionSelected
-                        ]
-                        []
-                    , Html.text "Committees"
+                    []
+                , Html.text " Committees"
+                ]
+            , Html.label
+                [ class "radio"
+                ]
+                [ Html.input
+                    [ type_ "radio"
+                    , checked (Tuple.second flags)
+                    , onClick DirectionOptionSelected
                     ]
+                    []
+                , Html.text " Vendors"
                 ]
             ]
         ]
