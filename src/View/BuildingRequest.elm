@@ -86,7 +86,7 @@ body model isModalActive =
                 [ Html.input
                     [ class "input is-input is-large"
                     , type_ "text"
-                    , placeholder "Search for a Committee..."
+                    , placeholder "Search for a Committee..." -- TODO: 
                     , onInput SearchInput
                     ]
                     []
