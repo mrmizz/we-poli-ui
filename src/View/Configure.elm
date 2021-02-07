@@ -58,7 +58,7 @@ view bool directionArg =
 direction : Direction -> Html Msg
 direction directionArg =
     let
-        -- TODOe
+        -- TODO
         flags =
             case directionArg of
                 In ->
