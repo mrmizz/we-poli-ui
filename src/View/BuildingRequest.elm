@@ -22,8 +22,7 @@ body model =
             case String.length model.vertex_name_search >= 3 of
                 True ->
                     Html.div
-                        [ class "box"
-                        ]
+                        []
                         [ View.VertexData.view model.vertex_name_search_response
                         ]
 
@@ -31,7 +30,7 @@ body model =
                     Html.div [] []
     in
     Html.div
-        [ class "container has-text-centered"
+        [ class "container"
         ]
         [ Html.div
             [ class "field"

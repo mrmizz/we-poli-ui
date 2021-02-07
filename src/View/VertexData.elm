@@ -16,10 +16,23 @@ import Util.Util as Util
 
 view : List VertexData -> Html Msg
 view vertices =
-    Html.table
-        [ class "table is-bordered is-hoverable"
+    Html.div
+        []
+        (List.map table vertices)
+
+
+table : VertexData -> Html Msg
+table vertexData =
+    Html.div
+        [ class "box"
         ]
-        ([ header ] ++ List.map body vertices)
+        [ Html.table
+            [ class "table is-bordered is-hoverable is-fullwidth"
+            ]
+            [ header
+            , body vertexData
+            ]
+        ]
 
 
 header : Html msg
@@ -30,27 +43,11 @@ header =
             []
             [ Html.th
                 []
-                [ Html.text "uid"
+                [ Html.text "key"
                 ]
             , Html.th
                 []
-                [ Html.text "name"
-                ]
-            , Html.th
-                []
-                [ Html.text "is_committee"
-                ]
-            , Html.th
-                []
-                [ Html.text "cities"
-                ]
-            , Html.th
-                []
-                [ Html.text "streets"
-                ]
-            , Html.th
-                []
-                [ Html.text "states"
+                [ Html.text "value"
                 ]
             ]
         ]
@@ -64,23 +61,62 @@ body vertexData =
             []
             [ Html.td
                 []
+                [ Html.text "uid"
+                ]
+            , Html.td
+                []
                 [ Html.text vertexData.uid
+                ]
+            ]
+        , Html.tr
+            []
+            [ Html.td
+                []
+                [ Html.text "name"
                 ]
             , Html.td
                 []
                 [ Html.text vertexData.name
                 ]
+            ]
+        , Html.tr
+            []
+            [ Html.td
+                []
+                [ Html.text "is-committee"
+                ]
             , Html.td
                 []
                 [ Html.text (Util.printBool vertexData.is_committee)
+                ]
+            ]
+        , Html.tr
+            []
+            [ Html.td
+                []
+                [ Html.text "cities"
                 ]
             , Html.td
                 []
                 [ Html.text (Util.printList vertexData.cities)
                 ]
+            ]
+        , Html.tr
+            []
+            [ Html.td
+                []
+                [ Html.text "streets"
+                ]
             , Html.td
                 []
                 [ Html.text (Util.printList vertexData.streets)
+                ]
+            ]
+        , Html.tr
+            []
+            [ Html.td
+                []
+                [ Html.text "states"
                 ]
             , Html.td
                 []
