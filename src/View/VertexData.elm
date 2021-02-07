@@ -1,4 +1,4 @@
-module View.VertexData exposing (view)
+module View.VertexData exposing (view, viewMin)
 
 import Html exposing (Html)
 import Html.Attributes exposing (class)
@@ -14,42 +14,21 @@ import Util.Util as Util
 -- TODO: aggregate city, state, etc to address object
 
 
-view : List VertexData -> Html Msg
-view vertices =
-    Html.div
-        []
-        (List.map table vertices)
-
-
-table : VertexData -> Html Msg
-table vertexData =
-    Html.div
-        [ class "box"
+view : VertexData -> Html Msg
+view vertexData =
+    Html.table
+        [ class "table is-bordered is-hoverable is-fullwidth"
         ]
-        [ Html.table
-            [ class "table is-bordered is-hoverable is-fullwidth"
-            ]
-            [ header
-            , body vertexData
-            ]
+        [ body vertexData
         ]
 
 
-header : Html msg
-header =
-    Html.thead
-        []
-        [ Html.tr
-            []
-            [ Html.th
-                []
-                [ Html.text "key"
-                ]
-            , Html.th
-                []
-                [ Html.text "value"
-                ]
-            ]
+viewMin : VertexData -> Html Msg
+viewMin vertexData =
+    Html.table
+        [ class "table is-bordered is-hoverable is-fullwidth"
+        ]
+        [ bodyMin vertexData
         ]
 
 
@@ -121,6 +100,35 @@ body vertexData =
             , Html.td
                 []
                 [ Html.text (Util.printList vertexData.states)
+                ]
+            ]
+        ]
+
+
+bodyMin : VertexData -> Html Msg
+bodyMin vertexData =
+    Html.tbody
+        []
+        [ Html.tr
+            []
+            [ Html.td
+                []
+                [ Html.text "uid"
+                ]
+            , Html.td
+                []
+                [ Html.text vertexData.uid
+                ]
+            ]
+        , Html.tr
+            []
+            [ Html.td
+                []
+                [ Html.text "name"
+                ]
+            , Html.td
+                []
+                [ Html.text vertexData.name
                 ]
             ]
         ]

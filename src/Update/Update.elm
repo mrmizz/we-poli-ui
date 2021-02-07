@@ -16,13 +16,16 @@ import Model.State exposing (State(..))
 import Model.Traversal exposing (Traversal, TraversalPage)
 import Model.VertexData as VertexData exposing (VertexData)
 import Model.Zipped as Zipped
-import Msg.Msg exposing (Msg(..))
+import Msg.Msg exposing (Msg(..), resetViewport)
 import Util.Util exposing (printBool)
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
+        NoOp ->
+            ( model, Cmd.none )
+
         SearchInput prefix ->
             updateWithVertexNamePrefixRequest model prefix
 
@@ -63,7 +66,7 @@ update msg model =
             updateWithDirectionOption model
 
         VertexSelected vertex ->
-            ( { model | vertices_selected = updateVertexSelected vertex model.vertices_selected }, Cmd.none )
+            ( { model | vertices_selected = updateVertexSelected vertex model.vertices_selected }, resetViewport )
 
         DeleteVertexSelection vertex ->
             ( { model | vertices_selected = updateVertexDeleted vertex model.vertices_selected }, Cmd.none )
