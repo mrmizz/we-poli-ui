@@ -40,11 +40,42 @@ body model =
                         [ class "pb-6"
                         ]
                         (List.map selected nel)
+
+        buttons : Html Msg
+        buttons =
+            case model.vertices_selected of
+                [] ->
+                    Html.div
+                        [ class "columns is-mobile is-pulled-right"
+                        ]
+                        [ Html.div
+                            [ class "column"
+                            ]
+                            [ configure
+                            ]
+                        ]
+
+                _ ->
+                    Html.div
+                        [ class "columns is-mobile is-pulled-right"
+                        ]
+                        [ Html.div
+                            [ class "column"
+                            ]
+                            [ configure
+                            ]
+                        , Html.div
+                            [ class "column"
+                            ]
+                            [ search
+                            ]
+                        ]
     in
     Html.div
         [ class "container"
         ]
-        [ Html.div
+        [ buttons
+        , Html.div
             [ class "field"
             ]
             [ Html.div
@@ -66,7 +97,10 @@ body model =
                         []
                     ]
                 ]
-            , selected_
+            ]
+        , Html.div
+            []
+            [ selected_
             , response
             ]
         ]
@@ -108,4 +142,22 @@ selected vertex =
         ]
         [ delete
         , View.VertexData.viewMin vertex
+        ]
+
+
+configure : Html Msg
+configure =
+    Html.a
+        [ class "button"
+        ]
+        [ Html.text "Configure"
+        ]
+
+
+search : Html Msg
+search =
+    Html.button
+        [ class "button"
+        ]
+        [ Html.text "Search"
         ]
