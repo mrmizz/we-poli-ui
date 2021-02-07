@@ -17,7 +17,7 @@ view =
                 [ class "level-item"
                 ]
                 [ Html.div
-                    [ class "tabs is-boxed is-large"
+                    [ class "tabs is-boxed is-large has-border-1"
                     ]
                     [ Html.ul
                         []
