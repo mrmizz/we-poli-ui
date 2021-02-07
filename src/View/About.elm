@@ -1,4 +1,4 @@
-module View.Loading exposing (view)
+module View.About exposing (..)
 
 import Html exposing (Html)
 import Msg.Msg exposing (Msg)

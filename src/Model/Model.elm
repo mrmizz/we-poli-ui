@@ -30,7 +30,7 @@ type alias Model =
 
 initialModel : Model
 initialModel =
-    { state = BuildingRequest
+    { state = BuildingRequest False
     , vertex_name_search = ""
     , vertex_name_search_response = []
     , aggregation_selected = Or

@@ -14,6 +14,9 @@ import Task
 
 type Msg
     = NoOp
+    | ClickedAbout
+    | ClickedTool
+    | ConfigureSearch
     | ClearSearch
     | EditSearch
     | ConfirmSearch

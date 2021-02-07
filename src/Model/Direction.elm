@@ -1,9 +1,19 @@
-module Model.Direction exposing (Direction(..), switch, toIsCommittee)
+module Model.Direction exposing (Direction(..), switch, toIsCommittee, toString)
 
 
 type Direction
     = In
     | Out
+
+
+toString : Direction -> String
+toString direction =
+    case direction of
+        In ->
+            "Vendors"
+
+        Out ->
+            "Committees"
 
 
 toIsCommittee : Direction -> Bool

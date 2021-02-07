@@ -26,6 +26,20 @@ update msg model =
         NoOp ->
             ( model, Cmd.none )
 
+        ClickedAbout ->
+            ( { model | state = About }, Cmd.none )
+
+        ClickedTool ->
+            ( { model | state = BuildingRequest False }, Cmd.none )
+
+        ConfigureSearch ->
+            case model.state of
+                BuildingRequest True ->
+                    ( { model | state = BuildingRequest False }, Cmd.none )
+
+                _ ->
+                    ( { model | state = BuildingRequest True }, Cmd.none )
+
         SearchInput prefix ->
             updateWithVertexNamePrefixRequest model prefix
 
@@ -54,7 +68,7 @@ update msg model =
             ( initialModel, Cmd.none )
 
         EditSearch ->
-            ( { model | state = BuildingRequest }, Cmd.none )
+            ( { model | state = BuildingRequest False }, Cmd.none )
 
         ConfirmSearch ->
             ( { model | state = SearchConfirmed }, Cmd.none )

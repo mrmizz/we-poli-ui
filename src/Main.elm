@@ -6,6 +6,7 @@ import Model.Model as Model exposing (Model)
 import Model.State exposing (State(..))
 import Msg.Msg exposing (Msg(..))
 import Update.Update
+import View.About
 import View.BuildingRequest
 import View.Loading
 import View.RequestFailure
@@ -41,8 +42,11 @@ update msg model =
 view : Model -> Html Msg
 view model =
     case model.state of
-        BuildingRequest ->
-            View.BuildingRequest.view model
+        About ->
+            View.About.view
+
+        BuildingRequest isModalActive ->
+            View.BuildingRequest.view model isModalActive
 
         SearchConfirmed ->
             Html.div [] []

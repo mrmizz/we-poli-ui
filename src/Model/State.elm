@@ -4,7 +4,8 @@ import Http
 
 
 type State
-    = BuildingRequest
+    = About
+    | BuildingRequest Bool
     | SearchConfirmed
     | Loading
     | VertexRequestsSuccess

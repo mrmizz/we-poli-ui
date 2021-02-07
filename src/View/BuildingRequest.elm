@@ -6,17 +6,18 @@ import Html.Events exposing (onClick, onInput)
 import Model.Model exposing (Model)
 import Model.VertexData exposing (VertexData)
 import Msg.Msg exposing (Msg(..))
+import View.Configure
 import View.Hero
 import View.VertexData
 
 
-view : Model -> Html Msg
-view model =
-    View.Hero.view (body model)
+view : Model -> Bool -> Html Msg
+view model isModalActive =
+    View.Hero.view (body model isModalActive)
 
 
-body : Model -> Html Msg
-body model =
+body : Model -> Bool -> Html Msg
+body model isModalActive =
     let
         response : Html Msg
         response =
@@ -74,7 +75,8 @@ body model =
     Html.div
         [ class "container"
         ]
-        [ buttons
+        [ View.Configure.view isModalActive model.direction_selected
+        , buttons
         , Html.div
             [ class "field"
             ]
@@ -149,6 +151,7 @@ configure : Html Msg
 configure =
     Html.a
         [ class "button"
+        , onClick ConfigureSearch
         ]
         [ Html.text "Configure"
         ]

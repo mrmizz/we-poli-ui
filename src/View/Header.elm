@@ -2,7 +2,8 @@ module View.Header exposing (view)
 
 import Html exposing (Html)
 import Html.Attributes exposing (class)
-import Msg.Msg exposing (Msg)
+import Html.Events exposing (onClick)
+import Msg.Msg exposing (Msg(..))
 
 
 view : Html Msg
@@ -24,14 +25,16 @@ view =
                         [ Html.li
                             []
                             [ Html.a
-                                []
+                                [ onClick ClickedAbout
+                                ]
                                 [ Html.text "About"
                                 ]
                             ]
                         , Html.li
                             []
                             [ Html.a
-                                []
+                                [ onClick ClickedTool
+                                ]
                                 [ Html.text "Tool"
                                 ]
                             ]
