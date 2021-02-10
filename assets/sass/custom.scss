@@ -1,8 +1,11 @@
-// custom imports
+// custom imports //////////////////////////////////////////////////////////////////////////////////////////////////////
+// fonts
 @import url('https://fonts.googleapis.com/css?family=Play');
 @import url('https://fonts.googleapis.com/css?family=Faster+One');
+// animation
+@import "sass/loader";
 
-// https://stackoverflow.com/a/58290951/11098871
+// https://stackoverflow.com/a/58290951/11098871 ///////////////////////////////////////////////////////////////////////
 // for viewport scrolling
 // the root html element must be scrollable for window.scrollTo() to work.
 html {
@@ -19,17 +22,17 @@ body {
   height: auto;
 }
 
-// custom classes
+// custom classes //////////////////////////////////////////////////////////////////////////////////////////////////////
 .has-border-1 {
   border-bottom: 1px solid black;
 }
 
-// custom variables
+// override variables //////////////////////////////////////////////////////////////////////////////////////////////////
 $family-primary: "Play", BlinkMacSystemFont, -apple-system, "Helvetica", "Arial", sans-serif;
 $family-secondary: "Faster One", BlinkMacSystemFont, -apple-system, "Helvetica", "Arial", sans-serif;
 // navbar
 $navbar-item-img-max-height: 4.00rem;
 $navbar-height: 4.00rem;
 
-// bulma import
+// bulma import ////////////////////////////////////////////////////////////////////////////////////////////////////////
 @import "node_modules/bulma/bulma";
