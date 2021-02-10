@@ -3,6 +3,7 @@ module View.BuildingRequest exposing (view)
 import Html exposing (Html)
 import Html.Attributes exposing (class, placeholder, type_)
 import Html.Events exposing (onClick, onInput)
+import Model.Direction exposing (Direction(..))
 import Model.Model exposing (Model)
 import Model.VertexData exposing (VertexData)
 import Msg.Msg exposing (Msg(..))
@@ -19,6 +20,15 @@ view model isModalActive =
 body : Model -> Bool -> Html Msg
 body model isModalActive =
     let
+        placeHolder : String
+        placeHolder =
+            case model.direction_selected of
+                In ->
+                    "Search for a Vendor..."
+
+                Out ->
+                    "Search for a Committee..."
+
         response : Html Msg
         response =
             case String.length model.vertex_name_search >= 3 of
@@ -86,7 +96,7 @@ body model isModalActive =
                 [ Html.input
                     [ class "input is-input is-large"
                     , type_ "text"
-                    , placeholder "Search for a Committee..." -- TODO: 
+                    , placeholder placeHolder
                     , onInput SearchInput
                     ]
                     []
