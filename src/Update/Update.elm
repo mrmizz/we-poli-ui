@@ -27,10 +27,10 @@ update msg model =
             ( model, Cmd.none )
 
         ClickedAbout ->
-            ( { model | state = About }, Cmd.none )
+            ( { initialModel | state = About }, Cmd.none )
 
         ClickedTool ->
-            ( { model | state = BuildingRequest False }, Cmd.none )
+            ( { initialModel | state = BuildingRequest False }, Cmd.none )
 
         ConfigureSearch ->
             case model.state of
@@ -214,13 +214,9 @@ unpackDynamoBool dynamoBool =
 
 updateWithPageCountRequest : Model -> ( Model, Cmd Msg )
 updateWithPageCountRequest model =
-    ( { model
+    ( { initialModel
         | state = Loading
-        , traversal_response = []
-        , traversal_data_response = []
-        , edge_data_response = []
-        , zipped = []
-        , page_count = Nothing
+        , vertices_selected = model.vertices_selected
       }
     , pageCountPost PageCountPostReceived (buildPageCountRequest (List.map (\v -> v.uid) model.vertices_selected))
     )
@@ -228,14 +224,9 @@ updateWithPageCountRequest model =
 
 updateWithChildPageCountRequest : Model -> VertexData -> ( Model, Cmd Msg )
 updateWithChildPageCountRequest model vertexData =
-    ( { model
+    ( { initialModel
         | state = Loading
         , vertices_selected = [ vertexData ]
-        , traversal_response = []
-        , traversal_data_response = []
-        , edge_data_response = []
-        , zipped = []
-        , page_count = Nothing
         , direction_selected = Direction.switch model.direction_selected
       }
     , pageCountPost PageCountPostReceived (buildPageCountRequest [ (\v -> v.uid) vertexData ])
