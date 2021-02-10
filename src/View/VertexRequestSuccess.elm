@@ -62,6 +62,11 @@ body model isModalActive =
                     ]
                     [ configure
                     ]
+                , Html.div
+                    [ class "column"
+                    ]
+                    [ clear
+                    ]
                 ]
     in
     Html.div
@@ -108,4 +113,14 @@ configure =
         , onClick ConfigureSearch
         ]
         [ Html.text "Configure"
+        ]
+
+
+clear : Html Msg
+clear =
+    Html.a
+        [ class "button"
+        , onClick ClearSearch
+        ]
+        [ Html.text "Clear search"
         ]

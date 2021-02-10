@@ -105,21 +105,15 @@ updateWithDirectionOption : Model -> ( Model, Cmd Msg )
 updateWithDirectionOption model =
     case model.direction_selected of
         In ->
-            ( { model
+            ( { initialModel
                 | direction_selected = Out
-                , vertices_selected = []
-                , vertex_name_search_response = []
-                , vertex_name_search = ""
               }
             , Cmd.none
             )
 
         Out ->
-            ( { model
+            ( { initialModel
                 | direction_selected = In
-                , vertices_selected = []
-                , vertex_name_search_response = []
-                , vertex_name_search = ""
               }
             , Cmd.none
             )
