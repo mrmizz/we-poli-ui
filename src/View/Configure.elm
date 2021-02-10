@@ -45,7 +45,6 @@ view bool directionArg aggregationArg sortByArg =
                         [ class "message-body"
                         ]
                         [ direction directionArg
-                        , aggregation aggregationArg
                         , sortBy sortByArg
                         ]
                     ]
@@ -105,6 +104,10 @@ direction directionArg =
                 ]
             ]
         ]
+
+
+
+-- TODO: turn back on
 
 
 aggregation : Aggregation -> Html Msg
