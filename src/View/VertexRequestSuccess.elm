@@ -29,9 +29,16 @@ body model isModalActive =
 
                 nel ->
                     Html.div
-                        [ class "pb-6"
+                        [ class "box"
                         ]
-                        (List.map selected nel)
+                        ([ Html.h2
+                            [ class "title is-5"
+                            ]
+                            [ Html.text "Searched for"
+                            ]
+                         ]
+                            ++ List.map selected nel
+                        )
 
         selectable_ : Html Msg
         selectable_ =
@@ -48,7 +55,7 @@ body model isModalActive =
         buttons : Html Msg
         buttons =
             Html.div
-                [ class "columns is-mobile is-pulled-right"
+                [ class "columns is-mobile is-pulled-right pt-3 pr-5"
                 ]
                 [ Html.div
                     [ class "column"
@@ -62,23 +69,17 @@ body model isModalActive =
         ]
         [ View.Configure.view isModalActive model.direction_selected model.aggregation_selected model.sort_by_selected
         , buttons
-        , selected_
-        , selectable_
+        , Html.div
+            []
+            [ selected_
+            , selectable_
+            ]
         ]
 
 
 selected : VertexData -> Html Msg
 selected vertex =
-    Html.div
-        [ class "box"
-        ]
-        [ Html.h2
-            [ class "title is-5"
-            ]
-            [ Html.text "Searched for"
-            ]
-        , View.VertexData.viewMin vertex
-        ]
+    View.VertexData.viewMin vertex
 
 
 selectable : Zipped -> Html Msg

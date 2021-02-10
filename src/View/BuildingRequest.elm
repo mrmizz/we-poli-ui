@@ -94,7 +94,7 @@ body model isModalActive =
                 [ class "control has-icons-left"
                 ]
                 [ Html.input
-                    [ class "input is-input is-large"
+                    [ class "input is-info is-large"
                     , type_ "text"
                     , placeholder placeHolder
                     , onInput SearchInput
@@ -110,11 +110,8 @@ body model isModalActive =
                     ]
                 ]
             ]
-        , Html.div
-            []
-            [ selected_
-            , response
-            ]
+        , selected_
+        , response
         ]
 
 
@@ -123,7 +120,7 @@ selectable vertex =
     let
         select =
             Html.button
-                [ class "button is-link is-light is-fullwidth"
+                [ class "button is-info is-light is-fullwidth"
                 , onClick (VertexSelected vertex)
                 ]
                 [ Html.text "Add to search"
@@ -143,7 +140,7 @@ selected vertex =
         delete : Html Msg
         delete =
             Html.button
-                [ class "button is-link is-light is-fullwidth"
+                [ class "button is-info is-light is-fullwidth"
                 , onClick (DeleteVertexSelection vertex)
                 ]
                 [ Html.text "Delete from search"
