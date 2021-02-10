@@ -49,9 +49,6 @@ view model =
         BuildingRequest isModalActive ->
             View.BuildingRequest.view model isModalActive
 
-        SearchConfirmed ->
-            Html.div [] []
-
         Loading ->
             View.Loading.view
 

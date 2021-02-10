@@ -18,8 +18,6 @@ type Msg
     | ClickedTool -- TODO: href
     | ConfigureSearch
     | ClearSearch
-    | EditSearch -- TODO: drop
-    | ConfirmSearch -- TODO: drop
     | SearchInput String
     | AggOptionSelected
     | DirectionOptionSelected

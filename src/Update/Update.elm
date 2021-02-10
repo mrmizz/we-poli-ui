@@ -80,12 +80,6 @@ update msg model =
         ClearSearch ->
             ( initialModel, Cmd.none )
 
-        EditSearch ->
-            ( { model | state = BuildingRequest False }, Cmd.none )
-
-        ConfirmSearch ->
-            ( { model | state = SearchConfirmed }, Cmd.none )
-
         AggOptionSelected ->
             updateWithAggOption model
 
