@@ -55,7 +55,7 @@ body model isModalActive =
         buttons : Html Msg
         buttons =
             Html.div
-                [ class "columns is-mobile is-pulled-right pt-3 pr-5"
+                [ class "columns is-pulled-right pt-3 pr-5"
                 ]
                 [ Html.div
                     [ class "column"

@@ -1,4 +1,4 @@
-module Model.Model exposing (Model, init, initialModel)
+module Model.Model exposing (Model, init, initialModel, initialModelWithParams)
 
 import Model.Aggregation exposing (Aggregation(..))
 import Model.Direction exposing (Direction(..))
@@ -42,6 +42,15 @@ initialModel =
     , edge_data_response = []
     , zipped = []
     , page_count = Nothing
+    }
+
+
+initialModelWithParams : Model -> Model
+initialModelWithParams model =
+    { initialModel
+        | aggregation_selected = model.aggregation_selected
+        , direction_selected = model.direction_selected
+        , sort_by_selected = model.sort_by_selected
     }
 
 

@@ -10,7 +10,7 @@ import Http.Vertex exposing (VertexDataResponse, buildVertexDataRequest, vertexD
 import Model.Aggregation exposing (Aggregation(..))
 import Model.Direction as Direction exposing (Direction(..))
 import Model.EdgeData as EdgeData exposing (EdgeData)
-import Model.Model exposing (Model, initialModel)
+import Model.Model exposing (Model, initialModel, initialModelWithParams)
 import Model.PageCount exposing (EdgeDataPageCount, PageCount, TraversalsPageCount, VertexDataPageCount)
 import Model.State exposing (State(..))
 import Model.Traversal exposing (Traversal, TraversalPage)
@@ -214,7 +214,11 @@ unpackDynamoBool dynamoBool =
 
 updateWithPageCountRequest : Model -> ( Model, Cmd Msg )
 updateWithPageCountRequest model =
-    ( { initialModel
+    let
+        new =
+            initialModelWithParams model
+    in
+    ( { new
         | state = Loading
         , vertices_selected = model.vertices_selected
       }
@@ -224,7 +228,11 @@ updateWithPageCountRequest model =
 
 updateWithChildPageCountRequest : Model -> VertexData -> ( Model, Cmd Msg )
 updateWithChildPageCountRequest model vertexData =
-    ( { initialModel
+    let
+        new =
+            initialModelWithParams model
+    in
+    ( { new
         | state = Loading
         , vertices_selected = [ vertexData ]
         , direction_selected = Direction.switch model.direction_selected
