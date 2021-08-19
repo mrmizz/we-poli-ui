@@ -12,7 +12,7 @@ resource "aws_route53_record" "main-dot-com" {
   type = "A"
   alias {
     evaluate_target_health = false
-    name = "s3-website-${var.aws_region}.amazonaws.com" //aws_cloudfront_distribution.client_distribution.domain_name
+    name = "s3-website-us-west-2.amazonaws.com" //aws_cloudfront_distribution.client_distribution.domain_name
     zone_id = aws_s3_bucket.domain-dot-com.hosted_zone_id //aws_cloudfront_distribution.client_distribution.hosted_zone_id
   }
 }
@@ -23,7 +23,7 @@ resource "aws_route53_record" "main-dot-org" {
   type = "A"
   alias {
     evaluate_target_health = false
-    name = "s3-website-${var.aws_region}.amazonaws.com" //aws_cloudfront_distribution.client_distribution.domain_name
+    name = "s3-website-us-west-2.amazonaws.com" //aws_cloudfront_distribution.client_distribution.domain_name
     zone_id = aws_s3_bucket.domain-dot-org.hosted_zone_id //aws_cloudfront_distribution.client_distribution.hosted_zone_id
   }
 }
@@ -34,7 +34,7 @@ resource "aws_route53_record" "www-dot-com" {
   type = "A"
   alias {
     evaluate_target_health = false
-    name = "s3-website-${var.aws_region}.amazonaws.com" //aws_cloudfront_distribution.client_distribution.domain_name
+    name = "s3-website-us-west-2.amazonaws.com" //aws_cloudfront_distribution.client_distribution.domain_name
     zone_id = aws_s3_bucket.sub-domain-www-dot-com.hosted_zone_id //aws_cloudfront_distribution.client_distribution.hosted_zone_id
   }
 }
@@ -45,7 +45,7 @@ resource "aws_route53_record" "www-dot-org" {
   type = "A"
   alias {
     evaluate_target_health = false
-    name = "s3-website-${var.aws_region}.amazonaws.com" //aws_cloudfront_distribution.client_distribution.domain_name
+    name = "s3-website-us-west-2.amazonaws.com" //aws_cloudfront_distribution.client_distribution.domain_name
     zone_id = aws_s3_bucket.sub-domain-www-dot-org.hosted_zone_id //aws_cloudfront_distribution.client_distribution.hosted_zone_id
   }
 }
@@ -56,7 +56,7 @@ resource "aws_route53_record" "dev-dot-org" {
   type = "A"
   alias {
     evaluate_target_health = false
-    name = "s3-website-${var.aws_region}.amazonaws.com"
+    name = "s3-website-us-west-2.amazonaws.com"
     zone_id = aws_s3_bucket.sub-domain-dev-dot-org.hosted_zone_id
   }
 }
