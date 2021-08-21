@@ -99,7 +99,7 @@ edgeDataResponseDecoder =
 
 poliEdgeDataTableDecoder : Decode.Decoder DynamoListEdgeData
 poliEdgeDataTableDecoder =
-    Decode.map DynamoListEdgeData (Decode.field "PoliEdge" (Decode.list edgeDataInnerResponseDecoder))
+    Decode.map DynamoListEdgeData (Decode.field ("PoliEdge" ++ Url.envTitle) (Decode.list edgeDataInnerResponseDecoder))
 
 
 edgeDataInnerResponseDecoder : Decode.Decoder DynamoEdgeData
