@@ -33,7 +33,10 @@ type alias DynamoString =
     { value : String }
 
 type alias DynamoNumber =
-    { value : Int }
+    { value: Int }
+
+type alias DynamoNumberLowLevel =
+    { value : String }
 
 
 type alias DynamoBool =
@@ -52,13 +55,25 @@ dynamoArrayNumberDecoder =
 
 dynamoNumberDecoder : Decode.Decoder DynamoNumber
 dynamoNumberDecoder =
-    Decode.map DynamoNumber (Decode.field "N" Decode.int)
+    let
+        decode_ : DynamoNumberLowLevel -> Decode.Decoder DynamoNumber
+        decode_ lowLevel =
+            case String.toInt lowLevel.value of
+                Just int ->
+                    Decode.succeed (DynamoNumber int)
+
+                Nothing ->
+                    Decode.fail ("error parsing string: " ++ lowLevel.value)
+
+    in
+    Decode.map DynamoNumberLowLevel (Decode.field "N" Decode.string)
+        |> Decode.andThen decode_
 
 
 dynamoNumberEncoder : DynamoNumber -> Encode.Value
 dynamoNumberEncoder dynamoValue =
     Encode.object
-        [ ( "N", Encode.int dynamoValue.value ) ]
+        [ ( "N", Encode.string (String.fromInt dynamoValue.value) ) ]
 
 
 dynamoStringDecoder : Decode.Decoder DynamoString
