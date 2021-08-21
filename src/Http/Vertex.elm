@@ -1,7 +1,7 @@
 module Http.Vertex exposing (VertexDataResponse, buildVertexDataRequest, vertexDataPost)
 
 import Http
-import Http.Generic exposing (DynamoNumber, DynamoVertexData, dynamoNumberEncoder, vertexDataInnerResponseDecoder)
+import Http.Generic exposing (DynamoNumber, DynamoVertexData, dynamoNumberEncoder, dynamoVertexDataDecoder)
 import Http.Url as Url exposing (batchGetItemURL)
 import Json.Decode as Decode
 import Json.Encode as Encode
@@ -84,4 +84,4 @@ vertexDataResponseDecoder =
 
 poliVertexTable : Decode.Decoder PoliVertexTable
 poliVertexTable =
-    Decode.map PoliVertexTable (Decode.field ("PoliVertex" ++ Url.envTitle) (Decode.list vertexDataInnerResponseDecoder))
+    Decode.map PoliVertexTable (Decode.field ("PoliVertex" ++ Url.envTitle) (Decode.list dynamoVertexDataDecoder))

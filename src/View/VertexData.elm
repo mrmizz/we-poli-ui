@@ -71,33 +71,33 @@ body vertexData =
             []
             [ Html.td
                 []
-                [ Html.text "cities"
+                [ Html.text "city"
                 ]
             , Html.td
                 []
-                [ Html.text (Util.printList vertexData.cities)
+                [ Html.text (Maybe.withDefault "null" vertexData.address.city)
                 ]
             ]
         , Html.tr
             []
             [ Html.td
                 []
-                [ Html.text "streets"
+                [ Html.text "street"
                 ]
             , Html.td
                 []
-                [ Html.text (Util.printList vertexData.streets)
+                [ Html.text (Maybe.withDefault "null" vertexData.address.street)
                 ]
             ]
         , Html.tr
             []
             [ Html.td
                 []
-                [ Html.text "states"
+                [ Html.text "state"
                 ]
             , Html.td
                 []
-                [ Html.text (Util.printList vertexData.states)
+                [ Html.text (Maybe.withDefault "null" vertexData.address.state)
                 ]
             ]
         ]
