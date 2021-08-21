@@ -8,7 +8,7 @@ import Model.State exposing (State(..))
 import Model.Traversal as Traversal exposing (Traversal(..))
 import Model.Zipped as Zipped exposing (Zipped)
 import Msg.Msg exposing (Msg(..))
-import Update.Generic exposing (unpackDynamoNumber, unpackDynamoString)
+import Update.Generic exposing (unpackDynamoNumber)
 
 
 updateWithEdgeDataResponse : Model -> Result Http.Error EdgeDataResponse -> ( Model, Cmd Msg )
@@ -25,11 +25,11 @@ updateWithEdgeDataResponse model result =
                     EdgeData
                         (unpackDynamoNumber dynamoEdgeData.src_id)
                         (unpackDynamoNumber dynamoEdgeData.dst_id)
-                        (unpackDynamoString dynamoEdgeData.num_transactions)
-                        (unpackDynamoString dynamoEdgeData.total_spend)
-                        (unpackDynamoString dynamoEdgeData.avg_spend)
-                        (unpackDynamoString dynamoEdgeData.max_spend)
-                        (unpackDynamoString dynamoEdgeData.min_spend)
+                        (unpackDynamoNumber dynamoEdgeData.num_transactions)
+                        (unpackDynamoNumber dynamoEdgeData.total_spend)
+                        (unpackDynamoNumber dynamoEdgeData.avg_spend)
+                        (unpackDynamoNumber dynamoEdgeData.max_spend)
+                        (unpackDynamoNumber dynamoEdgeData.min_spend)
 
                 edges : List EdgeData
                 edges =

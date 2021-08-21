@@ -58,7 +58,7 @@ body zipped =
                 ]
             , Html.td
                 []
-                [ Html.text edgeData.num_transactions
+                [ Html.text (String.fromInt edgeData.num_transactions)
                 ]
             ]
         , Html.tr
@@ -69,7 +69,7 @@ body zipped =
                 ]
             , Html.td
                 []
-                [ Html.text edgeData.total_spend
+                [ Html.text (String.fromInt edgeData.total_spend)
                 ]
             ]
         , Html.tr
@@ -80,7 +80,7 @@ body zipped =
                 ]
             , Html.td
                 []
-                [ Html.text edgeData.avg_spend
+                [ Html.text (String.fromInt edgeData.avg_spend)
                 ]
             ]
         , Html.tr
@@ -91,7 +91,7 @@ body zipped =
                 ]
             , Html.td
                 []
-                [ Html.text edgeData.max_spend
+                [ Html.text (String.fromInt edgeData.max_spend)
                 ]
             ]
         , Html.tr
@@ -102,7 +102,7 @@ body zipped =
                 ]
             , Html.td
                 []
-                [ Html.text edgeData.min_spend
+                [ Html.text (String.fromInt edgeData.min_spend)
                 ]
             ]
         , Html.tr

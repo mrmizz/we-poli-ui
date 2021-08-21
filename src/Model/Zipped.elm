@@ -20,67 +20,49 @@ type alias VertexDataWithEdgeIds =
 sortBy : SortBy -> List Zipped -> List Zipped
 sortBy option zipped =
     let
-        genericSortClauseDESC : (EdgeData -> String) -> Zipped -> Zipped -> Order
+        genericSortClauseDESC : (EdgeData -> Int) -> Zipped -> Zipped -> Order
         genericSortClauseDESC f left right =
             let
-                leftVal : String
+                leftVal : Int
                 leftVal =
                     f (Tuple.first left)
 
-                rightVal : String
+                rightVal : Int
                 rightVal =
                     f (Tuple.first right)
             in
-            case Basics.compare (String.length leftVal) (String.length rightVal) of
+            case Basics.compare leftVal rightVal of
                 LT ->
                     GT
 
                 EQ ->
-                    case Basics.compare leftVal rightVal of
-                        LT ->
-                            GT
-
-                        EQ ->
-                            EQ
-
-                        GT ->
-                            LT
+                    EQ
 
                 GT ->
                     LT
 
-        genericSortClauseASC : (EdgeData -> String) -> Zipped -> Zipped -> Order
+        genericSortClauseASC : (EdgeData -> Int) -> Zipped -> Zipped -> Order
         genericSortClauseASC f left right =
             let
-                leftVal : String
+                leftVal : Int
                 leftVal =
                     f (Tuple.first left)
 
-                rightVal : String
+                rightVal : Int
                 rightVal =
                     f (Tuple.first right)
             in
-            case Basics.compare (String.length leftVal) (String.length rightVal) of
-                EQ ->
-                    Basics.compare leftVal rightVal
+            Basics.compare leftVal rightVal
 
-                val ->
-                    val
+        isNegativeValue : Int -> Bool
+        isNegativeValue int =
+            int < 0
 
-        isNegativeValue : String -> Bool
-        isNegativeValue str =
-            case String.toList str |> List.take 2 |> List.reverse |> List.head of
-                Just char ->
-                    Char.isDigit char
-
-                Nothing ->
-                    False
-
-        partitioned : (EdgeData -> String) -> ( List Zipped, List Zipped )
+        partitioned : (EdgeData -> Int) -> ( List Zipped, List Zipped )
         partitioned f =
             List.partition (\z -> isNegativeValue (f (Tuple.first z))) zipped
 
-        genericSort : (EdgeData -> String) -> List Zipped
+        genericSort : (EdgeData -> Int) -> List Zipped
         genericSort f =
             case partitioned f of
                 ( left, right ) ->

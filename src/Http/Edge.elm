@@ -1,7 +1,7 @@
 module Http.Edge exposing (DynamoEdgeData, EdgeDataResponse, buildEdgeDataRequest, edgeDataPost)
 
 import Http
-import Http.Generic exposing (DynamoNumber, DynamoString, dynamoNumberDecoder, dynamoNumberEncoder, dynamoStringDecoder)
+import Http.Generic exposing (DynamoNumber, DynamoString, dynamoNumberDecoder, dynamoNumberEncoder)
 import Http.Url as Url exposing (batchGetItemURL)
 import Json.Decode as Decode
 import Json.Encode as Encode
@@ -34,11 +34,11 @@ type alias DynamoListEdgeData =
 type alias DynamoEdgeData =
     { src_id : DynamoNumber
     , dst_id : DynamoNumber
-    , num_transactions : DynamoString
-    , total_spend : DynamoString
-    , avg_spend : DynamoString
-    , max_spend : DynamoString
-    , min_spend : DynamoString
+    , num_transactions : DynamoNumber
+    , total_spend : DynamoNumber
+    , avg_spend : DynamoNumber
+    , max_spend : DynamoNumber
+    , min_spend : DynamoNumber
     }
 
 
@@ -107,8 +107,8 @@ edgeDataInnerResponseDecoder =
     Decode.map7 DynamoEdgeData
         (Decode.field "src_id" dynamoNumberDecoder)
         (Decode.field "dst_id" dynamoNumberDecoder)
-        (Decode.field "num_transactions" dynamoStringDecoder)
-        (Decode.field "total_spend" dynamoStringDecoder)
-        (Decode.field "avg_spend" dynamoStringDecoder)
-        (Decode.field "max_spend" dynamoStringDecoder)
-        (Decode.field "min_spend" dynamoStringDecoder)
+        (Decode.field "num_transactions" dynamoNumberDecoder)
+        (Decode.field "total_spend" dynamoNumberDecoder)
+        (Decode.field "avg_spend" dynamoNumberDecoder)
+        (Decode.field "max_spend" dynamoNumberDecoder)
+        (Decode.field "min_spend" dynamoNumberDecoder)
