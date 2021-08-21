@@ -36,4 +36,3 @@ vertexNamePrefixInnerResponseDecoder =
         (Decode.field "prefix" dynamoStringDecoder)
         (Decode.field "prefix_size" dynamoNumberDecoder)
         (Decode.field "vertexIds" dynamoArrayNumberDecoder)
-

@@ -1,24 +1,30 @@
-module Http.Url exposing (getItemURL, prefixURL, env, envTitle, batchGetItemURL)
+module Http.Url exposing (batchGetItemURL, env, envTitle, getItemURL, prefixURL)
 
-env: String
+
+env : String
 env =
     "prod"
 
-envTitle: String
+
+envTitle : String
 envTitle =
     "Prod"
 
-baseURL: String
+
+baseURL : String
 baseURL =
     "https://jskg4ocsd8.execute-api.us-west-2.amazonaws.com/" ++ env
 
-batchGetItemURL: String
+
+batchGetItemURL : String
 batchGetItemURL =
     baseURL ++ "/poli/batch-get-item"
+
 
 getItemURL : String
 getItemURL =
     baseURL ++ "/poli/get-item"
+
 
 prefixURL : String
 prefixURL =

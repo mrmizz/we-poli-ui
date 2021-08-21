@@ -9,13 +9,16 @@ import Model.Direction exposing (Direction(..))
 
 
 type alias EdgeDataRequest =
-    { request_items: RequestItems }
+    { request_items : RequestItems }
+
 
 type alias RequestItems =
-    { poli_edge: Keys }
+    { poli_edge : Keys }
+
 
 type alias Keys =
-    { keys: List Key }
+    { keys : List Key }
+
 
 type alias Key =
     { src_id : DynamoNumber
@@ -51,8 +54,8 @@ edgeDataPost request toMsg =
         }
 
 
-buildEdgeDataRequest : Direction -> (Int, List Int) -> EdgeDataRequest
-buildEdgeDataRequest direction (srcId, dstIds) =
+buildEdgeDataRequest : Direction -> ( Int, List Int ) -> EdgeDataRequest
+buildEdgeDataRequest direction ( srcId, dstIds ) =
     let
         keys : List Key
         keys =

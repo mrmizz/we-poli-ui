@@ -8,9 +8,10 @@ import Json.Encode as Encode
 
 
 type alias TraversalRequest =
-    { table_name: String
-    , key: Key
+    { table_name : String
+    , key : Key
     }
+
 
 type alias Key =
     { vertex_id : DynamoNumber
@@ -57,7 +58,7 @@ traversalRequestEncoder traversalRequest =
     in
     Encode.object
         [ ( "TableName", Encode.string traversalRequest.table_name )
-        , ("Key", key )
+        , ( "Key", key )
         ]
 
 

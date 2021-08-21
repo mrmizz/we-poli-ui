@@ -1,4 +1,4 @@
-module Update.Generic exposing (unpackDynamoString, unpackDynamoVertexData, unpackDynamoNumber, unpackDynamoArrayNumber)
+module Update.Generic exposing (unpackDynamoArrayNumber, unpackDynamoNumber, unpackDynamoString, unpackDynamoVertexData)
 
 import Http.Generic exposing (DynamoAddress, DynamoArrayAddress, DynamoArrayNumber, DynamoArrayString, DynamoBool, DynamoMapAddress, DynamoNullableString, DynamoNumber, DynamoString, DynamoVertexData)
 import Model.VertexData exposing (Address, VertexData)
@@ -8,17 +8,21 @@ unpackDynamoString : DynamoString -> String
 unpackDynamoString dynamoString =
     dynamoString.value
 
-unpackDynamoNumber: DynamoNumber -> Int
+
+unpackDynamoNumber : DynamoNumber -> Int
 unpackDynamoNumber dynamoNumber =
     dynamoNumber.value
+
 
 unpackDynamoBool : DynamoBool -> Bool
 unpackDynamoBool dynamoBool =
     dynamoBool.value
 
-unpackDynamoNullableString: DynamoNullableString -> Maybe String
+
+unpackDynamoNullableString : DynamoNullableString -> Maybe String
 unpackDynamoNullableString dynamoNullableString =
     dynamoNullableString.value
+
 
 unpackDynamoAddress : DynamoMapAddress -> Address
 unpackDynamoAddress dynamoAddress =
@@ -30,18 +34,19 @@ unpackDynamoAddress dynamoAddress =
     }
 
 
-unpackDynamoArrayNumber: DynamoArrayNumber -> List Int
+unpackDynamoArrayNumber : DynamoArrayNumber -> List Int
 unpackDynamoArrayNumber dynamoArrayNumber =
     List.map unpackDynamoNumber dynamoArrayNumber.list
 
-unpackDynamoArrayString: DynamoArrayString -> List String
+
+unpackDynamoArrayString : DynamoArrayString -> List String
 unpackDynamoArrayString dynamoArrayString =
     List.map unpackDynamoString dynamoArrayString.list
+
 
 unpackDynamoArrayAddress : DynamoArrayAddress -> List Address
 unpackDynamoArrayAddress dynamoArrayAddress =
     List.map unpackDynamoAddress dynamoArrayAddress.list
-
 
 
 unpackDynamoVertexData : DynamoVertexData -> VertexData

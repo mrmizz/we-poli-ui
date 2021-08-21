@@ -19,7 +19,8 @@ updateWithVertexNamePrefixRequest model prefix =
         clean input =
             printBool (Direction.toIsCommittee model.direction_selected)
                 |> String.append "_"
-                |> String.append (String.replace " " "" input) -- TODO: reverse order ^ ?
+                |> String.append (String.replace " " "" input)
+                -- TODO: reverse order ^ ?
                 |> String.toLower
 
         old : VertexNameSearch.VertexNameSearch
@@ -29,7 +30,6 @@ updateWithVertexNamePrefixRequest model prefix =
         new : Model
         new =
             { model | vertex_name_search = { old | input = prefix } }
-
     in
     case String.length prefix >= 3 of
         False ->
@@ -60,5 +60,3 @@ updateWithVertexNamePrefixResponse model result =
 
         Err error ->
             ( { model | state = RequestFailure error }, Cmd.none )
-
-

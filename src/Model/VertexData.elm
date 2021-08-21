@@ -1,4 +1,4 @@
-module Model.VertexData exposing (VertexData, distinct, notUID, Address)
+module Model.VertexData exposing (Address, VertexData, distinct, notUID)
 
 import Set exposing (Set)
 
@@ -8,16 +8,17 @@ type alias VertexData =
     , name : String
     , alternate_names : List String
     , is_committee : Bool
-    , address: Address
+    , address : Address
     , alternate_addresses : List Address
     }
+
 
 type alias Address =
     { alternate_street : Maybe String
     , city : Maybe String
     , state : Maybe String
     , street : Maybe String
-    , zip_code: Maybe String
+    , zip_code : Maybe String
     }
 
 

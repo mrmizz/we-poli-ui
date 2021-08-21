@@ -4,6 +4,6 @@ import Model.VertexData exposing (VertexData)
 
 
 type alias VertexNameSearch =
-    { input: String
-    , vertices: List VertexData
+    { input : String
+    , vertices : List VertexData
     }

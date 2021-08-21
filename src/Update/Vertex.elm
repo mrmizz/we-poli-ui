@@ -32,9 +32,9 @@ updateWithVertexDataResponse model client result =
                 ForTraversal ->
                     updateForTraversal model vertices
 
-
         Err error ->
             ( { model | state = RequestFailure error }, Cmd.none )
+
 
 updateForNameSearch : Model -> List VertexData -> ( Model, Cmd Msg )
 updateForNameSearch model vertices =
@@ -44,9 +44,9 @@ updateForNameSearch model vertices =
     in
     ( { model
         | vertex_name_search = { old | vertices = vertices }
-        }
+      }
     , Cmd.none
-     )
+    )
 
 
 updateForTraversal : Model -> List VertexData -> ( Model, Cmd Msg )
@@ -57,13 +57,12 @@ updateForTraversal model vertices =
             , Cmd.none
             )
 
-
         WaitingForVertices pageCount edges ->
             ( { model
                 | state = VertexRequestsSuccess False
                 , traversal = Traversal.Done pageCount
                 , zipped = Zipped.zip model.direction_selected vertices edges
-             }
+              }
             , Cmd.none
             )
 

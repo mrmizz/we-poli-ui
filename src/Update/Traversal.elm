@@ -19,7 +19,6 @@ updateWithPageCountRequest model =
     let
         new =
             initialModelWithParams model
-
     in
     case List.head model.vertices_selected of
         Just head ->
@@ -30,14 +29,12 @@ updateWithPageCountRequest model =
             , pageCountPost PageCountPostReceived (buildPageCountRequest ((\v -> v.uid) head))
             )
 
-
         Nothing ->
             ( { new
                 | state = DataIntegrityFailure
               }
             , Cmd.none
             )
-
 
 
 updateWithChildPageCountRequest : Model -> VertexData -> ( Model, Cmd Msg )
@@ -51,7 +48,7 @@ updateWithChildPageCountRequest model vertexData =
         , vertices_selected = [ vertexData ]
         , direction_selected = Direction.switch model.direction_selected
       }
-    , pageCountPost PageCountPostReceived (buildPageCountRequest ((\v -> v.uid) vertexData ))
+    , pageCountPost PageCountPostReceived (buildPageCountRequest ((\v -> v.uid) vertexData))
     )
 
 
@@ -67,7 +64,7 @@ updateWithPageCountResponse model result =
                     , current_page = 1
                     }
             in
-            ( { model | traversal = Traversal.Waiting unpack}
+            ( { model | traversal = Traversal.Waiting unpack }
             , traversalPost
                 (buildTraversalRequest unpack.src_id unpack.current_page)
                 (TraversalPostReceived unpack)
@@ -91,11 +88,10 @@ updateWithTraversalResponse model pageCount result =
 
                 edgeRequest : Cmd Msg
                 edgeRequest =
-                    edgeDataPost (buildEdgeDataRequest model.direction_selected (pageCount.src_id, unpack)) EdgeDataPostReceived
-
+                    edgeDataPost (buildEdgeDataRequest model.direction_selected ( pageCount.src_id, unpack )) EdgeDataPostReceived
             in
             ( model
-            , Cmd.batch [vertexRequest, edgeRequest]
+            , Cmd.batch [ vertexRequest, edgeRequest ]
             )
 
         Err error ->

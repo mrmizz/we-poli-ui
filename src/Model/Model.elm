@@ -13,15 +13,18 @@ import Msg.Msg exposing (Msg)
 
 type alias Model =
     { state : State
+
     -- Building Search Parameters
     , aggregation_selected : Aggregation
     , direction_selected : Direction
     , sort_by_selected : SortBy
     , vertices_selected : List VertexData
+
     -- Vertex Name Auto Complete Search
     , vertex_name_search : VertexNameSearch
+
     -- Traversal
-    , traversal: Traversal
+    , traversal : Traversal
     , zipped : List Zipped
     }
 
@@ -29,13 +32,16 @@ type alias Model =
 initialModel : Model
 initialModel =
     { state = BuildingRequest False
+
     -- Building Search Parameters
     , aggregation_selected = Or
     , direction_selected = Out
     , sort_by_selected = Count
     , vertices_selected = []
+
     -- Vertex Name Auto Complete Search
     , vertex_name_search = { input = "", vertices = [] }
+
     -- Traversal
     , traversal = Traversal.Pending
     , zipped = []

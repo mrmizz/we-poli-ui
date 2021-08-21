@@ -1,4 +1,4 @@
-module Msg.Msg exposing (Msg(..), resetViewport, VertexDataClient(..))
+module Msg.Msg exposing (Msg(..), VertexDataClient(..), resetViewport)
 
 import Browser.Dom as Dom
 import Http
@@ -15,28 +15,29 @@ import Task
 
 type Msg
     = NoOp
-    -- Clicks
+      -- Clicks
     | ClickedAbout -- TODO: href
     | ClickedTool -- TODO: href
     | ConfigureSearch
     | ClearSearch
     | VertexSelected VertexData
     | DeleteVertexSelection VertexData
-    -- Configuration Options
+      -- Configuration Options
     | AggOptionSelected
     | DirectionOptionSelected
     | SortByOptionSelected SortBy
-    -- Vertex Name Auto Complete Search
+      -- Vertex Name Auto Complete Search
     | VertexNameSearchInput String
     | VertexNamePrefixGetReceived (Result Http.Error VertexNamePrefixResponse)
-    -- Vertex Data Request
+      -- Vertex Data Request
     | VertexDataPostReceived VertexDataClient (Result Http.Error VertexDataResponse)
-    -- Traversal Request
+      -- Traversal Request
     | TraversalRequestMade
     | ChildTraversalRequestMade VertexData
     | PageCountPostReceived (Result Http.Error PageCountResponse)
     | TraversalPostReceived PageCount (Result Http.Error TraversalResponse)
     | EdgeDataPostReceived (Result Http.Error EdgeDataResponse)
+
 
 type VertexDataClient
     = ForNameSearch

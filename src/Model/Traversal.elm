@@ -1,7 +1,8 @@
-module Model.Traversal exposing (Traversal(..), PageCount)
+module Model.Traversal exposing (PageCount, Traversal(..))
 
 import Model.EdgeData exposing (EdgeData)
 import Model.VertexData exposing (VertexData)
+
 
 type Traversal
     = Pending -- still building search
@@ -10,8 +11,9 @@ type Traversal
     | WaitingForVertices PageCount (List EdgeData) -- edges arrived first
     | Done PageCount -- all async requests received
 
+
 type alias PageCount =
-    { src_id: Int
-    , total_pages: Int
-    , current_page: Int
+    { src_id : Int
+    , total_pages : Int
+    , current_page : Int
     }

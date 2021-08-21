@@ -43,16 +43,15 @@ updateWithEdgeDataResponse model result =
 
                 WaitingForEdges pageCount vertices ->
                     ( { model
-                    | state = VertexRequestsSuccess False
-                    , traversal = Traversal.Done pageCount
-                    , zipped = Zipped.zip model.direction_selected vertices edges
-                    }
+                        | state = VertexRequestsSuccess False
+                        , traversal = Traversal.Done pageCount
+                        , zipped = Zipped.zip model.direction_selected vertices edges
+                      }
                     , Cmd.none
                     )
 
                 _ ->
                     ( { model | state = DataIntegrityFailure }, Cmd.none )
-
 
         Err error ->
             ( { model | state = RequestFailure error }, Cmd.none )
