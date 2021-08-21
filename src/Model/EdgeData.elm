@@ -5,8 +5,8 @@ import FormatNumber.Locales as Locales
 
 
 type alias EdgeData =
-    { src_id : String
-    , dst_id : String
+    { src_id : Int
+    , dst_id : Int
     , num_transactions : String
     , total_spend : String
     , avg_spend : String

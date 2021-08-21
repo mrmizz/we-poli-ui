@@ -5,12 +5,12 @@ import Json.Encode as Encode
 
 
 type alias DynamoVertexData =
-    { name : DynamoValue
-    , uid : DynamoValue
+    { name : DynamoString
+    , uid : DynamoNumber
     , is_committee : DynamoBool
-    , cities : DynamoArrayValue
-    , streets : DynamoArrayValue
-    , states : DynamoArrayValue
+    , cities : DynamoArrayString
+    , streets : DynamoArrayString
+    , states : DynamoArrayString
     }
 
 
@@ -22,42 +22,48 @@ type alias DynamoVertexDataItem =
     { item : DynamoVertexData }
 
 
-type alias DynamoArrayValue =
-    { list : List DynamoValue }
+type alias DynamoArrayString =
+    { list : List DynamoString }
+
+type alias DynamoArrayNumber =
+    { list: List DynamoNumber }
 
 
-type alias DynamoValue =
+type alias DynamoString =
     { value : String }
+
+type alias DynamoNumber =
+    { value : Int }
 
 
 type alias DynamoBool =
     { value : Bool }
 
 
-dynamoArrayStringValueDecoder : Decode.Decoder DynamoArrayValue
-dynamoArrayStringValueDecoder =
-    Decode.map DynamoArrayValue (Decode.field "L" (Decode.list dynamoStringValueDecoder))
+dynamoArrayStringDecoder : Decode.Decoder DynamoArrayString
+dynamoArrayStringDecoder =
+    Decode.map DynamoArrayString (Decode.field "L" (Decode.list dynamoStringDecoder))
 
 
-dynamoArrayNumberValueDecoder : Decode.Decoder DynamoArrayValue
-dynamoArrayNumberValueDecoder =
-    Decode.map DynamoArrayValue (Decode.field "L" (Decode.list dynamoNumberValueDecoder))
+dynamoArrayNumberDecoder : Decode.Decoder DynamoArrayNumber
+dynamoArrayNumberDecoder =
+    Decode.map DynamoArrayNumber (Decode.field "L" (Decode.list dynamoNumberDecoder))
 
 
-dynamoNumberValueDecoder : Decode.Decoder DynamoValue
-dynamoNumberValueDecoder =
-    Decode.map DynamoValue (Decode.field "N" Decode.string)
+dynamoNumberDecoder : Decode.Decoder DynamoNumber
+dynamoNumberDecoder =
+    Decode.map DynamoNumber (Decode.field "N" Decode.int)
 
 
-dynamoNumberValueEncoder : DynamoValue -> Encode.Value
-dynamoNumberValueEncoder dynamoValue =
+dynamoNumberEncoder : DynamoNumber -> Encode.Value
+dynamoNumberEncoder dynamoValue =
     Encode.object
-        [ ( "N", Encode.string dynamoValue.value ) ]
+        [ ( "N", Encode.int dynamoValue.value ) ]
 
 
-dynamoStringValueDecoder : Decode.Decoder DynamoValue
-dynamoStringValueDecoder =
-    Decode.map DynamoValue (Decode.field "S" Decode.string)
+dynamoStringDecoder : Decode.Decoder DynamoString
+dynamoStringDecoder =
+    Decode.map DynamoString (Decode.field "S" Decode.string)
 
 
 dynamoBoolDecoder : Decode.Decoder DynamoBool
@@ -68,9 +74,9 @@ dynamoBoolDecoder =
 vertexDataInnerResponseDecoder : Decode.Decoder DynamoVertexData
 vertexDataInnerResponseDecoder =
     Decode.map6 DynamoVertexData
-        (Decode.field "name" dynamoStringValueDecoder)
-        (Decode.field "uid" dynamoNumberValueDecoder)
+        (Decode.field "name" dynamoStringDecoder)
+        (Decode.field "uid" dynamoNumberDecoder)
         (Decode.field "is_committee" dynamoBoolDecoder)
-        (Decode.field "cities" dynamoArrayStringValueDecoder)
-        (Decode.field "streets" dynamoArrayStringValueDecoder)
-        (Decode.field "states" dynamoArrayStringValueDecoder)
+        (Decode.field "cities" dynamoArrayStringDecoder)
+        (Decode.field "streets" dynamoArrayStringDecoder)
+        (Decode.field "states" dynamoArrayStringDecoder)

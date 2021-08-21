@@ -1,4 +1,4 @@
-module Msg.Msg exposing (Msg(..), resetViewport)
+module Msg.Msg exposing (Msg(..), resetViewport, VertexDataClient(..))
 
 import Browser.Dom as Dom
 import Http
@@ -8,29 +8,39 @@ import Http.PageCount exposing (PageCountResponse)
 import Http.Traversal exposing (TraversalResponse)
 import Http.Vertex exposing (VertexDataResponse)
 import Model.SortBy exposing (SortBy)
+import Model.Traversal exposing (PageCount)
 import Model.VertexData exposing (VertexData)
 import Task
 
 
 type Msg
     = NoOp
+    -- Clicks
     | ClickedAbout -- TODO: href
     | ClickedTool -- TODO: href
     | ConfigureSearch
     | ClearSearch
-    | SearchInput String
-    | AggOptionSelected
-    | DirectionOptionSelected
     | VertexSelected VertexData
     | DeleteVertexSelection VertexData
+    -- Configuration Options
+    | AggOptionSelected
+    | DirectionOptionSelected
+    | SortByOptionSelected SortBy
+    -- Vertex Name Auto Complete Search
+    | VertexNameSearchInput String
+    | VertexNamePrefixGetReceived (Result Http.Error VertexNamePrefixResponse)
+    -- Vertex Data Request
+    | VertexDataPostReceived VertexDataClient (Result Http.Error VertexDataResponse)
+    -- Traversal Request
     | TraversalRequestMade
     | ChildTraversalRequestMade VertexData
-    | VertexDataPostReceived (Result Http.Error VertexDataResponse)
-    | EdgeDataPostReceived (Result Http.Error EdgeDataResponse)
-    | VertexNamePrefixGetReceived (Result Http.Error VertexNamePrefixResponse)
-    | TraversalPostReceived (Result Http.Error TraversalResponse)
     | PageCountPostReceived (Result Http.Error PageCountResponse)
-    | SortByOptionSelected SortBy
+    | TraversalPostReceived PageCount (Result Http.Error TraversalResponse)
+    | EdgeDataPostReceived (Result Http.Error EdgeDataResponse)
+
+type VertexDataClient
+    = ForNameSearch
+    | ForTraversal
 
 
 resetViewport : Cmd Msg

@@ -1,106 +1,94 @@
 module Http.Edge exposing (DynamoEdgeData, EdgeDataResponse, buildEdgeDataRequest, edgeDataPost)
 
 import Http
-import Http.Generic exposing (DynamoValue, dynamoNumberValueDecoder, dynamoNumberValueEncoder)
-import Http.Url exposing (graphDataURL)
+import Http.Generic exposing (DynamoNumber, DynamoString, dynamoNumberDecoder, dynamoNumberEncoder, dynamoStringDecoder)
+import Http.Url as Url exposing (batchGetItemURL)
 import Json.Decode as Decode
 import Json.Encode as Encode
 import Model.Direction exposing (Direction(..))
-import Model.Traversal exposing (Traversal)
 
 
 type alias EdgeDataRequest =
-    { request_items : EdgeDataInnerRequest }
+    { request_items: RequestItems }
 
+type alias RequestItems =
+    { poli_edge: Keys }
 
-type alias EdgeDataInnerRequest =
-    { poli_edge : EdgeDataInnerRequestKeys }
+type alias Keys =
+    { keys: List Key }
 
-
-type alias EdgeDataInnerRequestKeys =
-    { keys : List EdgeDataInnerRequestKey }
-
-
-type alias EdgeDataInnerRequestKey =
-    { src_id : DynamoValue
-    , dst_id : DynamoValue
+type alias Key =
+    { src_id : DynamoNumber
+    , dst_id : DynamoNumber
     }
 
 
 type alias EdgeDataResponse =
-    { responses : PoliEdgeDataTable }
+    { responses : DynamoListEdgeData }
 
 
-type alias PoliEdgeDataTable =
-    { items : List DynamoEdgeData }
+type alias DynamoListEdgeData =
+    { poli_edge : List DynamoEdgeData }
 
 
 type alias DynamoEdgeData =
-    { src_id : DynamoValue
-    , dst_id : DynamoValue
-    , num_transactions : DynamoValue
-    , total_spend : DynamoValue
-    , avg_spend : DynamoValue
-    , max_spend : DynamoValue
-    , min_spend : DynamoValue
+    { src_id : DynamoNumber
+    , dst_id : DynamoNumber
+    , num_transactions : DynamoString
+    , total_spend : DynamoString
+    , avg_spend : DynamoString
+    , max_spend : DynamoString
+    , min_spend : DynamoString
     }
 
 
 edgeDataPost : EdgeDataRequest -> (Result Http.Error EdgeDataResponse -> msg) -> Cmd msg
 edgeDataPost request toMsg =
     Http.post
-        { url = graphDataURL
+        { url = batchGetItemURL
         , body = Http.jsonBody (edgeDataRequestEncoder request)
         , expect = Http.expectJson toMsg edgeDataResponseDecoder
         }
 
 
-buildEdgeDataRequest : Direction -> List Traversal -> EdgeDataRequest
-buildEdgeDataRequest direction traversals =
+buildEdgeDataRequest : Direction -> (Int, List Int) -> EdgeDataRequest
+buildEdgeDataRequest direction (srcId, dstIds) =
     let
-        edges : List ( String, String )
-        edges =
+        keys : List Key
+        keys =
             case direction of
                 In ->
-                    List.concatMap (\trv -> List.map (\dst_id -> ( dst_id, trv.src_id )) trv.dst_ids) traversals
+                    List.map (\dstId -> { src_id = DynamoNumber dstId, dst_id = DynamoNumber srcId }) dstIds
 
                 Out ->
-                    List.concatMap (\trv -> List.map (\dst_id -> ( trv.src_id, dst_id )) trv.dst_ids) traversals
+                    List.map (\dstId -> { src_id = DynamoNumber srcId, dst_id = DynamoNumber dstId }) dstIds
     in
-    EdgeDataRequest
-        (EdgeDataInnerRequest
-            (EdgeDataInnerRequestKeys (List.map buildEdgeDataRequestInnerValues edges))
-        )
-
-
-buildEdgeDataRequestInnerValues : ( String, String ) -> EdgeDataInnerRequestKey
-buildEdgeDataRequestInnerValues tuple =
-    EdgeDataInnerRequestKey (DynamoValue (Tuple.first tuple)) (DynamoValue (Tuple.second tuple))
+    { request_items = { poli_edge = Keys keys } }
 
 
 edgeDataRequestEncoder : EdgeDataRequest -> Encode.Value
 edgeDataRequestEncoder edgeDataRequest =
     Encode.object
-        [ ( "RequestItems", edgeDataInnerRequestEncoder edgeDataRequest.request_items ) ]
+        [ ( "RequestItems", requestItemsEncoder edgeDataRequest.request_items ) ]
 
 
-edgeDataInnerRequestEncoder : EdgeDataInnerRequest -> Encode.Value
-edgeDataInnerRequestEncoder edgeDataInnerRequest =
+requestItemsEncoder : RequestItems -> Encode.Value
+requestItemsEncoder requestItems =
     Encode.object
-        [ ( "PoliEdge", edgeDataInnerRequestKeysEncoder edgeDataInnerRequest.poli_edge ) ]
+        [ ( "PoliEdge" ++ Url.envTitle, keysEncoder requestItems.poli_edge ) ]
 
 
-edgeDataInnerRequestKeysEncoder : EdgeDataInnerRequestKeys -> Encode.Value
-edgeDataInnerRequestKeysEncoder edgeDataInnerRequestKeys =
+keysEncoder : Keys -> Encode.Value
+keysEncoder keys =
     Encode.object
-        [ ( "Keys", Encode.list edgeDataInnerRequestKeyEncoder edgeDataInnerRequestKeys.keys ) ]
+        [ ( "Keys", Encode.list keyEncoder keys.keys ) ]
 
 
-edgeDataInnerRequestKeyEncoder : EdgeDataInnerRequestKey -> Encode.Value
-edgeDataInnerRequestKeyEncoder edgeDataInnerRequestKey =
+keyEncoder : Key -> Encode.Value
+keyEncoder key =
     Encode.object
-        [ ( "src_id", dynamoNumberValueEncoder edgeDataInnerRequestKey.src_id )
-        , ( "dst_id", dynamoNumberValueEncoder edgeDataInnerRequestKey.dst_id )
+        [ ( "src_id", dynamoNumberEncoder key.src_id )
+        , ( "dst_id", dynamoNumberEncoder key.dst_id )
         ]
 
 
@@ -109,18 +97,18 @@ edgeDataResponseDecoder =
     Decode.map EdgeDataResponse (Decode.field "Responses" poliEdgeDataTableDecoder)
 
 
-poliEdgeDataTableDecoder : Decode.Decoder PoliEdgeDataTable
+poliEdgeDataTableDecoder : Decode.Decoder DynamoListEdgeData
 poliEdgeDataTableDecoder =
-    Decode.map PoliEdgeDataTable (Decode.field "PoliEdge" (Decode.list edgeDataInnerResponseDecoder))
+    Decode.map DynamoListEdgeData (Decode.field "PoliEdge" (Decode.list edgeDataInnerResponseDecoder))
 
 
 edgeDataInnerResponseDecoder : Decode.Decoder DynamoEdgeData
 edgeDataInnerResponseDecoder =
     Decode.map7 DynamoEdgeData
-        (Decode.field "src_id" dynamoNumberValueDecoder)
-        (Decode.field "dst_id" dynamoNumberValueDecoder)
-        (Decode.field "num_transactions" dynamoNumberValueDecoder)
-        (Decode.field "total_spend" dynamoNumberValueDecoder)
-        (Decode.field "avg_spend" dynamoNumberValueDecoder)
-        (Decode.field "max_spend" dynamoNumberValueDecoder)
-        (Decode.field "min_spend" dynamoNumberValueDecoder)
+        (Decode.field "src_id" dynamoNumberDecoder)
+        (Decode.field "dst_id" dynamoNumberDecoder)
+        (Decode.field "num_transactions" dynamoStringDecoder)
+        (Decode.field "total_spend" dynamoStringDecoder)
+        (Decode.field "avg_spend" dynamoStringDecoder)
+        (Decode.field "max_spend" dynamoStringDecoder)
+        (Decode.field "min_spend" dynamoStringDecoder)

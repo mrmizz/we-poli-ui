@@ -1,8 +1,8 @@
 module Http.Vertex exposing (VertexDataResponse, buildVertexDataRequest, vertexDataPost)
 
 import Http
-import Http.Generic exposing (DynamoValue, DynamoVertexData, dynamoNumberValueEncoder, vertexDataInnerResponseDecoder)
-import Http.Url exposing (graphDataURL)
+import Http.Generic exposing (DynamoNumber, DynamoVertexData, dynamoNumberEncoder, vertexDataInnerResponseDecoder)
+import Http.Url exposing (batchGetItemURL)
 import Json.Decode as Decode
 import Json.Encode as Encode
 
@@ -20,7 +20,7 @@ type alias VertexDataInnerRequestKeys =
 
 
 type alias VertexDataInnerRequestKey =
-    { uid : DynamoValue }
+    { uid : DynamoNumber }
 
 
 type alias VertexDataResponse =
@@ -34,13 +34,13 @@ type alias PoliVertexTable =
 vertexDataPost : VertexDataRequest -> (Result Http.Error VertexDataResponse -> msg) -> Cmd msg
 vertexDataPost request toMsg =
     Http.post
-        { url = graphDataURL
+        { url = batchGetItemURL
         , body = Http.jsonBody (vertexDataRequestEncoder request)
         , expect = Http.expectJson toMsg vertexDataResponseDecoder
         }
 
 
-buildVertexDataRequest : List String -> VertexDataRequest
+buildVertexDataRequest : List Int -> VertexDataRequest
 buildVertexDataRequest uids =
     VertexDataRequest
         (VertexDataInnerRequest
@@ -48,9 +48,9 @@ buildVertexDataRequest uids =
         )
 
 
-buildVertexDataRequestInnerValues : String -> VertexDataInnerRequestKey
+buildVertexDataRequestInnerValues : Int -> VertexDataInnerRequestKey
 buildVertexDataRequestInnerValues uid =
-    VertexDataInnerRequestKey (DynamoValue uid)
+    VertexDataInnerRequestKey (DynamoNumber uid)
 
 
 vertexDataRequestEncoder : VertexDataRequest -> Encode.Value
@@ -74,7 +74,7 @@ vertexDataInnerRequestKeysEncoder vertexDataInnerRequestKey =
 vertexDataInnerRequestKeyEncoder : VertexDataInnerRequestKey -> Encode.Value
 vertexDataInnerRequestKeyEncoder vertexDataInnerRequestUID =
     Encode.object
-        [ ( "uid", dynamoNumberValueEncoder vertexDataInnerRequestUID.uid ) ]
+        [ ( "uid", dynamoNumberEncoder vertexDataInnerRequestUID.uid ) ]
 
 
 vertexDataResponseDecoder : Decode.Decoder VertexDataResponse

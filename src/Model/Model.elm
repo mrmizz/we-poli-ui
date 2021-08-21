@@ -2,46 +2,43 @@ module Model.Model exposing (Model, init, initialModel, initialModelWithParams)
 
 import Model.Aggregation exposing (Aggregation(..))
 import Model.Direction exposing (Direction(..))
-import Model.EdgeData exposing (EdgeData)
-import Model.PageCount exposing (PageCount)
 import Model.SortBy exposing (SortBy(..))
 import Model.State exposing (State(..))
-import Model.Traversal exposing (Traversal)
+import Model.Traversal as Traversal exposing (PageCount, Traversal)
 import Model.VertexData exposing (VertexData)
+import Model.VertexNameSearch exposing (VertexNameSearch)
 import Model.Zipped exposing (Zipped)
 import Msg.Msg exposing (Msg)
 
 
 type alias Model =
     { state : State
-    , vertex_name_search : String
-    , vertex_name_search_response : List VertexData
-    , vertices_selected : List VertexData
+    -- Building Search Parameters
     , aggregation_selected : Aggregation
     , direction_selected : Direction
     , sort_by_selected : SortBy
-    , traversal_response : List Traversal
-    , traversal_data_response : List VertexData
-    , edge_data_response : List EdgeData
+    , vertices_selected : List VertexData
+    -- Vertex Name Auto Complete Search
+    , vertex_name_search : VertexNameSearch
+    -- Traversal
+    , traversal: Traversal
     , zipped : List Zipped
-    , page_count : Maybe PageCount
     }
 
 
 initialModel : Model
 initialModel =
     { state = BuildingRequest False
-    , vertex_name_search = ""
-    , vertex_name_search_response = []
+    -- Building Search Parameters
     , aggregation_selected = Or
-    , vertices_selected = []
     , direction_selected = Out
     , sort_by_selected = Count
-    , traversal_response = []
-    , traversal_data_response = []
-    , edge_data_response = []
+    , vertices_selected = []
+    -- Vertex Name Auto Complete Search
+    , vertex_name_search = { input = "", vertices = [] }
+    -- Traversal
+    , traversal = Traversal.Pending
     , zipped = []
-    , page_count = Nothing
     }
 
 

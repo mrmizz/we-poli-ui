@@ -31,11 +31,11 @@ body model isModalActive =
 
         response : Html Msg
         response =
-            case String.length model.vertex_name_search >= 3 of
+            case String.length model.vertex_name_search.input >= 3 of
                 True ->
                     Html.div
                         []
-                        (List.map selectable model.vertex_name_search_response)
+                        (List.map selectable model.vertex_name_search.vertices)
 
                 False ->
                     Html.div [] []
@@ -97,7 +97,7 @@ body model isModalActive =
                     [ class "input is-info is-large"
                     , type_ "text"
                     , placeholder placeHolder
-                    , onInput SearchInput
+                    , onInput VertexNameSearchInput
                     ]
                     []
                 , Html.span

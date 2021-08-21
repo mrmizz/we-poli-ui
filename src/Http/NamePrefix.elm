@@ -1,7 +1,7 @@
 module Http.NamePrefix exposing (VertexNamePrefixResponse, vertexNamePrefixGet)
 
 import Http
-import Http.Generic exposing (DynamoValue, DynamoVertexDataItem, DynamoVertexDataItems, dynamoNumberValueDecoder, dynamoStringValueDecoder, vertexDataInnerResponseDecoder)
+import Http.Generic exposing (DynamoArrayNumber, DynamoNumber, DynamoString, dynamoArrayNumberDecoder, dynamoNumberDecoder, dynamoStringDecoder)
 import Http.Url exposing (prefixURL)
 import Json.Decode as Decode
 
@@ -11,9 +11,9 @@ type alias VertexNamePrefixResponse =
 
 
 type alias VertexNamePrefixInnerResponse =
-    { prefix : DynamoValue
-    , prefix_size : DynamoValue
-    , vertices : DynamoVertexDataItems
+    { prefix : DynamoString
+    , prefix_size : DynamoNumber
+    , vertexIds : DynamoArrayNumber
     }
 
 
@@ -33,16 +33,7 @@ vertexNamePrefixResponseDecoder =
 vertexNamePrefixInnerResponseDecoder : Decode.Decoder VertexNamePrefixInnerResponse
 vertexNamePrefixInnerResponseDecoder =
     Decode.map3 VertexNamePrefixInnerResponse
-        (Decode.field "prefix" dynamoStringValueDecoder)
-        (Decode.field "prefix_size" dynamoNumberValueDecoder)
-        (Decode.field "vertices" dynamoVertexDataInnerDecoder)
+        (Decode.field "prefix" dynamoStringDecoder)
+        (Decode.field "prefix_size" dynamoNumberDecoder)
+        (Decode.field "vertexIds" dynamoArrayNumberDecoder)
 
-
-dynamoVertexDataInnerDecoder : Decode.Decoder DynamoVertexDataItems
-dynamoVertexDataInnerDecoder =
-    Decode.map DynamoVertexDataItems (Decode.field "L" (Decode.list dynamoVertexDataInnerInnerDecoder))
-
-
-dynamoVertexDataInnerInnerDecoder : Decode.Decoder DynamoVertexDataItem
-dynamoVertexDataInnerInnerDecoder =
-    Decode.map DynamoVertexDataItem (Decode.field "M" vertexDataInnerResponseDecoder)

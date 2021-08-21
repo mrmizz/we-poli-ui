@@ -36,7 +36,7 @@ body zipped =
                 ]
             , Html.td
                 []
-                [ Html.text edgeData.src_id
+                [ Html.text (String.fromInt edgeData.src_id)
                 ]
             ]
         , Html.tr
@@ -47,7 +47,7 @@ body zipped =
                 ]
             , Html.td
                 []
-                [ Html.text edgeData.dst_id
+                [ Html.text (String.fromInt edgeData.dst_id)
                 ]
             ]
         , Html.tr

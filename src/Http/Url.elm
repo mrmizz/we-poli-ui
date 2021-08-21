@@ -1,11 +1,25 @@
-module Http.Url exposing (graphDataURL, prefixURL)
+module Http.Url exposing (getItemURL, prefixURL, env, envTitle, batchGetItemURL)
 
+env: String
+env =
+    "prod"
 
-graphDataURL : String
-graphDataURL =
-    "https://yf87qmn85l.execute-api.us-west-2.amazonaws.com/dev/poli/graph"
+envTitle: String
+envTitle =
+    "Prod"
 
+baseURL: String
+baseURL =
+    "https://jskg4ocsd8.execute-api.us-west-2.amazonaws.com/" ++ env
+
+batchGetItemURL: String
+batchGetItemURL =
+    baseURL ++ "/poli/batch-get-item"
+
+getItemURL : String
+getItemURL =
+    baseURL ++ "/poli/get-item"
 
 prefixURL : String
 prefixURL =
-    "https://yf87qmn85l.execute-api.us-west-2.amazonaws.com/dev/poli/prefix/"
+    baseURL ++ "/poli/prefix/"

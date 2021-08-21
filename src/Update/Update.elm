@@ -26,7 +26,7 @@ update msg model =
         ConfigureSearch ->
             updateWithConfiguration model
 
-        SearchInput prefix ->
+        VertexNameSearchInput prefix ->
             updateWithVertexNamePrefixRequest model prefix
 
         VertexNamePrefixGetReceived result ->
@@ -41,11 +41,11 @@ update msg model =
         PageCountPostReceived result ->
             updateWithPageCountResponse model result
 
-        TraversalPostReceived result ->
-            updateWithTraversalResponse model result
+        TraversalPostReceived pageCount result ->
+            updateWithTraversalResponse model pageCount result
 
-        VertexDataPostReceived result ->
-            updateWithVertexDataResponse model result
+        VertexDataPostReceived client result ->
+            updateWithVertexDataResponse model client result
 
         EdgeDataPostReceived result ->
             updateWithEdgeDataResponse model result

@@ -1,11 +1,10 @@
-module Model.VertexData exposing (VertexData, distinct, filterByDirection, notUID)
+module Model.VertexData exposing (VertexData, distinct, notUID)
 
-import Model.Direction as Direction exposing (Direction)
 import Set exposing (Set)
 
 
 type alias VertexData =
-    { uid : String
+    { uid : Int
     , name : String
     , is_committee : Bool
     , cities : List String
@@ -15,12 +14,12 @@ type alias VertexData =
 
 
 type alias VertexPresence =
-    { set : Set String
+    { set : Set Int
     , vertices : List VertexData
     }
 
 
-notUID : String -> VertexData -> Bool
+notUID : Int -> VertexData -> Bool
 notUID uid vertex =
     vertex.uid /= uid
 
@@ -41,26 +40,3 @@ bumpVertexPresence vertexData vertexPresence =
                 | set = Set.insert vertexData.uid vertexPresence.set
                 , vertices = List.singleton vertexData ++ vertexPresence.vertices
             }
-
-
-filterByDirection : Direction -> List VertexData -> List VertexData
-filterByDirection direction vertices =
-    case List.filter (sameDirection direction) vertices of
-        [] ->
-            []
-
-        head :: [] ->
-            case sameDirection direction head of
-                True ->
-                    [ head ]
-
-                False ->
-                    []
-
-        list ->
-            list
-
-
-sameDirection : Direction -> VertexData -> Bool
-sameDirection direction vertexData =
-    vertexData.is_committee == Direction.toIsCommittee direction

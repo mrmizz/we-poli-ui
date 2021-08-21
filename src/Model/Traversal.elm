@@ -1,13 +1,17 @@
-module Model.Traversal exposing (Traversal, TraversalPage)
+module Model.Traversal exposing (Traversal(..), PageCount)
 
+import Model.EdgeData exposing (EdgeData)
+import Model.VertexData exposing (VertexData)
 
-type alias Traversal =
-    { src_id : String
-    , dst_ids : List String
-    }
+type Traversal
+    = Pending -- still building search
+    | Waiting PageCount -- async requests made
+    | WaitingForEdges PageCount (List VertexData) -- vertices arrived first
+    | WaitingForVertices PageCount (List EdgeData) -- edges arrived first
+    | Done PageCount -- all async requests received
 
-
-type alias TraversalPage =
-    { vertex_id : String
-    , page_number : String
+type alias PageCount =
+    { src_id: Int
+    , total_pages: Int
+    , current_page: Int
     }

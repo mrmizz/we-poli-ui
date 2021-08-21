@@ -1,14 +1,14 @@
 module Update.NamePrefix exposing (updateWithVertexNamePrefixRequest, updateWithVertexNamePrefixResponse)
 
 import Http
-import Http.Generic exposing (DynamoVertexDataItem, DynamoVertexDataItems)
 import Http.NamePrefix exposing (VertexNamePrefixResponse, vertexNamePrefixGet)
+import Http.Vertex exposing (buildVertexDataRequest, vertexDataPost)
 import Model.Direction as Direction
 import Model.Model exposing (Model)
 import Model.State exposing (State(..))
-import Model.VertexData as VertexData exposing (VertexData)
-import Msg.Msg exposing (Msg(..))
-import Update.Generic exposing (unpackDynamoVertexData)
+import Model.VertexNameSearch as VertexNameSearch
+import Msg.Msg exposing (Msg(..), VertexDataClient(..))
+import Update.Generic exposing (unpackDynamoArrayNumber)
 import Util.Util exposing (printBool)
 
 
@@ -19,15 +19,24 @@ updateWithVertexNamePrefixRequest model prefix =
         clean input =
             printBool (Direction.toIsCommittee model.direction_selected)
                 |> String.append "_"
-                |> String.append (String.replace " " "" input)
+                |> String.append (String.replace " " "" input) -- TODO: reverse order ^ ?
                 |> String.toLower
+
+        old : VertexNameSearch.VertexNameSearch
+        old =
+            model.vertex_name_search
+
+        new : Model
+        new =
+            { model | vertex_name_search = { old | input = prefix } }
+
     in
     case String.length prefix >= 3 of
         False ->
-            ( { model | vertex_name_search = prefix }, Cmd.none )
+            ( new, Cmd.none )
 
         True ->
-            ( { model | vertex_name_search = prefix }
+            ( new
             , vertexNamePrefixGet (clean prefix) VertexNamePrefixGetReceived
             )
 
@@ -36,34 +45,20 @@ updateWithVertexNamePrefixResponse : Model -> Result Http.Error VertexNamePrefix
 updateWithVertexNamePrefixResponse model result =
     case result of
         Ok response ->
-            case unpackVertexNamePrefixResponse response of
-                [] ->
-                    ( { model | vertex_name_search_response = [] }, Cmd.none )
-
-                vertices ->
-                    ( { model | vertex_name_search_response = VertexData.filterByDirection model.direction_selected vertices }
-                    , Cmd.none
+            case response.items of
+                head :: [] ->
+                    let
+                        unpack =
+                            unpackDynamoArrayNumber head.vertexIds
+                    in
+                    ( model
+                    , vertexDataPost (buildVertexDataRequest unpack) (VertexDataPostReceived ForNameSearch)
                     )
+
+                _ ->
+                    ( { model | state = DataIntegrityFailure }, Cmd.none )
 
         Err error ->
             ( { model | state = RequestFailure error }, Cmd.none )
 
 
-unpackVertexNamePrefixResponse : VertexNamePrefixResponse -> List VertexData
-unpackVertexNamePrefixResponse response =
-    case List.head response.items of
-        Just head ->
-            unpackDynamoVertexDataInner head.vertices
-
-        Nothing ->
-            []
-
-
-unpackDynamoVertexDataInner : DynamoVertexDataItems -> List VertexData
-unpackDynamoVertexDataInner dynamoVertexDataInner =
-    List.map unpackDynamoVertexDataInnerInner dynamoVertexDataInner.items
-
-
-unpackDynamoVertexDataInnerInner : DynamoVertexDataItem -> VertexData
-unpackDynamoVertexDataInnerInner dynamoVertexDataInnerInner =
-    unpackDynamoVertexData dynamoVertexDataInnerInner.item

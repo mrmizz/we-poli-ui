@@ -10,8 +10,6 @@ import Util.Util as Util
 
 -- TODO: Handle "bad" input gracefully
 -- example: inputting /// throws an error
--- TODO: city, state, etc all to lower
--- TODO: aggregate city, state, etc to address object
 
 
 view : VertexData -> Html Msg
@@ -44,7 +42,7 @@ body vertexData =
                 ]
             , Html.td
                 []
-                [ Html.text vertexData.uid
+                [ Html.text (String.fromInt vertexData.uid)
                 ]
             ]
         , Html.tr
@@ -117,7 +115,7 @@ bodyMin vertexData =
                 ]
             , Html.td
                 []
-                [ Html.text vertexData.uid
+                [ Html.text (String.fromInt vertexData.uid)
                 ]
             ]
         , Html.tr

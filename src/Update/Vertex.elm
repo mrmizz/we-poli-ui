@@ -1,18 +1,19 @@
 module Update.Vertex exposing (updateWithVertexDataResponse)
 
 import Http
-import Http.Edge exposing (buildEdgeDataRequest, edgeDataPost)
-import Http.Vertex exposing (VertexDataResponse, buildVertexDataRequest, vertexDataPost)
+import Http.Vertex exposing (VertexDataResponse)
 import Model.Model exposing (Model)
-import Model.PageCount
 import Model.State exposing (State(..))
+import Model.Traversal as Traversal exposing (Traversal(..))
 import Model.VertexData exposing (VertexData)
-import Msg.Msg exposing (Msg(..))
+import Model.VertexNameSearch
+import Model.Zipped as Zipped
+import Msg.Msg exposing (Msg(..), VertexDataClient(..))
 import Update.Generic exposing (unpackDynamoVertexData)
 
 
-updateWithVertexDataResponse : Model -> Result Http.Error VertexDataResponse -> ( Model, Cmd Msg )
-updateWithVertexDataResponse model result =
+updateWithVertexDataResponse : Model -> VertexDataClient -> Result Http.Error VertexDataResponse -> ( Model, Cmd Msg )
+updateWithVertexDataResponse model client result =
     case result of
         Ok response ->
             let
@@ -23,49 +24,48 @@ updateWithVertexDataResponse model result =
                 vertices : List VertexData
                 vertices =
                     unpack response
-
-                incrementedTotalVertices : List VertexData
-                incrementedTotalVertices =
-                    model.traversal_data_response ++ vertices
             in
-            case model.page_count of
-                Just pageCount ->
-                    case pageCount.vertex_data.pending of
-                        head :: tail ->
-                            ( { model
-                                | traversal_data_response = incrementedTotalVertices
-                                , page_count =
-                                    Just
-                                        { pageCount
-                                            | vertex_data = Model.PageCount.VertexDataPageCount (pageCount.vertex_data.made ++ [ head ]) tail
-                                        }
-                              }
-                            , vertexDataPost
-                                (buildVertexDataRequest head.dst_ids)
-                                VertexDataPostReceived
-                            )
+            case client of
+                ForNameSearch ->
+                    updateForNameSearch model vertices
 
-                        [] ->
-                            case model.traversal_response of
-                                head :: tail ->
-                                    ( { model
-                                        | traversal_data_response = incrementedTotalVertices
-                                        , page_count =
-                                            Just
-                                                { pageCount
-                                                    | edge_data = Model.PageCount.EdgeDataPageCount [ head ] tail
-                                                }
-                                      }
-                                    , edgeDataPost
-                                        (buildEdgeDataRequest model.direction_selected [ head ])
-                                        EdgeDataPostReceived
-                                    )
+                ForTraversal ->
+                    updateForTraversal model vertices
 
-                                [] ->
-                                    ( { model | state = DataIntegrityFailure }, Cmd.none )
-
-                Nothing ->
-                    ( { model | state = DataIntegrityFailure }, Cmd.none )
 
         Err error ->
             ( { model | state = RequestFailure error }, Cmd.none )
+
+updateForNameSearch : Model -> List VertexData -> ( Model, Cmd Msg )
+updateForNameSearch model vertices =
+    let
+        old =
+            model.vertex_name_search
+    in
+    ( { model
+        | vertex_name_search = { old | vertices = vertices }
+        }
+    , Cmd.none
+     )
+
+
+updateForTraversal : Model -> List VertexData -> ( Model, Cmd Msg )
+updateForTraversal model vertices =
+    case model.traversal of
+        Waiting pageCount ->
+            ( { model | traversal = WaitingForEdges pageCount vertices }
+            , Cmd.none
+            )
+
+
+        WaitingForVertices pageCount edges ->
+            ( { model
+                | state = VertexRequestsSuccess False
+                , traversal = Traversal.Done pageCount
+                , zipped = Zipped.zip model.direction_selected vertices edges
+             }
+            , Cmd.none
+            )
+
+        _ ->
+            ( { model | state = DataIntegrityFailure }, Cmd.none )

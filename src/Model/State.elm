@@ -5,8 +5,8 @@ import Http
 
 type State
     = About
-    | BuildingRequest Bool
+    | BuildingRequest Bool -- ADT for ModalOpen
     | Loading
-    | VertexRequestsSuccess Bool
+    | VertexRequestsSuccess Bool -- ADT for ModalOpen
     | RequestFailure Http.Error
     | DataIntegrityFailure
