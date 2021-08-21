@@ -60,18 +60,28 @@ updateWithPageCountResponse model result =
     case result of
         Ok response ->
             let
-                unpack : PageCount
-                unpack =
-                    { src_id = unpackDynamoNumber response.item.vertex_id
-                    , total_pages = unpackDynamoNumber response.item.page_count
-                    , current_page = 1
-                    }
+                maybePageCount : Maybe PageCount
+                maybePageCount =
+                    case (unpackDynamoNumber response.item.vertex_id, unpackDynamoNumber response.item.page_count) of
+                        (Just srcId, Just totalPages) ->
+                            Just
+                                { src_id = srcId
+                                , total_pages = totalPages
+                                , current_page = 1
+                                }
+                        _ ->
+                            Nothing
             in
-            ( { model | traversal = Traversal.Waiting unpack}
-            , traversalPost
-                (buildTraversalRequest unpack.src_id unpack.current_page)
-                (TraversalPostReceived unpack)
-            )
+            case maybePageCount of
+                Just unpack ->
+                    ( { model | traversal = Traversal.Waiting unpack}
+                    , traversalPost
+                        (buildTraversalRequest unpack.src_id unpack.current_page)
+                        (TraversalPostReceived unpack)
+                    )
+
+                Nothing ->
+                    ( { model | state = DataIntegrityFailure }, Cmd.none )
 
         Err error ->
             ( { model | state = RequestFailure error }, Cmd.none )
@@ -81,22 +91,23 @@ updateWithTraversalResponse : Model -> PageCount -> Result Http.Error TraversalR
 updateWithTraversalResponse model pageCount result =
     case result of
         Ok response ->
-            let
-                unpack =
-                    unpackDynamoArrayNumber response.item.related_vertex_ids
+            case (unpackDynamoArrayNumber response.item.related_vertex_ids) of
+                Just unpack ->
+                    let
+                        vertexRequest : Cmd Msg
+                        vertexRequest =
+                            vertexDataPost (buildVertexDataRequest unpack) (VertexDataPostReceived ForTraversal)
 
-                vertexRequest : Cmd Msg
-                vertexRequest =
-                    vertexDataPost (buildVertexDataRequest unpack) (VertexDataPostReceived ForTraversal)
+                        edgeRequest : Cmd Msg
+                        edgeRequest =
+                            edgeDataPost (buildEdgeDataRequest model.direction_selected (pageCount.src_id, unpack)) EdgeDataPostReceived
+                    in
+                    ( model
+                    , Cmd.batch [vertexRequest, edgeRequest]
+                    )
 
-                edgeRequest : Cmd Msg
-                edgeRequest =
-                    edgeDataPost (buildEdgeDataRequest model.direction_selected (pageCount.src_id, unpack)) EdgeDataPostReceived
-
-            in
-            ( model
-            , Cmd.batch [vertexRequest, edgeRequest]
-            )
+                Nothing ->
+                    ( { model | state = DataIntegrityFailure }, Cmd.none )
 
         Err error ->
             ( { model | state = RequestFailure error }, Cmd.none )

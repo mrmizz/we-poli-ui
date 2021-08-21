@@ -1,6 +1,6 @@
 module Update.Vertex exposing (updateWithVertexDataResponse)
 
-import Http
+import Http exposing (Error(..))
 import Http.Vertex exposing (VertexDataResponse)
 import Model.Model exposing (Model)
 import Model.State exposing (State(..))
@@ -9,7 +9,7 @@ import Model.VertexData exposing (VertexData)
 import Model.VertexNameSearch
 import Model.Zipped as Zipped
 import Msg.Msg exposing (Msg(..), VertexDataClient(..))
-import Update.Generic exposing (unpackDynamoVertexData)
+import Update.Generic exposing (unpackListDynamoVertexData)
 
 
 updateWithVertexDataResponse : Model -> VertexDataClient -> Result Http.Error VertexDataResponse -> ( Model, Cmd Msg )
@@ -17,20 +17,22 @@ updateWithVertexDataResponse model client result =
     case result of
         Ok response ->
             let
-                unpack : VertexDataResponse -> List VertexData
+                unpack : VertexDataResponse -> Maybe (List VertexData)
                 unpack vertexDataResponse =
-                    List.map unpackDynamoVertexData vertexDataResponse.responses.items
+                    unpackListDynamoVertexData vertexDataResponse.responses.items
 
-                vertices : List VertexData
-                vertices =
-                    unpack response
             in
-            case client of
-                ForNameSearch ->
-                    updateForNameSearch model vertices
+            case unpack response of
+                Just vertices ->
+                    case client of
+                        ForNameSearch ->
+                            updateForNameSearch model vertices
 
-                ForTraversal ->
-                    updateForTraversal model vertices
+                        ForTraversal ->
+                            updateForTraversal model vertices
+
+                Nothing ->
+                    ( { model | state = DataIntegrityFailure }, Cmd.none )
 
 
         Err error ->

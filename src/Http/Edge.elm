@@ -58,10 +58,10 @@ buildEdgeDataRequest direction (srcId, dstIds) =
         keys =
             case direction of
                 In ->
-                    List.map (\dstId -> { src_id = DynamoNumber dstId, dst_id = DynamoNumber srcId }) dstIds
+                    List.map (\dstId -> { src_id = DynamoNumber (String.fromInt dstId), dst_id = DynamoNumber (String.fromInt srcId) }) dstIds
 
                 Out ->
-                    List.map (\dstId -> { src_id = DynamoNumber srcId, dst_id = DynamoNumber dstId }) dstIds
+                    List.map (\dstId -> { src_id = DynamoNumber (String.fromInt srcId), dst_id = DynamoNumber (String.fromInt dstId) }) dstIds
     in
     { request_items = { poli_edge = Keys keys } }
 

@@ -35,7 +35,7 @@ pageCountPost toMsg request =
 buildPageCountRequest : Int -> PageCountRequest
 buildPageCountRequest vertexId =
     { table_name = "PoliTraversalsPageCount" ++ Url.envTitle
-    , key = DynamoNumber vertexId
+    , key = DynamoNumber (String.fromInt vertexId)
     }
 
 

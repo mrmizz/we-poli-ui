@@ -33,7 +33,7 @@ type alias DynamoString =
     { value : String }
 
 type alias DynamoNumber =
-    { value : Int }
+    { value : String }
 
 
 type alias DynamoBool =
@@ -52,13 +52,13 @@ dynamoArrayNumberDecoder =
 
 dynamoNumberDecoder : Decode.Decoder DynamoNumber
 dynamoNumberDecoder =
-    Decode.map DynamoNumber (Decode.field "N" Decode.int)
+    Decode.map DynamoNumber (Decode.field "N" Decode.string)
 
 
 dynamoNumberEncoder : DynamoNumber -> Encode.Value
 dynamoNumberEncoder dynamoValue =
     Encode.object
-        [ ( "N", Encode.int dynamoValue.value ) ]
+        [ ( "N", Encode.string dynamoValue.value ) ]
 
 
 dynamoStringDecoder : Decode.Decoder DynamoString

@@ -47,13 +47,14 @@ updateWithVertexNamePrefixResponse model result =
         Ok response ->
             case response.items of
                 head :: [] ->
-                    let
-                        unpack =
-                            unpackDynamoArrayNumber head.vertexIds
-                    in
-                    ( model
-                    , vertexDataPost (buildVertexDataRequest unpack) (VertexDataPostReceived ForNameSearch)
-                    )
+                    case unpackDynamoArrayNumber head.vertexIds of
+                        Just unpack ->
+                            ( model
+                            , vertexDataPost (buildVertexDataRequest unpack) (VertexDataPostReceived ForNameSearch)
+                            )
+
+                        Nothing ->
+                            ( { model | state = DataIntegrityFailure }, Cmd.none )
 
                 _ ->
                     ( { model | state = DataIntegrityFailure }, Cmd.none )

@@ -8,7 +8,7 @@ import Model.State exposing (State(..))
 import Model.Traversal as Traversal exposing (Traversal(..))
 import Model.Zipped as Zipped exposing (Zipped)
 import Msg.Msg exposing (Msg(..))
-import Update.Generic exposing (unpackDynamoNumber, unpackDynamoString)
+import Update.Generic exposing (unpackListDynamoEdgeData)
 
 
 updateWithEdgeDataResponse : Model -> Result Http.Error EdgeDataResponse -> ( Model, Cmd Msg )
@@ -16,41 +16,31 @@ updateWithEdgeDataResponse model result =
     case result of
         Ok response ->
             let
-                unpack : EdgeDataResponse -> List EdgeData
-                unpack edgeDataResponse =
-                    List.map unpack_ edgeDataResponse.responses.poli_edge
-
-                unpack_ : DynamoEdgeData -> EdgeData
-                unpack_ dynamoEdgeData =
-                    EdgeData
-                        (unpackDynamoNumber dynamoEdgeData.src_id)
-                        (unpackDynamoNumber dynamoEdgeData.dst_id)
-                        (unpackDynamoString dynamoEdgeData.num_transactions)
-                        (unpackDynamoString dynamoEdgeData.total_spend)
-                        (unpackDynamoString dynamoEdgeData.avg_spend)
-                        (unpackDynamoString dynamoEdgeData.max_spend)
-                        (unpackDynamoString dynamoEdgeData.min_spend)
-
-                edges : List EdgeData
-                edges =
-                    unpack response
+                maybeEdges : Maybe (List EdgeData)
+                maybeEdges =
+                    unpackListDynamoEdgeData response.responses.poli_edge
             in
-            case model.traversal of
-                Waiting pageCount ->
-                    ( { model | traversal = WaitingForVertices pageCount edges }
-                    , Cmd.none
-                    )
+            case maybeEdges of
+                Just edges ->
+                    case model.traversal of
+                        Waiting pageCount ->
+                            ( { model | traversal = WaitingForVertices pageCount edges }
+                            , Cmd.none
+                            )
 
-                WaitingForEdges pageCount vertices ->
-                    ( { model
-                    | state = VertexRequestsSuccess False
-                    , traversal = Traversal.Done pageCount
-                    , zipped = Zipped.zip model.direction_selected vertices edges
-                    }
-                    , Cmd.none
-                    )
+                        WaitingForEdges pageCount vertices ->
+                            ( { model
+                            | state = VertexRequestsSuccess False
+                            , traversal = Traversal.Done pageCount
+                            , zipped = Zipped.zip model.direction_selected vertices edges
+                            }
+                            , Cmd.none
+                            )
 
-                _ ->
+                        _ ->
+                            ( { model | state = DataIntegrityFailure }, Cmd.none )
+
+                Nothing ->
                     ( { model | state = DataIntegrityFailure }, Cmd.none )
 
 

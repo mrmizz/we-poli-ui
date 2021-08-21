@@ -50,7 +50,7 @@ buildVertexDataRequest uids =
 
 buildVertexDataRequestInnerValues : Int -> VertexDataInnerRequestKey
 buildVertexDataRequestInnerValues uid =
-    VertexDataInnerRequestKey (DynamoNumber uid)
+    VertexDataInnerRequestKey (DynamoNumber (String.fromInt uid))
 
 
 vertexDataRequestEncoder : VertexDataRequest -> Encode.Value

@@ -41,7 +41,7 @@ traversalPost request toMsg =
 buildTraversalRequest : Int -> Int -> TraversalRequest
 buildTraversalRequest srcId pageNumber =
     { table_name = "PoliTraversalsPageSB1" ++ Url.envTitle
-    , key = { vertex_id = DynamoNumber srcId, page_num = DynamoNumber pageNumber }
+    , key = { vertex_id = DynamoNumber (String.fromInt srcId), page_num = DynamoNumber (String.fromInt pageNumber) }
     }
 
 
