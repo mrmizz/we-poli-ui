@@ -31,7 +31,7 @@ type alias Model =
 
 initialModel : Model
 initialModel =
-    { state = BuildingRequest False
+    { state = BuildingSearch False
 
     -- Building Search Parameters
     , aggregation_selected = Or

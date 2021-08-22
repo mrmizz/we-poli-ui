@@ -58,4 +58,4 @@ updateWithVertexNamePrefixResponse model prefix result =
                     ( model, Cmd.none )
 
         Err error ->
-            ( { model | state = RequestFailure error }, Cmd.none )
+            ( { model | state = TraversalFailure error }, Cmd.none )

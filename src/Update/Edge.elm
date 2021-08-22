@@ -50,7 +50,7 @@ updateWithEdgeDataResponse model result =
                             Zipped.sortBy model.sort_by_selected zipped
                     in
                     ( { model
-                        | state = VertexRequestsSuccess False
+                        | state = TraversalSuccess False
                         , traversal = Traversal.Done pageCount
                         , zipped = sorted
                       }
@@ -61,4 +61,4 @@ updateWithEdgeDataResponse model result =
                     ( { model | state = DataIntegrityFailure }, Cmd.none )
 
         Err error ->
-            ( { model | state = RequestFailure error }, Cmd.none )
+            ( { model | state = TraversalFailure error }, Cmd.none )

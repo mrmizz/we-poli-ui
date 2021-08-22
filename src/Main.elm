@@ -7,10 +7,10 @@ import Model.State exposing (State(..))
 import Msg.Msg exposing (Msg(..))
 import Update.Update
 import View.About
-import View.BuildingRequest
+import View.BuildingSearch
 import View.Loading
-import View.RequestFailure
-import View.VertexRequestSuccess
+import View.TraversalFailure
+import View.TraversalSuccess
 
 
 
@@ -46,17 +46,17 @@ view model =
         About ->
             View.About.view
 
-        BuildingRequest isModalActive ->
-            View.BuildingRequest.view model isModalActive
+        BuildingSearch isModalActive ->
+            View.BuildingSearch.view model isModalActive
 
         Loading ->
             View.Loading.view
 
-        VertexRequestsSuccess isModalActive ->
-            View.VertexRequestSuccess.view model isModalActive
+        TraversalSuccess isModalActive ->
+            View.TraversalSuccess.view model isModalActive
 
-        RequestFailure error ->
-            View.RequestFailure.view error
+        TraversalFailure error ->
+            View.TraversalFailure.view error
 
         DataIntegrityFailure ->
             Html.div [] []

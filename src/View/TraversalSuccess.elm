@@ -1,4 +1,4 @@
-module View.VertexRequestSuccess exposing (view)
+module View.TraversalSuccess exposing (view)
 
 import Html exposing (Html)
 import Html.Attributes exposing (class)

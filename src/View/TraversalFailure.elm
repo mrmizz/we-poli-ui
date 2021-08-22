@@ -1,4 +1,4 @@
-module View.RequestFailure exposing (view)
+module View.TraversalFailure exposing (view)
 
 import Html exposing (Html)
 import Http

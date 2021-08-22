@@ -21,7 +21,7 @@ update msg model =
             ( { initialModel | state = About }, Cmd.none )
 
         ClickedTool ->
-            ( { initialModel | state = BuildingRequest False }, Cmd.none )
+            ( { initialModel | state = BuildingSearch False }, Cmd.none )
 
         ConfigureSearch ->
             updateWithConfiguration model

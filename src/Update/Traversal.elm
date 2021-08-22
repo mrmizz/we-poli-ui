@@ -71,7 +71,7 @@ updateWithPageCountResponse model result =
             )
 
         Err error ->
-            ( { model | state = RequestFailure error }, Cmd.none )
+            ( { model | state = TraversalFailure error }, Cmd.none )
 
 
 updateWithTraversalResponse : Model -> PageCount -> Result Http.Error TraversalResponse -> ( Model, Cmd Msg )
@@ -95,4 +95,4 @@ updateWithTraversalResponse model pageCount result =
             )
 
         Err error ->
-            ( { model | state = RequestFailure error }, Cmd.none )
+            ( { model | state = TraversalFailure error }, Cmd.none )

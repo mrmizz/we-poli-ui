@@ -1,4 +1,4 @@
-module View.BuildingRequest exposing (view)
+module View.BuildingSearch exposing (view)
 
 import Html exposing (Html)
 import Html.Attributes exposing (class, placeholder, type_)

@@ -33,7 +33,7 @@ updateWithVertexDataResponse model client result =
                     updateForTraversal model vertices
 
         Err error ->
-            ( { model | state = RequestFailure error }, Cmd.none )
+            ( { model | state = TraversalFailure error }, Cmd.none )
 
 
 updateForNameSearch : Model -> String -> List String -> List VertexData -> ( Model, Cmd Msg )
@@ -67,7 +67,7 @@ updateForTraversal model vertices =
                     Zipped.sortBy model.sort_by_selected zipped
             in
             ( { model
-                | state = VertexRequestsSuccess False
+                | state = TraversalSuccess False
                 , traversal = Traversal.Done pageCount
                 , zipped = sorted
               }

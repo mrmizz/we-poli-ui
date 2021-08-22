@@ -8,21 +8,21 @@ import Msg.Msg exposing (Msg)
 updateWithConfiguration : Model -> ( Model, Cmd Msg )
 updateWithConfiguration model =
     case model.state of
-        BuildingRequest bool ->
+        BuildingSearch bool ->
             case bool of
                 True ->
-                    ( { model | state = BuildingRequest False }, Cmd.none )
+                    ( { model | state = BuildingSearch False }, Cmd.none )
 
                 False ->
-                    ( { model | state = BuildingRequest True }, Cmd.none )
+                    ( { model | state = BuildingSearch True }, Cmd.none )
 
-        VertexRequestsSuccess bool ->
+        TraversalSuccess bool ->
             case bool of
                 True ->
-                    ( { model | state = VertexRequestsSuccess False }, Cmd.none )
+                    ( { model | state = TraversalSuccess False }, Cmd.none )
 
                 False ->
-                    ( { model | state = VertexRequestsSuccess True }, Cmd.none )
+                    ( { model | state = TraversalSuccess True }, Cmd.none )
 
         _ ->
-            ( { model | state = BuildingRequest False }, Cmd.none )
+            ( { model | state = BuildingSearch False }, Cmd.none )
