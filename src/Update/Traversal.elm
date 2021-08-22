@@ -11,7 +11,7 @@ import Model.State exposing (State(..))
 import Model.Traversal as Traversal exposing (PageCount, Traversal)
 import Model.VertexData exposing (VertexData)
 import Msg.Msg exposing (Msg(..), VertexDataClient(..))
-import Update.Generic exposing (unpackDynamoArrayNumber, unpackDynamoNumber)
+import Update.Generic exposing (unpackDynamoArrayNumber, unpackDynamoNumber, unpackDynamoNumberAsInt)
 
 
 updateWithPageCountRequest : Model -> ( Model, Cmd Msg )
@@ -60,7 +60,7 @@ updateWithPageCountResponse model result =
                 unpack : PageCount
                 unpack =
                     { src_id = unpackDynamoNumber response.item.vertex_id
-                    , total_pages = unpackDynamoNumber response.item.page_count
+                    , total_pages = unpackDynamoNumberAsInt response.item.page_count
                     , current_page = 1
                     }
             in

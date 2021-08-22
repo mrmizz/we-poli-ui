@@ -5,7 +5,6 @@ import Model.Direction exposing (Direction(..))
 import Model.Model exposing (Model, initialModel)
 import Model.SortBy exposing (SortBy)
 import Model.VertexData as VertexData exposing (VertexData)
-import Model.Zipped as Zipped
 import Msg.Msg exposing (Msg, resetViewport)
 
 
@@ -37,11 +36,11 @@ updateWithAggOption model =
             ( { model | aggregation_selected = And }, Cmd.none )
 
 
+-- TODO: new traversal
 updateWithSortByOption : Model -> SortBy -> ( Model, Cmd Msg )
 updateWithSortByOption model sortBy =
     ( { model
         | sort_by_selected = sortBy
-        , zipped = Zipped.sortBy sortBy model.zipped
       }
     , Cmd.none
     )

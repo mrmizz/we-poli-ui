@@ -1,7 +1,7 @@
 module Http.PageCount exposing (DynamoPageCount, PageCountResponse, buildPageCountRequest, pageCountPost)
 
 import Http
-import Http.Generic exposing (DynamoNumber, dynamoNumberDecoder, dynamoNumberEncoder)
+import Http.Generic exposing (DynamoNumber, DynamoNumberAsInt, dynamoNumberAsIntDecoder, dynamoNumberDecoder, dynamoNumberEncoder)
 import Http.Url as Url exposing (getItemURL)
 import Json.Decode as Decode
 import Json.Encode as Encode
@@ -19,7 +19,7 @@ type alias PageCountResponse =
 
 type alias DynamoPageCount =
     { vertex_id : DynamoNumber
-    , page_count : DynamoNumber
+    , page_count : DynamoNumberAsInt
     }
 
 
@@ -32,7 +32,7 @@ pageCountPost toMsg request =
         }
 
 
-buildPageCountRequest : Int -> PageCountRequest
+buildPageCountRequest : String -> PageCountRequest
 buildPageCountRequest vertexId =
     { table_name = "PoliTraversalsPageCount" ++ Url.envTitle
     , key = DynamoNumber vertexId
@@ -63,4 +63,4 @@ pageCountDecoder : Decode.Decoder DynamoPageCount
 pageCountDecoder =
     Decode.map2 DynamoPageCount
         (Decode.field "vertex_id" dynamoNumberDecoder)
-        (Decode.field "page_count" dynamoNumberDecoder)
+        (Decode.field "page_count" dynamoNumberAsIntDecoder)

@@ -1,7 +1,7 @@
 module Http.Traversal exposing (DynamoTraversal, TraversalResponse, buildTraversalRequest, traversalPost)
 
 import Http
-import Http.Generic exposing (DynamoArrayNumber, DynamoNumber, DynamoString, dynamoArrayNumberDecoder, dynamoNumberDecoder, dynamoNumberEncoder)
+import Http.Generic exposing (DynamoArrayNumber, DynamoNumber, DynamoNumberAsInt, DynamoString, dynamoArrayNumberDecoder, dynamoNumberAsIntDecoder, dynamoNumberAsIntEncoder, dynamoNumberDecoder, dynamoNumberEncoder)
 import Http.Url as Url exposing (getItemURL)
 import Json.Decode as Decode
 import Json.Encode as Encode
@@ -15,7 +15,7 @@ type alias TraversalRequest =
 
 type alias Key =
     { vertex_id : DynamoNumber
-    , page_num : DynamoNumber
+    , page_num : DynamoNumberAsInt
     }
 
 
@@ -25,7 +25,7 @@ type alias TraversalResponse =
 
 type alias DynamoTraversal =
     { vertex_id : DynamoNumber
-    , page_num : DynamoNumber
+    , page_num : DynamoNumberAsInt
     , related_vertex_ids : DynamoArrayNumber
     }
 
@@ -39,10 +39,10 @@ traversalPost request toMsg =
         }
 
 
-buildTraversalRequest : Int -> Int -> TraversalRequest
+buildTraversalRequest : String -> Int -> TraversalRequest
 buildTraversalRequest srcId pageNumber =
     { table_name = "PoliTraversalsPageSB1" ++ Url.envTitle
-    , key = { vertex_id = DynamoNumber srcId, page_num = DynamoNumber pageNumber }
+    , key = { vertex_id = DynamoNumber srcId, page_num = DynamoNumberAsInt pageNumber }
     }
 
 
@@ -53,7 +53,7 @@ traversalRequestEncoder traversalRequest =
         key =
             Encode.object
                 [ ( "vertex_id", dynamoNumberEncoder traversalRequest.key.vertex_id )
-                , ( "page_num", dynamoNumberEncoder traversalRequest.key.page_num )
+                , ( "page_num", dynamoNumberAsIntEncoder traversalRequest.key.page_num )
                 ]
     in
     Encode.object
@@ -71,5 +71,5 @@ dynamoTraversalDecoder : Decode.Decoder DynamoTraversal
 dynamoTraversalDecoder =
     Decode.map3 DynamoTraversal
         (Decode.field "vertex_id" dynamoNumberDecoder)
-        (Decode.field "page_num" dynamoNumberDecoder)
+        (Decode.field "page_num" dynamoNumberAsIntDecoder)
         (Decode.field "related_vertex_ids" dynamoArrayNumberDecoder)

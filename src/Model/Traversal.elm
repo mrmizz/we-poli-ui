@@ -13,7 +13,7 @@ type Traversal
 
 
 type alias PageCount =
-    { src_id : Int
+    { src_id : String
     , total_pages : Int
     , current_page : Int
     }

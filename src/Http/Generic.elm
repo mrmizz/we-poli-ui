@@ -56,10 +56,14 @@ type alias DynamoNullableString =
 
 
 type alias DynamoNumber =
+    { value : String }
+
+-- not a good idea for UIDs
+type alias DynamoNumberAsInt =
     { value : Int }
 
 
-type alias DynamoNumberLowLevel =
+type alias DynamoNumberAsIntLowLevel =
     { value : String }
 
 
@@ -86,26 +90,35 @@ dynamoArrayAddressDecoder =
     Decode.map DynamoArrayAddress (Decode.field "L" (Decode.list dynamoMapAddressDecoder))
 
 
-dynamoNumberDecoder : Decode.Decoder DynamoNumber
-dynamoNumberDecoder =
+dynamoNumberAsIntDecoder : Decode.Decoder DynamoNumberAsInt
+dynamoNumberAsIntDecoder =
     let
-        decode_ : DynamoNumberLowLevel -> Decode.Decoder DynamoNumber
+        decode_ : DynamoNumberAsIntLowLevel -> Decode.Decoder DynamoNumberAsInt
         decode_ lowLevel =
             case String.toInt lowLevel.value of
                 Just int ->
-                    Decode.succeed (DynamoNumber int)
+                    Decode.succeed (DynamoNumberAsInt int)
 
                 Nothing ->
                     Decode.fail ("error parsing string: " ++ lowLevel.value)
     in
-    Decode.map DynamoNumberLowLevel (Decode.field "N" Decode.string)
+    Decode.map DynamoNumberAsIntLowLevel (Decode.field "N" Decode.string)
         |> Decode.andThen decode_
 
+
+dynamoNumberAsIntEncoder : DynamoNumberAsInt -> Encode.Value
+dynamoNumberAsIntEncoder dynamoValue =
+    Encode.object
+        [ ( "N", Encode.string (String.fromInt dynamoValue.value) ) ]
 
 dynamoNumberEncoder : DynamoNumber -> Encode.Value
 dynamoNumberEncoder dynamoValue =
     Encode.object
-        [ ( "N", Encode.string (String.fromInt dynamoValue.value) ) ]
+        [ ( "N", Encode.string dynamoValue.value ) ]
+
+dynamoNumberDecoder : Decode.Decoder DynamoNumber
+dynamoNumberDecoder =
+    Decode.map DynamoNumber (Decode.field "N" Decode.string)
 
 
 dynamoStringDecoder : Decode.Decoder DynamoString

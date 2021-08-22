@@ -42,7 +42,7 @@ body vertexData =
                 ]
             , Html.td
                 []
-                [ Html.text (String.fromInt vertexData.uid)
+                [ Html.text vertexData.uid
                 ]
             ]
         , Html.tr
@@ -115,7 +115,7 @@ bodyMin vertexData =
                 ]
             , Html.td
                 []
-                [ Html.text (String.fromInt vertexData.uid)
+                [ Html.text vertexData.uid
                 ]
             ]
         , Html.tr

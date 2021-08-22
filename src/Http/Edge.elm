@@ -54,7 +54,7 @@ edgeDataPost request toMsg =
         }
 
 
-buildEdgeDataRequest : Direction -> ( Int, List Int ) -> EdgeDataRequest
+buildEdgeDataRequest : Direction -> ( String, List String ) -> EdgeDataRequest
 buildEdgeDataRequest direction ( srcId, dstIds ) =
     let
         keys : List Key

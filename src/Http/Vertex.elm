@@ -40,7 +40,7 @@ vertexDataPost request toMsg =
         }
 
 
-buildVertexDataRequest : List Int -> VertexDataRequest
+buildVertexDataRequest : List String -> VertexDataRequest
 buildVertexDataRequest uids =
     VertexDataRequest
         (VertexDataInnerRequest
@@ -48,7 +48,7 @@ buildVertexDataRequest uids =
         )
 
 
-buildVertexDataRequestInnerValues : Int -> VertexDataInnerRequestKey
+buildVertexDataRequestInnerValues : String -> VertexDataInnerRequestKey
 buildVertexDataRequestInnerValues uid =
     VertexDataInnerRequestKey (DynamoNumber uid)
 

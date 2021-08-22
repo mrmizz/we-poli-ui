@@ -4,7 +4,7 @@ import Set exposing (Set)
 
 
 type alias VertexData =
-    { uid : Int
+    { uid : String
     , name : String
     , alternate_names : List String
     , is_committee : Bool
@@ -23,12 +23,12 @@ type alias Address =
 
 
 type alias VertexPresence =
-    { set : Set Int
+    { set : Set String
     , vertices : List VertexData
     }
 
 
-notUID : Int -> VertexData -> Bool
+notUID : String -> VertexData -> Bool
 notUID uid vertex =
     vertex.uid /= uid
 
