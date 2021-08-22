@@ -56,7 +56,8 @@ updateWithVertexNamePrefixResponse model result =
                     )
 
                 _ ->
-                    ( { model | state = DataIntegrityFailure }, Cmd.none )
+                    -- keep typing
+                    ( model, Cmd.none )
 
         Err error ->
             ( { model | state = RequestFailure error }, Cmd.none )

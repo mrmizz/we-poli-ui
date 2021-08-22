@@ -7,11 +7,6 @@ import Msg.Msg exposing (Msg)
 import Util.Util as Util
 
 
-
--- TODO: Handle "bad" input gracefully
--- example: inputting /// throws an error
-
-
 view : VertexData -> Html Msg
 view vertexData =
     Html.table
