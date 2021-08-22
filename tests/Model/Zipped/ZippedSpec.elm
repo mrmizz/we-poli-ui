@@ -1,4 +1,4 @@
-module Model.Zipped.ZipVerticesAndEdgesSpec exposing (suite1)
+module Model.Zipped.ZippedSpec exposing (suite1)
 
 import Expect
 import Model.Direction exposing (Direction(..))
@@ -37,34 +37,6 @@ suite1 =
                     Expect.equal
                         actual
                         zipped1
-            ]
-        , describe "should handle multiple traversals from different src ids"
-            [ test "that is pre-sorted" <|
-                \_ ->
-                    let
-                        actual : List Zipped
-                        actual =
-                            zip
-                                Out
-                                [ vendor1, vendor2, vendor3, vendor4 ]
-                                [ edge1, edge2, edge3, edge4, edge5, edge6 ]
-                    in
-                    Expect.equal
-                        actual
-                        zipped2
-            , test "that is not pre-sorted" <|
-                \_ ->
-                    let
-                        actual : List Zipped
-                        actual =
-                            zip
-                                Out
-                                [ vendor1, vendor3, vendor2, vendor4 ]
-                                [ edge6, edge2, edge4, edge3, edge5, edge1 ]
-                    in
-                    Expect.equal
-                        actual
-                        zipped2
             ]
         , describe "should handle multiple traversals from a distinct src id"
             [ test "that is pre-sorted" <|

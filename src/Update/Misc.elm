@@ -36,7 +36,10 @@ updateWithAggOption model =
             ( { model | aggregation_selected = And }, Cmd.none )
 
 
+
 -- TODO: new traversal
+
+
 updateWithSortByOption : Model -> SortBy -> ( Model, Cmd Msg )
 updateWithSortByOption model sortBy =
     ( { model

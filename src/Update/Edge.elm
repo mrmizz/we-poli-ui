@@ -42,10 +42,17 @@ updateWithEdgeDataResponse model result =
                     )
 
                 WaitingForEdges pageCount vertices ->
+                    let
+                        zipped =
+                            Zipped.zip model.direction_selected vertices edges
+
+                        sorted =
+                            Zipped.sortBy model.sort_by_selected zipped
+                    in
                     ( { model
                         | state = VertexRequestsSuccess False
                         , traversal = Traversal.Done pageCount
-                        , zipped = Zipped.zip model.direction_selected vertices edges
+                        , zipped = sorted
                       }
                     , Cmd.none
                     )

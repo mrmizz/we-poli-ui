@@ -32,6 +32,17 @@ body zipped =
             []
             [ Html.td
                 []
+                [ Html.text "vertex_id"
+                ]
+            , Html.td
+                []
+                [ Html.text vertexData.uid
+                ]
+            ]
+        , Html.tr
+            []
+            [ Html.td
+                []
                 [ Html.text "src_id"
                 ]
             , Html.td

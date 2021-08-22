@@ -1,8 +1,7 @@
 module Model.Zipped.Fixtures exposing (..)
 
 import Model.EdgeData exposing (EdgeData)
-import Model.Traversal exposing (Traversal)
-import Model.VertexData exposing (VertexData)
+import Model.VertexData exposing (Address, VertexData)
 import Model.Zipped exposing (Zipped)
 
 
@@ -14,31 +13,6 @@ zipped1 =
     ]
 
 
-zipped2 : List Zipped
-zipped2 =
-    [ ( edge1, vendor1 )
-    , ( edge2, vendor2 )
-    , ( edge3, vendor3 )
-    , ( edge4, vendor2 )
-    , ( edge5, vendor3 )
-    , ( edge6, vendor4 )
-    ]
-
-
-zipped3 : List Zipped
-zipped3 =
-    [ ( edge1, vendor1 )
-    , ( edge2, vendor2 )
-    , ( edge3, vendor3 )
-    , ( edge4, vendor2 )
-    , ( edge5, vendor3 )
-    , ( edge6, vendor4 )
-    , ( edge7, vendor4 )
-    , ( edge8, vendor5 )
-    , ( edge9, vendor6 )
-    ]
-
-
 zipped4 : List Zipped
 zipped4 =
     [ ( edge7, vendor4 )
@@ -47,34 +21,6 @@ zipped4 =
     , ( edge10, vendor7 )
     , ( edge11, vendor8 )
     ]
-
-
-traversal1 : Traversal
-traversal1 =
-    Traversal
-        "1C"
-        [ "1V", "2V", "3V" ]
-
-
-traversal2 : Traversal
-traversal2 =
-    Traversal
-        "2C"
-        [ "2V", "3V", "4V" ]
-
-
-traversal3 : Traversal
-traversal3 =
-    Traversal
-        "3C"
-        [ "4V", "5V", "6V" ]
-
-
-traversal4 : Traversal
-traversal4 =
-    Traversal
-        "3C"
-        [ "7V", "8V" ]
 
 
 edge1 : EdgeData
@@ -124,7 +70,7 @@ edge6 =
 edge7 : EdgeData
 edge7 =
     EdgeData
-        "3C"
+        "1C"
         "4V"
         "10 transactions"
         "$700"
@@ -155,13 +101,23 @@ edge11 =
 
 vendor1 : VertexData
 vendor1 =
-    VertexData
-        "1V"
-        "Vendor1"
-        True
-        [ "Santa Barbara" ]
-        [ "Milpas" ]
-        [ "CA" ]
+    { uid = "1V"
+    , name = "Vendor1"
+    , alternate_names = []
+    , is_committee = True
+    , address = address1
+    , alternate_addresses = []
+    }
+
+
+address1 : Address
+address1 =
+    { alternate_street = Nothing
+    , city = Nothing
+    , state = Nothing
+    , street = Nothing
+    , zip_code = Nothing
+    }
 
 
 vendor2 : VertexData

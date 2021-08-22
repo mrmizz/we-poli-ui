@@ -58,7 +58,11 @@ type alias DynamoNullableString =
 type alias DynamoNumber =
     { value : String }
 
+
+
 -- not a good idea for UIDs
+
+
 type alias DynamoNumberAsInt =
     { value : Int }
 
@@ -111,10 +115,12 @@ dynamoNumberAsIntEncoder dynamoValue =
     Encode.object
         [ ( "N", Encode.string (String.fromInt dynamoValue.value) ) ]
 
+
 dynamoNumberEncoder : DynamoNumber -> Encode.Value
 dynamoNumberEncoder dynamoValue =
     Encode.object
         [ ( "N", Encode.string dynamoValue.value ) ]
+
 
 dynamoNumberDecoder : Decode.Decoder DynamoNumber
 dynamoNumberDecoder =

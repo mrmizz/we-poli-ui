@@ -15,7 +15,6 @@ type alias EdgeData =
     }
 
 
-
 format : EdgeData -> EdgeData
 format edgeData =
     let

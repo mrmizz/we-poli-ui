@@ -3,7 +3,7 @@ module Model.Zipped.SortBySpec exposing (suite1)
 import Expect
 import Model.EdgeData exposing (EdgeData)
 import Model.SortBy exposing (SortBy(..))
-import Model.VertexData exposing (VertexData)
+import Model.VertexData exposing (Address, VertexData)
 import Model.Zipped as Zipped exposing (Zipped)
 import Test exposing (Test, describe, test)
 
@@ -272,10 +272,20 @@ edgeE6 =
 
 vendor1 : VertexData
 vendor1 =
-    VertexData
-        "1V"
-        "Vendor1"
-        True
-        [ "Santa Barbara" ]
-        [ "Milpas" ]
-        [ "CA" ]
+    { uid = "1V"
+    , name = "Vendor1"
+    , alternate_names = []
+    , is_committee = True
+    , address = address1
+    , alternate_addresses = []
+    }
+
+
+address1 : Address
+address1 =
+    { alternate_street = Nothing
+    , city = Nothing
+    , state = Nothing
+    , street = Nothing
+    , zip_code = Nothing
+    }
