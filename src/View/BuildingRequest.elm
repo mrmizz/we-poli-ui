@@ -6,6 +6,7 @@ import Html.Events exposing (onClick, onInput)
 import Model.Direction exposing (Direction(..))
 import Model.Model exposing (Model)
 import Model.VertexData exposing (VertexData)
+import Model.VertexNameSearch exposing (VertexNameSearch(..))
 import Msg.Msg exposing (Msg(..))
 import View.Configure
 import View.Hero
@@ -31,14 +32,14 @@ body model isModalActive =
 
         response : Html Msg
         response =
-            case String.length model.vertex_name_search.input >= 3 of
-                True ->
+            case model.vertex_name_search of
+                Input _ ->
+                    Html.div [] []
+
+                Waiting _ vertices ->
                     Html.div
                         []
-                        (List.map selectable model.vertex_name_search.vertices)
-
-                False ->
-                    Html.div [] []
+                        (List.map selectable vertices)
 
         selected_ : Html Msg
         selected_ =

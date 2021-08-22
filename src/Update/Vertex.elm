@@ -6,7 +6,7 @@ import Model.Model exposing (Model)
 import Model.State exposing (State(..))
 import Model.Traversal as Traversal exposing (Traversal(..))
 import Model.VertexData exposing (VertexData)
-import Model.VertexNameSearch
+import Model.VertexNameSearch as VertexNameSearch
 import Model.Zipped as Zipped
 import Msg.Msg exposing (Msg(..), VertexDataClient(..))
 import Update.Generic exposing (unpackDynamoVertexData)
@@ -26,8 +26,8 @@ updateWithVertexDataResponse model client result =
                     unpack response
             in
             case client of
-                ForNameSearch ->
-                    updateForNameSearch model vertices
+                ForNameSearch prefix sortedVertexIds ->
+                    updateForNameSearch model prefix sortedVertexIds vertices
 
                 ForTraversal ->
                     updateForTraversal model vertices
@@ -36,14 +36,15 @@ updateWithVertexDataResponse model client result =
             ( { model | state = RequestFailure error }, Cmd.none )
 
 
-updateForNameSearch : Model -> List VertexData -> ( Model, Cmd Msg )
-updateForNameSearch model vertices =
+updateForNameSearch : Model -> String -> List String -> List VertexData -> ( Model, Cmd Msg )
+updateForNameSearch model prefix sortedVertexIds unsortedVertices =
     let
-        old =
-            model.vertex_name_search
+        sortedVertices : List VertexData
+        sortedVertices =
+            VertexNameSearch.sort sortedVertexIds unsortedVertices
     in
     ( { model
-        | vertex_name_search = { old | vertices = vertices }
+        | vertex_name_search = VertexNameSearch.Waiting prefix sortedVertices
       }
     , Cmd.none
     )

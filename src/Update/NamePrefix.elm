@@ -23,13 +23,9 @@ updateWithVertexNamePrefixRequest model prefix =
                 -- TODO: reverse order ^ ?
                 |> String.toLower
 
-        old : VertexNameSearch.VertexNameSearch
-        old =
-            model.vertex_name_search
-
         new : Model
         new =
-            { model | vertex_name_search = { old | input = prefix } }
+            { model | vertex_name_search = VertexNameSearch.Input prefix }
     in
     case String.length prefix >= 3 of
         False ->
@@ -37,12 +33,12 @@ updateWithVertexNamePrefixRequest model prefix =
 
         True ->
             ( new
-            , vertexNamePrefixGet (clean prefix) VertexNamePrefixGetReceived
+            , vertexNamePrefixGet (clean prefix) (VertexNamePrefixGetReceived prefix)
             )
 
 
-updateWithVertexNamePrefixResponse : Model -> Result Http.Error VertexNamePrefixResponse -> ( Model, Cmd Msg )
-updateWithVertexNamePrefixResponse model result =
+updateWithVertexNamePrefixResponse : Model -> String -> Result Http.Error VertexNamePrefixResponse -> ( Model, Cmd Msg )
+updateWithVertexNamePrefixResponse model prefix result =
     case result of
         Ok response ->
             case response.items of
@@ -52,7 +48,9 @@ updateWithVertexNamePrefixResponse model result =
                             unpackDynamoArrayNumber head.vertexIds
                     in
                     ( model
-                    , vertexDataPost (buildVertexDataRequest unpack) (VertexDataPostReceived ForNameSearch)
+                    , vertexDataPost
+                        (buildVertexDataRequest unpack)
+                        (VertexDataPostReceived (ForNameSearch prefix unpack))
                     )
 
                 _ ->

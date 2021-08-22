@@ -6,7 +6,7 @@ import Model.SortBy exposing (SortBy(..))
 import Model.State exposing (State(..))
 import Model.Traversal as Traversal exposing (PageCount, Traversal)
 import Model.VertexData exposing (VertexData)
-import Model.VertexNameSearch exposing (VertexNameSearch)
+import Model.VertexNameSearch as VertexNameSearch exposing (VertexNameSearch)
 import Model.Zipped exposing (Zipped)
 import Msg.Msg exposing (Msg)
 
@@ -40,7 +40,7 @@ initialModel =
     , vertices_selected = []
 
     -- Vertex Name Auto Complete Search
-    , vertex_name_search = { input = "", vertices = [] }
+    , vertex_name_search = VertexNameSearch.Input ""
 
     -- Traversal
     , traversal = Traversal.Pending

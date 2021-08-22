@@ -29,8 +29,8 @@ update msg model =
         VertexNameSearchInput prefix ->
             updateWithVertexNamePrefixRequest model prefix
 
-        VertexNamePrefixGetReceived result ->
-            updateWithVertexNamePrefixResponse model result
+        VertexNamePrefixGetReceived prefix result ->
+            updateWithVertexNamePrefixResponse model prefix result
 
         TraversalRequestMade ->
             updateWithPageCountRequest model

@@ -28,7 +28,7 @@ type Msg
     | SortByOptionSelected SortBy
       -- Vertex Name Auto Complete Search
     | VertexNameSearchInput String
-    | VertexNamePrefixGetReceived (Result Http.Error VertexNamePrefixResponse)
+    | VertexNamePrefixGetReceived String (Result Http.Error VertexNamePrefixResponse)
       -- Vertex Data Request
     | VertexDataPostReceived VertexDataClient (Result Http.Error VertexDataResponse)
       -- Traversal Request
@@ -40,7 +40,7 @@ type Msg
 
 
 type VertexDataClient
-    = ForNameSearch
+    = ForNameSearch String (List String)
     | ForTraversal
 
 
