@@ -9,6 +9,7 @@ import Model.Zipped exposing (Zipped)
 import Msg.Msg exposing (Msg(..))
 import View.Configure
 import View.Hero
+import View.Pagination
 import View.VertexData
 import View.Zipped
 
@@ -78,6 +79,7 @@ body model isModalActive =
             []
             [ selected_
             , selectable_
+            , View.Pagination.view model
             ]
         ]
 
