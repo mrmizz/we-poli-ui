@@ -34,6 +34,7 @@ type Msg
       -- Traversal Request
     | TraversalRequestMade
     | ChildTraversalRequestMade VertexData
+    | PaginatedTraversalRequestMade PageCount
     | PageCountPostReceived (Result Http.Error PageCountResponse)
     | TraversalPostReceived PageCount (Result Http.Error TraversalResponse)
     | EdgeDataPostReceived (Result Http.Error EdgeDataResponse)

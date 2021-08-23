@@ -7,7 +7,7 @@ import Update.Configure exposing (updateWithConfiguration)
 import Update.Edge exposing (updateWithEdgeDataResponse)
 import Update.Misc exposing (updateVertexDeleted, updateVertexSelected, updateWithAggOption, updateWithDirectionOption, updateWithSortByOption)
 import Update.NamePrefix exposing (updateWithVertexNamePrefixRequest, updateWithVertexNamePrefixResponse)
-import Update.Traversal exposing (updateWithChildPageCountRequest, updateWithPageCountRequest, updateWithPageCountResponse, updateWithTraversalResponse)
+import Update.Traversal exposing (updateWithChildPageCountRequest, updateWithPageCountRequest, updateWithPageCountResponse, updateWithPaginatedTraversalRequest, updateWithTraversalResponse)
 import Update.Vertex exposing (updateWithVertexDataResponse)
 
 
@@ -17,39 +17,14 @@ update msg model =
         NoOp ->
             ( model, Cmd.none )
 
+        -- Clicked Tabs
         ClickedAbout ->
             ( { initialModel | state = About }, Cmd.none )
 
         ClickedTool ->
             ( { initialModel | state = BuildingSearch False }, Cmd.none )
 
-        ConfigureSearch ->
-            updateWithConfiguration model
-
-        VertexNameSearchInput prefix ->
-            updateWithVertexNamePrefixRequest model prefix
-
-        VertexNamePrefixGetReceived prefix result ->
-            updateWithVertexNamePrefixResponse model prefix result
-
-        TraversalRequestMade ->
-            updateWithPageCountRequest model
-
-        ChildTraversalRequestMade vertexData ->
-            updateWithChildPageCountRequest model vertexData
-
-        PageCountPostReceived result ->
-            updateWithPageCountResponse model result
-
-        TraversalPostReceived pageCount result ->
-            updateWithTraversalResponse model pageCount result
-
-        VertexDataPostReceived client result ->
-            updateWithVertexDataResponse model client result
-
-        EdgeDataPostReceived result ->
-            updateWithEdgeDataResponse model result
-
+        -- Search Configuration
         ClearSearch ->
             ( initialModel, Cmd.none )
 
@@ -67,3 +42,36 @@ update msg model =
 
         SortByOptionSelected sortBy ->
             updateWithSortByOption model sortBy
+
+        ConfigureSearch ->
+            updateWithConfiguration model
+
+        -- Vertex Name AutoComplete
+        VertexNameSearchInput prefix ->
+            updateWithVertexNamePrefixRequest model prefix
+
+        VertexNamePrefixGetReceived prefix result ->
+            updateWithVertexNamePrefixResponse model prefix result
+
+        -- Vertex & Edge Data Fetch
+        VertexDataPostReceived client result ->
+            updateWithVertexDataResponse model client result
+
+        EdgeDataPostReceived result ->
+            updateWithEdgeDataResponse model result
+
+        -- Traversal
+        TraversalRequestMade ->
+            updateWithPageCountRequest model
+
+        ChildTraversalRequestMade vertexData ->
+            updateWithChildPageCountRequest model vertexData
+
+        PaginatedTraversalRequestMade pageCount ->
+            updateWithPaginatedTraversalRequest model pageCount
+
+        PageCountPostReceived result ->
+            updateWithPageCountResponse model result
+
+        TraversalPostReceived pageCount result ->
+            updateWithTraversalResponse model pageCount result

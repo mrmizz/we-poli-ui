@@ -1,4 +1,4 @@
-module Update.Traversal exposing (updateWithChildPageCountRequest, updateWithPageCountRequest, updateWithPageCountResponse, updateWithTraversalResponse)
+module Update.Traversal exposing (updateWithChildPageCountRequest, updateWithPageCountRequest, updateWithPageCountResponse, updateWithPaginatedTraversalRequest, updateWithTraversalResponse)
 
 import Http
 import Http.Edge exposing (buildEdgeDataRequest, edgeDataPost)
@@ -10,7 +10,7 @@ import Model.Model exposing (Model, initialModelWithParams)
 import Model.State exposing (State(..))
 import Model.Traversal as Traversal exposing (PageCount, Traversal)
 import Model.VertexData exposing (VertexData)
-import Msg.Msg exposing (Msg(..), VertexDataClient(..))
+import Msg.Msg exposing (Msg(..), VertexDataClient(..), resetViewport)
 import Update.Generic exposing (unpackDynamoArrayNumber, unpackDynamoNumber, unpackDynamoNumberAsInt)
 
 
@@ -48,7 +48,21 @@ updateWithChildPageCountRequest model vertexData =
         , vertices_selected = [ vertexData ]
         , direction_selected = Direction.switch model.direction_selected
       }
-    , pageCountPost PageCountPostReceived (buildPageCountRequest ((\v -> v.uid) vertexData))
+    , pageCountPost
+        PageCountPostReceived
+        (buildPageCountRequest ((\v -> v.uid) vertexData))
+    )
+
+
+updateWithPaginatedTraversalRequest : Model -> PageCount -> ( Model, Cmd Msg )
+updateWithPaginatedTraversalRequest model pageCount =
+    ( { model | traversal = Traversal.Waiting pageCount }
+    , Cmd.batch
+        [ traversalPost
+            (buildTraversalRequest pageCount.src_id pageCount.current_page)
+            (TraversalPostReceived pageCount)
+        , resetViewport
+        ]
     )
 
 
