@@ -1,7 +1,7 @@
-module Model.EdgeData exposing (EdgeData)
+module Model.EdgeData exposing (EdgeData, format)
 
 import FormatNumber
-import FormatNumber.Locales as Locales
+import FormatNumber.Locales as Locales exposing (Decimals(..))
 
 
 type alias EdgeData =
@@ -18,18 +18,32 @@ type alias EdgeData =
 format : EdgeData -> EdgeData
 format edgeData =
     let
-        f : String -> String
-        f str =
+        base : Locales.Locale
+        base =
+            Locales.base
+
+        currency : String -> String
+        currency str =
             case String.toFloat str of
                 Just float ->
                     "$" ++ FormatNumber.format Locales.usLocale float
 
                 Nothing ->
                     str
+
+        total : String -> String
+        total str =
+            case String.toFloat str of
+                Just float ->
+                    FormatNumber.format { base | decimals = Exact 0, thousandSeparator = "," } float
+
+                Nothing ->
+                    str
     in
     { edgeData
-        | total_spend = f edgeData.total_spend
-        , avg_spend = f edgeData.avg_spend
-        , max_spend = f edgeData.max_spend
-        , min_spend = f edgeData.min_spend
+        | num_transactions = total edgeData.num_transactions
+        , total_spend = currency edgeData.total_spend
+        , avg_spend = currency edgeData.avg_spend
+        , max_spend = currency edgeData.max_spend
+        , min_spend = currency edgeData.min_spend
     }

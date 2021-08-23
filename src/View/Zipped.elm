@@ -2,6 +2,7 @@ module View.Zipped exposing (view)
 
 import Html exposing (Html)
 import Html.Attributes exposing (class)
+import Model.EdgeData as EdgeData
 import Model.VertexData exposing (VertexData)
 import Model.Zipped exposing (Zipped)
 import Msg.Msg exposing (Msg)
@@ -21,7 +22,7 @@ body : Zipped -> Html Msg
 body zipped =
     let
         edgeData =
-            Tuple.first zipped
+            EdgeData.format (Tuple.first zipped)
 
         vertexData =
             Tuple.second zipped
@@ -32,33 +33,33 @@ body zipped =
             []
             [ Html.td
                 []
-                [ Html.text "vertex_id"
+                [ Html.text "name"
                 ]
             , Html.td
                 []
-                [ Html.text vertexData.uid
+                [ Html.text vertexData.name
                 ]
             ]
         , Html.tr
             []
             [ Html.td
                 []
-                [ Html.text "src_id"
+                [ Html.text "city"
                 ]
             , Html.td
                 []
-                [ Html.text edgeData.src_id
+                [ Html.text (Maybe.withDefault "null" vertexData.address.city)
                 ]
             ]
         , Html.tr
             []
             [ Html.td
                 []
-                [ Html.text "dst_id"
+                [ Html.text "state"
                 ]
             , Html.td
                 []
-                [ Html.text edgeData.dst_id
+                [ Html.text (Maybe.withDefault "null" vertexData.address.state)
                 ]
             ]
         , Html.tr
@@ -114,61 +115,6 @@ body zipped =
             , Html.td
                 []
                 [ Html.text edgeData.min_spend
-                ]
-            ]
-        , Html.tr
-            []
-            [ Html.td
-                []
-                [ Html.text "name"
-                ]
-            , Html.td
-                []
-                [ Html.text vertexData.name
-                ]
-            ]
-        , Html.tr
-            []
-            [ Html.td
-                []
-                [ Html.text "is-committee"
-                ]
-            , Html.td
-                []
-                [ Html.text (Util.printBool vertexData.is_committee)
-                ]
-            ]
-        , Html.tr
-            []
-            [ Html.td
-                []
-                [ Html.text "city"
-                ]
-            , Html.td
-                []
-                [ Html.text (Maybe.withDefault "null" vertexData.address.city)
-                ]
-            ]
-        , Html.tr
-            []
-            [ Html.td
-                []
-                [ Html.text "street"
-                ]
-            , Html.td
-                []
-                [ Html.text (Maybe.withDefault "null" vertexData.address.street)
-                ]
-            ]
-        , Html.tr
-            []
-            [ Html.td
-                []
-                [ Html.text "state"
-                ]
-            , Html.td
-                []
-                [ Html.text (Maybe.withDefault "null" vertexData.address.state)
                 ]
             ]
         ]

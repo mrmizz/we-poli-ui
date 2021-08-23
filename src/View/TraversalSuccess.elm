@@ -78,6 +78,7 @@ body model isModalActive =
         , Html.div
             []
             [ selected_
+            , View.Pagination.view model
             , selectable_
             , View.Pagination.view model
             ]
