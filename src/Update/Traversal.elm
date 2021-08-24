@@ -56,7 +56,10 @@ updateWithChildPageCountRequest model vertexData =
 
 updateWithPaginatedTraversalRequest : Model -> PageCount -> ( Model, Cmd Msg )
 updateWithPaginatedTraversalRequest model pageCount =
-    ( { model | traversal = Traversal.Waiting pageCount }
+    ( { model
+        | state = Loading
+        , traversal = Traversal.Waiting pageCount
+      }
     , Cmd.batch
         [ traversalPost
             (buildTraversalRequest pageCount.src_id pageCount.current_page)
