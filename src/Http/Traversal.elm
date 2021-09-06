@@ -5,6 +5,7 @@ import Http.Generic exposing (DynamoArrayNumber, DynamoNumber, DynamoNumberAsInt
 import Http.Url as Url exposing (getItemURL)
 import Json.Decode as Decode
 import Json.Encode as Encode
+import Model.SortBy as SortBy exposing (SortBy)
 
 
 type alias TraversalRequest =
@@ -39,9 +40,9 @@ traversalPost request toMsg =
         }
 
 
-buildTraversalRequest : String -> Int -> TraversalRequest
-buildTraversalRequest srcId pageNumber =
-    { table_name = "PoliTraversalsPageSB1" ++ Url.envTitle
+buildTraversalRequest : SortBy -> String -> Int -> TraversalRequest
+buildTraversalRequest sortBy srcId pageNumber =
+    { table_name = "PoliTraversalsPageSB" ++ SortBy.toString sortBy ++ Url.envTitle
     , key = { vertex_id = DynamoNumber srcId, page_num = DynamoNumberAsInt pageNumber }
     }
 

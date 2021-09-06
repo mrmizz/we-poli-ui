@@ -62,7 +62,7 @@ updateWithPaginatedTraversalRequest model pageCount =
       }
     , Cmd.batch
         [ traversalPost
-            (buildTraversalRequest pageCount.src_id pageCount.current_page)
+            (buildTraversalRequest model.sort_by_selected pageCount.src_id pageCount.current_page)
             (TraversalPostReceived pageCount)
         , resetViewport
         ]
@@ -83,7 +83,7 @@ updateWithPageCountResponse model result =
             in
             ( { model | traversal = Traversal.Waiting unpack }
             , traversalPost
-                (buildTraversalRequest unpack.src_id unpack.current_page)
+                (buildTraversalRequest model.sort_by_selected unpack.src_id unpack.current_page)
                 (TraversalPostReceived unpack)
             )
 

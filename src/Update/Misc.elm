@@ -1,11 +1,14 @@
 module Update.Misc exposing (..)
 
+import Http.Traversal exposing (buildTraversalRequest, traversalPost)
 import Model.Aggregation exposing (Aggregation(..))
 import Model.Direction exposing (Direction(..))
 import Model.Model exposing (Model, initialModel)
 import Model.SortBy exposing (SortBy)
+import Model.State exposing (State(..))
+import Model.Traversal as Traversal exposing (Traversal(..))
 import Model.VertexData as VertexData exposing (VertexData)
-import Msg.Msg exposing (Msg, resetViewport)
+import Msg.Msg exposing (Msg(..), resetViewport)
 
 
 updateWithDirectionOption : Model -> ( Model, Cmd Msg )
@@ -42,11 +45,34 @@ updateWithAggOption model =
 
 updateWithSortByOption : Model -> SortBy -> ( Model, Cmd Msg )
 updateWithSortByOption model sortBy =
-    ( { model
-        | sort_by_selected = sortBy
-      }
-    , Cmd.none
-    )
+    case model.traversal of
+        Pending ->
+            ( { model
+                | sort_by_selected = sortBy
+              }
+            , Cmd.none
+            )
+
+        Done pageCount ->
+            ( { model
+                | state = Loading
+                , sort_by_selected = sortBy
+                , traversal = Traversal.Waiting pageCount
+              }
+            , Cmd.batch
+                [ traversalPost
+                    (buildTraversalRequest sortBy pageCount.src_id pageCount.current_page)
+                    (TraversalPostReceived pageCount)
+                , resetViewport
+                ]
+            )
+
+        _ ->
+            ( { model
+                | state = DataIntegrityFailure
+              }
+            , Cmd.none
+            )
 
 
 updateVertexSelected : Model -> VertexData -> ( Model, Cmd Msg )
