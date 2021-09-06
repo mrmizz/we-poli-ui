@@ -6,7 +6,6 @@ import Model.EdgeData as EdgeData
 import Model.VertexData exposing (VertexData)
 import Model.Zipped exposing (Zipped)
 import Msg.Msg exposing (Msg)
-import Util.Util as Util
 
 
 view : Zipped -> Html Msg
